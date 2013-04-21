@@ -43,7 +43,7 @@ def getWebstate():
     for section in config.CONFIG.sections():
         if not(section in ['configuration', 'worldcommunitygrid.org']):
             b = browser.Browser(section)
-            parser = parse.HTMLParser_boinc(projects=parser.projects, tasks=parser.tasks)
+            parser = parse.HTMLParser_boinc(browser=b, projects=parser.projects, tasks=parser.tasks)
             content = b.visit()
             parser.feed(content)
 
@@ -177,7 +177,8 @@ def main(shouldPlot):
 if __name__ == '__main__':
     datetime.strptime("", "") # avoids threading bug, see http://bugs.python.org/issue7980
     parser = argparse.ArgumentParser(description='Boinc statistics for world community grid')
-    parser.add_argument('-p', '--plot', action='store_true')
+    parser.add_argument('-p', '--plot', action='store_true', help='Use matplotlib to plot statistics and progress')
+    #parser.add_argument('-s', '--save', action='store_true', help='Use in combination with --plot, saves the figures to disk in the current working directory')
     parser.add_argument('--verbose', '-v', action='store_true', help='Sets logging level to DEBUG')
     parser.add_argument('--always', action='store_true', help='Passes "--set_run_mode always --set_network_mode always" to boinccmd')
     parser.add_argument('--auto', action='store_true', help='Passes "--set_run_mode auto --set_network_mode auto" to boinccmd')

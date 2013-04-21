@@ -276,14 +276,58 @@ class HTMLParser_worldcommunitygrid_workunit(HTMLParser):
             elif self.inProjectName: # Next time
                 self.projectName = data
                 self.inProjectName = False # reset
-    
+
+class HTMLParser_boinc_workunit(HTMLParser):
+    # Rosetta style classes need to parse each individual workunit to get project name
+    def __init__(self):
+        HTMLParser.__init__(self)
+#         self.inFieldName = False
+#         self.inFieldValue = False
+        self.projectName = ''           # not found
+
+#     def handle_starttag(self, tag, attrs):
+#         print 'starttage', tag, attrs
+#         try:
+#             if tag == 'td' and attrs[1] == ('class', 'fieldname'):
+#                 self.inFieldName = True
+#         except KeyError: pass
+#         try:
+#             if tag == 'td' and attrs[0] == ('class', 'fieldvalue'):
+#                 self.inFieldValue = True
+#         except KeyError: pass
+        
+#     def handle_endtag(self, tag):
+#         print 'endtag', tag
+#         if tag == 'td':
+#             self.inFieldName = False
+#             self.inFieldValue = False
+
+#     def handle_data(self, data):
+#         print 'data "{}"'.format(data.strip())
+#         if self.inFieldName:
+#             if data == 'application':
+#                 self.inApplication = True
+                
+#         if self.inFieldValue and self.inApplication:
+#             self.projectName = data
+#             self.inApplication = False
+
+    def feed(self, data):
+        # Apperently there is some bad html somewhere, so we do it the ugly way
+        for line in data.split('\n'):
+            if line.startswith('<center>'):
+                reg = re.search('"fieldvalue">([\w\s]+)', line)
+                if reg:
+                    self.projectName = reg.group(1)
+                #line = '<center><table bgcolor=000000 cellpadding=0 cellspacing=1 cellpadding=5 width=100%><td bgcolor=white><table border=0 bgcolor=white cellpadding=5 width=100%><td><table border=0 cellpadding=10 cellspacing=0 width=100%><td width=100%><table border="1" cellpadding="5" width="100%"><tr><td width="40%" class="fieldname">application</td><td class="fieldvalue">Rosetta Mini</td></tr>'
+                #HTMLParser.feed(self, line)
 class HTMLParser_boinc(HTMLParser):
-    def __init__(self, tasks=None, projects=None):
+    def __init__(self, browser, tasks=None, projects=None):
+        HTMLParser.__init__(self)
         # State:
         self.inTable = False
         self.inTr = False
         self.currentTask = list()
-        HTMLParser.__init__(self)
         # Public:
         if tasks == None:
             self.tasks = list()
@@ -294,11 +338,27 @@ class HTMLParser_boinc(HTMLParser):
         else:
             self.projects = projects
 
+        self.browser = browser
+        self.parse_workUnit = HTMLParser_boinc_workunit()
+
     def handle_starttag(self, tag, attrs):
-        if tag == 'table' and len(attrs) == 2: # Only the main table seems to have 2 entries (for now!)
+        if tag == 'table': #and len(attrs) == 2: # Only the main table seems to have 2 entries (for now!)
             self.inTable = True
         if tag == 'tr' and self.inTable:
             self.inTr = True
+        if tag == 'a' and self.inTable:
+            try:
+                if attrs[1][0] == 'title':
+                    name = attrs[1][1].split(':') # 'Name: cryo_be__chain_L_subrun_000_SAVE_ALL_OUT_IGNORE_THE_REST_78241_337_1'
+                    self.name = name[-1]
+            except IndexError: pass
+            try:
+                if attrs[0][0] == 'href' and 'workunit.php' in attrs[0][1]:
+                    content = self.browser.visitURL('http://{name}/{id}'.format(name=self.browser.name, id=attrs[0][1]))
+                    self.parse_workUnit.feed(content)
+                    self.projectName = self.parse_workUnit.projectName
+                    
+            except IndexError: pass
         
     def handle_endtag(self, tag):
         if tag == 'table':
@@ -309,7 +369,26 @@ class HTMLParser_boinc(HTMLParser):
             if len(self.currentTask) == 10:
                 name_long, name_short = shortLongName(self.currentTask[9])
                 self.currentTask[9] = name_long
-                t = task.WebTask(self.currentTask)
+                try:
+                    t = task.WebTask(*self.currentTask)
+                    logging.debug('Normal task created %s', t)
+                except Exception as e:                 # Guess not, rosetta seems to have arranged the colums differently, lets try that
+                    logger.debug('normal task error %s', e)
+                    logger.debug('%s %s %s', self.name, self.currentTask, self.projectName)
+                    t = task.WebTask(name=self.name,
+                                     workunit=self.currentTask[1],
+                                     device='', # does not give info about device
+                                     sent=self.currentTask[2],
+                                     deadline=self.currentTask[3],
+                                     state="{} {} {}".format(self.currentTask[4] , self.currentTask[5] , self.currentTask[6]),
+                                     finaltime='', # not given
+                                     finalCPUtime=self.currentTask[7],
+                                     granted=self.currentTask[9],
+                                     projectName=self.projectName,
+                                     credit=self.currentTask[8])
+                    name_long = self.projectName
+                    name_short = ''
+                    logger.debug('rosetta style task %s', t)
                 self.tasks.append(t)
                 self.projects[name_long] = project.Project(name_long=name_long,
                                                            name_short=name_short) # hack
@@ -333,10 +412,11 @@ if __name__ == '__main__':
     config.main()
     browser.main()
     
-    browser = browser.Browser('mindmodeling.org')
+    #browser = browser.Browser('mindmodeling.org')
+    browser = browser.Browser('boinc.bakerlab.org')
 
-    parser = HTMLParser_boinc()
+    parser = HTMLParser_boinc(browser)
     content = browser.visit()
-    #print content
+    print content
     parser.feed(content)
-    #print parser
+    print parser

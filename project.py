@@ -203,6 +203,10 @@ def plotTaskPipeline(projects):
     width = 0.8
     state = ['downloading', 'ready to run', 'running', 'suspended', 'paused', 'computation completed', 'uploading', 'ready to report',
              'in progress', 'aborted', 'detached', 'error', 'no reply', 'pending validation', 'pending verification', 'valid', 'invalid', 'inconclusive', 'too late', 'waiting to send', 'other']
+    # Hack, add any other states
+    for key in projects:
+        for task in projects[key].tasks:
+            if not(task.state.lower() in state): state.append(task.state.lower())
     x = range(len(state))
     prev = np.zeros(len(state))
 

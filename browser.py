@@ -138,7 +138,9 @@ class BrowserSuper(object):
                 return ''
 
             logger.info('%s, %s', r, r.history)
-            if r.url != URL:
+            firstLine = r.content.split('\n')[0].strip()
+            logger.debug('First line "%s"', firstLine)
+            if r.url != URL or firstLine == '<html><head><title>Please log in</title>': # Last is a hack for rosetta: boinc.bakerlab.org/
                 if not(recursionCall):
                     logger.info('Seem to have been redirected, trying to authenticate first. %s', r.url)
                     self.authenticate()
@@ -177,7 +179,6 @@ class Browser_worldcommunitygrid(BrowserSuper):
         page = self.visitURL("http://www.worldcommunitygrid.org/verifyMember.do?name={}&code={}".format(config.CONFIG.get('worldcommunitygrid.org', 'username'),
                                                                                                         config.CONFIG.get('worldcommunitygrid.org', 'code')), extension='.xml')
         return page
-        
 
 class Browser(BrowserSuper):
     def __init__(self, webpageName):
@@ -192,12 +193,25 @@ class Browser(BrowserSuper):
                           'mode': 'Log in',
                           'next_url': 'home.php',
                           'passwd': config.CONFIG.getpassword(webpageName, 'username'),
-                          'stay_logged_in': 'on'}
+                          'stay_logged_in': 'on', # normal one
+                          'send_cookie': 'on'}    # used by rosetta at home
         self.loginPage = 'http://{}/login_action.php'.format(webpageName)
 
     def visitHome(self):
         return self.visitURL('http://{}/home.php'.format(self.webpageName))
-        
+
+                
+# class Browser_Rosetta(Browser):
+#     def __init__(self):
+#         Browser.__init__(self, 'boinc.bakerlab.org')
+
+#         self.loginInfo = {'email_addr': config.CONFIG.get(webpageName, 'username'),
+#                           'mode': 'Log in',
+#                           'next_url': 'home.php',
+#                           'passwd': config.CONFIG.getpassword(webpageName, 'username'),
+#                           'send_cookie': 'on'} # only difference from above
+#         self.loginPage = 'http://{}/login_action.php'.format(webpageName)
+
 global browser_cache
 browser_cache = None                    # There should be only 1 instance of this class
 def main():

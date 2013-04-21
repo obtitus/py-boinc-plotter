@@ -52,7 +52,7 @@ class Task(object):
             self.fractionDone = '1' # this is set to 0 when done, weird!
             self._currentCPUtime = self._finalCPUtime
             state = 'Ready to report'
-        elif self.state == 'Computation Completed':
+        elif self.state == 'computation completed':
             state = 'Completed'
         elif self.schedularState in ['Suspended', 'Ready to start']:
             state = self.schedularState
@@ -67,7 +67,7 @@ class Task(object):
 
     def done(self):
         # Is the task finished?
-        if self.state == 'In Progress': # For tasks on other computers
+        if self.state == 'in progress': # For tasks on other computers
             return False
         else:
             return self.remainingCPUtime == '0:00:00'
@@ -124,7 +124,11 @@ class Task(object):
         try:
             self._state = int(state)
         except ValueError: # lets hope its a string representing the state
-            self._state = self.desc_state.index(state)
+            try:
+                self._state = self.desc_state.index(state.lower())
+            except:                     # guess not
+                self.desc_state.append(state.lower()) # now it is!
+                self._state = self.desc_state.index(state.lower())
     
     @property
     def active(self):
@@ -162,7 +166,7 @@ class Task(object):
         self._remainingCPUtime = self.strToTimedelta(remainingCPUtime)
 
 class WebTask_worldcommunitygrid(Task):
-    desc_state = ['In Progress', 'Aborted', 'Detached', 'Error', 'No Reply', 'Pending Validation', 'Pending Verification', 'Valid', 'Invalid', 'Inconclusive', 'Too Late', 'Waiting to Send', 'Other']
+    desc_state = ['in progress', 'aborted', 'detached', 'error', 'no reply', 'pending validation', 'pending verification', 'valid', 'invalid', 'inconclusive', 'too late', 'waiting to send', 'other']
     def strToTimedelta(self, hours):
         timedelta = datetime.timedelta(hours=float(hours))
         return timedelta
@@ -200,44 +204,52 @@ class WebTask_worldcommunitygrid(Task):
         self.fractionDone = 0
 
 class WebTask(Task):
-    desc_state = ['In progress', 'Validation pending', 'Validation inconclusive', 'Valid', 'Invalid', 'Error']
-    def __init__(self, lst):
+    desc_state = ['in progress', 'validation pending', 'validation inconclusive', 'valid', 'invalid', 'error']
+    def __init__(self, name, workunit, device, sent, deadline, state, finaltime, finalCPUtime, granted, projectName, credit=0):
         Task.__init__(self)
         
         self.fmt_date = '%d %b %Y %H:%M:%S UTC'
         # example lst: ['MindModeling-433-51616f73ef41a_0', '5649272', '35054', '7 Apr 2013, 13:13:03 UTC', '8 Apr 2013, 20:13:03 UTC', 'In progress', '---', '---', '---', 'Native Python v2.7 Application v1.02 (sse2)']
-        assert len(lst) == 10, 'Error, could not recognized task {0}'.format(lst)
+        #assert len(lst) == 10, 'Error, could not recognized task {0}'.format(lst)
 
-        self.name = lst[0]
+        self.name = name
 
-        self.workunit = lst[1]
+        self.workunit = workunit
 
-        self.device = lst[2]
+        self.device = device
 
-        self.sent = lst[3]              # TODO: add this to print?
+        self.sent = sent              # TODO: add this to print?
 
-        self.deadline = lst[4].replace(',', '') # some write: '%d %b %Y, %H:%M:%S UTC'
+        self.deadline = deadline.replace(',', '') # some write: '%d %b %Y, %H:%M:%S UTC'
 
-        lst[5] = lst[5].replace('Completed and validated', 'Valid') # TODO: are there more of these?
-        self.state = lst[5]
+        if state.lower() == 'completed and validated':
+            state = 'valid'
+        elif state.lower() == 'over success done':
+            state = 'valid'
+        elif state.lower().startswith('in progress'):
+            state = 'in progress'
+        self.state = state
 
-        self.finaltime = lst[6]
+        self.finaltime = finaltime
 
-        if lst[7] == '---':
-            lst[7] = '0'
+        if finalCPUtime == '---':
+            finalCPUtime = '0'
         else:
-            lst[7] = lst[7].replace(',', '') # used as thousand seperator
-        self.finalCPUtime = lst[7]
+            finalCPUtime = finalCPUtime.replace(',', '') # used as thousand seperator
+        self.finalCPUtime = finalCPUtime
 
-        if lst[8] == '---':
-            lst[8] = '0'
-        self.credit = lst[8]
-        self.granted = float(self.credit)      # todo: check
+        if granted == '---':
+            granted = '0'
+        self.credit = granted
+        if credit == '---':
+            credit = '0'
+        self.granted = float(credit)
 
-        self.projectName = lst[9]
+        self.projectName = projectName
 
         # We need to override these
-        self.remainingCPUtime = 0        
+        self.remainingCPUtime = 0
+        self._currentCPUtime = self._finalCPUtime        
         self.schedularState = -1
         self.active = 0
         self.fractionDone = 0
