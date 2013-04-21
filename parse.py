@@ -350,7 +350,7 @@ class HTMLParser_boinc(HTMLParser):
             try:
                 if attrs[1][0] == 'title':
                     name = attrs[1][1].split(':') # 'Name: cryo_be__chain_L_subrun_000_SAVE_ALL_OUT_IGNORE_THE_REST_78241_337_1'
-                    self.name = name[-1]
+                    self.name = name[-1].strip()
             except IndexError: pass
             try:
                 if attrs[0][0] == 'href' and 'workunit.php' in attrs[0][1]:
