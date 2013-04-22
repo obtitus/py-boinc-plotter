@@ -128,7 +128,7 @@ def set_globals():
     CONFIG = setupConfigFile()
     CACHE_DIR = setupCacheDir()
     BOINC_DIR = setupBoincDir()
-    logger.info('Config "%s"\nCache dir "%s"\nBoinc dir "%s"', CONFIG, CACHE_DIR, BOINC_DIR)
+    logger.info('Config file "%s"\nCache dir "%s"\nBoinc dir "%s"', CONFIG.filename, CACHE_DIR, BOINC_DIR)
     
 def main():
     set_globals()

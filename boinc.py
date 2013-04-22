@@ -204,13 +204,14 @@ if __name__ == '__main__':
         args.args.extend(['--set_run_mode never', '--set_network_mode never'])
 
     ### Make global variables ###
-    config.main()
-    browser.main()
     # configure logger
     loggerLevel = logging.INFO
     if args.verbose: loggerLevel = logging.DEBUG
     if args.silent: loggerLevel = logging.ERROR    
     loggerSetup(loggerLevel)    
+
+    config.main()
+    browser.main()
     ###
 
     # Add account

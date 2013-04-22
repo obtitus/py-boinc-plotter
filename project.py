@@ -155,13 +155,14 @@ def plotRunningTimeByProject_wuprop(projects):
               [2500, 'Emerald'],
               [5000, 'Sapphire']]
     daysToMark = list()
-    
+    totalRuntime = datetime.timedelta(0)
     for key in sorted(projects.keys()):
         stat = projects[key].stat       # statistics.Project class
         if stat == None or stat.wuRuntime == None:
             continue
         color = 'k'
         h = stat.wuRuntime.total_seconds()
+        totalRuntime += stat.wuRuntime
         for b, c in badges:
             if h > b*60*60:
                 color = badgeToColor(c);
@@ -196,6 +197,8 @@ def plotRunningTimeByProject_wuprop(projects):
         plt.axhline(day, color=badgeToColor(color))
 
     plt.gca().yaxis.set_major_formatter(formatter_timedelta)
+
+    plt.title('Stats for {} projects, total runtime {}'.format(len(labels), totalRuntime))
         
 def plotTaskPipeline(projects):
     fig = plt.figure('Task pipeline', figsize=(10, 8))
