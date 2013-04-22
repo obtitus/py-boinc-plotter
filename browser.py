@@ -45,7 +45,7 @@ class Browser_cache(object):
             age = (now - fileChanged)/(60*60) # age of file in hours
             logger.debug('%s is %s h old', filename, age)
             oldAge = 1
-            if 'viewWorkunitStatus' in filename or 'workunit.php?' in filename:
+            if ('viewWorkunitStatus' in filename) or ('workunitphp' in filename):
                 oldAge = 24*14 # Currently the workunit page is only used for project name, which will never change. Set to 14 days so that the file will eventually be cleaned
             if age < oldAge:
                 logger.debug('Adding %s to valid cache', filename)
@@ -199,7 +199,7 @@ class Browser(BrowserSuper):
                           'passwd': config.CONFIG.getpassword(webpageName, 'username'),
                           'stay_logged_in': 'on', # normal one
                           'send_cookie': 'on'}    # used by rosetta at home
-        self.loginPage = 'http://{1}/login_action.php'.format(webpageName)
+        self.loginPage = 'http://{0}/login_action.php'.format(webpageName)
 
     def visitHome(self):
         return self.visitURL('http://{0}/home.php'.format(self.webpageName))

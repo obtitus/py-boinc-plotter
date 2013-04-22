@@ -116,7 +116,7 @@ def setupPassword(domain, additionalInfo=[], forgetOld=False):
     for a in additionalInfo:
         password = CONFIG.get(domain, a)
         if password == None or forgetOld:
-            password = getpass.getpass('Enter {0} for user "{1}" at {3}: '.format(a, username, domain))
+            password = getpass.getpass('Enter {0} for user "{1}" at {2}: '.format(a, username, domain))
             CONFIG.set(domain, a, password)
 
 global CONFIG, CACHE_DIR, BOINC_DIR

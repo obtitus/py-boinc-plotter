@@ -86,8 +86,8 @@ class CMDparser(object):
         name, value = self.splitColon(line)
         if name == 'master URL': self.info += '{0}\n'.format(value)        
         if name == 'user_name': self.info += 'User: {0}\n'.format(value)
-        if name == 'user_total_credit': self.info += 'Total boinc credits: {:.0f}\n'.format(float(value))
-        if name == 'user_expavg_credit': self.info += 'Average boinc credits: {:.0f}\n'.format(float(value))
+        if name == 'user_total_credit': self.info += 'Total boinc credits: {0:.0f}\n'.format(float(value))
+        if name == 'user_expavg_credit': self.info += 'Average boinc credits: {0:.0f}\n'.format(float(value))
 
     def parseApplications(self, line):
         name, value = self.splitColon(line)

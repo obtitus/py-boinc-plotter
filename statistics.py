@@ -84,9 +84,9 @@ class Statistics_worldcommunitygrid(object):
 
     def __str__(self):
         s = 'Worldcommunitygrid.org\nLast result returned: {0}\n'.format(self.lastResult)
-        run = 'Run time {0:>20} total, {1:>10} per day (#{3})'.format(self.runtime, self.runtimePerDay, fmtNumber(self.runtimeRank))
-        p   = 'Points   {0:>20} total, {1:>10.3g} per day (#{3})'.format(fmtNumber(self.points), self.pointsPerDay, fmtNumber(self.pointsRank))
-        res = 'Results  {0:>20} total, {1:>10.3g} per day (#{3})'.format(fmtNumber(self.results), self.resultsPerDay, fmtNumber(self.resultsRank))
+        run = 'Run time {0:>20} total, {1:>10} per day (#{2})'.format(self.runtime, self.runtimePerDay, fmtNumber(self.runtimeRank))
+        p   = 'Points   {0:>20} total, {1:>10.3g} per day (#{2})'.format(fmtNumber(self.points), self.pointsPerDay, fmtNumber(self.pointsRank))
+        res = 'Results  {0:>20} total, {1:>10.3g} per day (#{2})'.format(fmtNumber(self.results), self.resultsPerDay, fmtNumber(self.resultsRank))
         s += '{:>10}\n{:>10}\n{:>10}'.format(run, p, res)
         return s
 

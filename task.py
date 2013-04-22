@@ -223,12 +223,15 @@ class WebTask(Task):
 
         self.deadline = deadline.replace(',', '') # some write: '%d %b %Y, %H:%M:%S UTC'
 
+        # Hack!
         if state.lower() == 'completed and validated':
             state = 'valid'
         elif state.lower() == 'over success done':
             state = 'valid'
         elif state.lower().startswith('in progress'):
             state = 'in progress'
+        if 'error' in state.lower():
+            state = 'error'
         self.state = state
 
         self.finaltime = finaltime
