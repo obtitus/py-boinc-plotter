@@ -42,7 +42,12 @@ def getWebstate():
     parser.feed(content)
 
     for section in config.CONFIG.sections():
-        if not(section in ['configuration', 'worldcommunitygrid.org']):
+        if 'rechenkraft.net/yoyo' in section:
+            b = browser.Browser_yoyo()
+            parser = parse.HTMLParser_boinc(browser=b, projects=parser.projects, tasks=parser.tasks)
+            content = b.visit()
+            parser.feed(content)
+        elif not(section in ['configuration', 'worldcommunitygrid.org']):
             b = browser.Browser(section)
             parser = parse.HTMLParser_boinc(browser=b, projects=parser.projects, tasks=parser.tasks)
             content = b.visit()

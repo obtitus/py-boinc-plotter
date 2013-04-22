@@ -283,45 +283,47 @@ class HTMLParser_boinc_workunit(HTMLParser):
     # Rosetta style classes need to parse each individual workunit to get project name
     def __init__(self):
         HTMLParser.__init__(self)
-#         self.inFieldName = False
-#         self.inFieldValue = False
+        self.inFieldName = False
+        self.inFieldValue = False
+        self.inApplication = False
         self.projectName = ''           # not found
 
-#     def handle_starttag(self, tag, attrs):
-#         print 'starttage', tag, attrs
-#         try:
-#             if tag == 'td' and attrs[1] == ('class', 'fieldname'):
-#                 self.inFieldName = True
-#         except KeyError: pass
-#         try:
-#             if tag == 'td' and attrs[0] == ('class', 'fieldvalue'):
-#                 self.inFieldValue = True
-#         except KeyError: pass
+    def handle_starttag(self, tag, attrs):
+        try:
+            if tag == 'td' and attrs[1] == ('class', 'fieldname'):
+                self.inFieldName = True
+        except IndexError: pass
+        try:
+            if tag == 'td' and attrs[0] == ('class', 'fieldvalue'):
+                self.inFieldValue = True
+        except IndexError: pass
         
-#     def handle_endtag(self, tag):
-#         print 'endtag', tag
-#         if tag == 'td':
-#             self.inFieldName = False
-#             self.inFieldValue = False
+    def handle_endtag(self, tag):
+        if tag == 'td':
+            self.inFieldName = False
+            self.inFieldValue = False
 
-#     def handle_data(self, data):
-#         print 'data "{0}"'.format(data.strip())
-#         if self.inFieldName:
-#             if data == 'application':
-#                 self.inApplication = True
+    def handle_data(self, data):
+        if self.inFieldName:
+            if data == 'application':
+                self.inApplication = True
                 
-#         if self.inFieldValue and self.inApplication:
-#             self.projectName = data
-#             self.inApplication = False
+        if self.inFieldValue and self.inApplication:
+            self.projectName = data
+            self.inApplication = False
 
     def feed(self, data):
-        # Apperently there is some bad html somewhere, so we do it the ugly way
-        reg_exp = re.compile('"fieldvalue">([\w\s]+)')
-        for line in data.split('\n'):
-            if line.startswith('<center>'):
-                reg = re.search(reg_exp, line)
-                if reg:
-                    self.projectName = reg.group(1)
+        HTMLParser.feed(self, data)
+        logger.debug('project name "%s"', self.projectName)
+        if self.projectName == '':
+            # Apperently there is some bad html somewhere, so we do it the ugly way (used by rosetta)
+            logger.debug('Finding project name by regexp')
+            reg_exp = re.compile('"fieldvalue">([\w\s]+)')
+            for line in data.split('\n'):
+                if line.startswith('<center>'):
+                    reg = re.search(reg_exp, line)
+                    if reg:
+                        self.projectName = reg.group(1)
                 #line = '<center><table bgcolor=000000 cellpadding=0 cellspacing=1 cellpadding=5 width=100%><td bgcolor=white><table border=0 bgcolor=white cellpadding=5 width=100%><td><table border=0 cellpadding=10 cellspacing=0 width=100%><td width=100%><table border="1" cellpadding="5" width="100%"><tr><td width="40%" class="fieldname">application</td><td class="fieldvalue">Rosetta Mini</td></tr>'
                 #HTMLParser.feed(self, line)
 
@@ -352,24 +354,18 @@ class HTMLParser_boinc(HTMLParser):
         if tag == 'tr' and self.inTable:
             self.inTr = True
         if tag == 'a' and self.inTable:
-            try:
-                if attrs[1][0] == 'title':
-                    name = attrs[1][1].split(':') # 'Name: cryo_be__chain_L_subrun_000_SAVE_ALL_OUT_IGNORE_THE_REST_78241_337_1'
-                    self.name = name[-1].strip()
-            except IndexError: pass
-            try:
-                if attrs[0][0] == 'href' and 'workunit.php' in attrs[0][1]:
-                    content = self.browser.visitPage(attrs[0][1])
-                    self.parse_workUnit.feed(content)
-                    self.projectName = self.parse_workUnit.projectName
-            except IndexError: pass
-            try:
-                if attrs[0][0] == 'href' and 'results.php?userid=' in attrs[0][1]:
-                    reg = re.search('userid=\d+&offset=(\d+)', attrs[0][1])
-                    page = reg.group(1)
-                    if not(page in self.listOfPages) and int(page) != 0:
-                        self.listOfPages.append(page) # results.php?userid=<userid>&offset=40
-            except IndexError: pass
+            if len(attrs) > 1 and attrs[1][0] == 'title':
+                name = attrs[1][1].split(':') # 'Name: cryo_be__chain_L_subrun_000_SAVE_ALL_OUT_IGNORE_THE_REST_78241_337_1'
+                self.name = name[-1].strip()
+            if len(attrs) > 0 and attrs[0][0] == 'href' and 'workunit.php' in attrs[0][1]:
+                content = self.browser.visitPage(attrs[0][1])
+                self.parse_workUnit.feed(content)
+                self.projectName = self.parse_workUnit.projectName
+            if len(attrs) > 0 and attrs[0][0] == 'href' and 'results.php?userid=' in attrs[0][1]:
+                reg = re.search('userid=\d+&offset=(\d+)', attrs[0][1])
+                page = reg.group(1)
+                if not(page in self.listOfPages) and int(page) != 0:
+                    self.listOfPages.append(page) # results.php?userid=<userid>&offset=40
         
     def handle_endtag(self, tag):
         if tag == 'table':
@@ -415,13 +411,13 @@ class HTMLParser_boinc(HTMLParser):
 
         # Lets check if there are additional pages we should visit (browser keeps track so that we don't bombard the same page multiple times)
         for page in self.listOfPages:
-            logger.info('additional %s', page)
+            logger.debug('additional %s', page)
             content = self.browser.visit(page)
             if content != '':
                 self.feed(content) # recursion!
 
 if __name__ == '__main__':
-    loggerSetup(logging.INFO)
+    loggerSetup(logging.DEBUG)
 
     import browser
     import config
