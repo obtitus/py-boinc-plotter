@@ -13,6 +13,7 @@ except:
 import logging
 logger = logging.getLogger('boinc.project')
 
+from loggerSetup import loggerSetup
 from importMatplotlib import *
 
 class Project(object):
@@ -296,6 +297,7 @@ def plotDeadline(projects):
                 label.set_va('baseline')
     
 if __name__ == '__main__':
+    loggerSetup(logging.INFO)
     import statistics
 
     page = statistics.getPage(fromCache=True)

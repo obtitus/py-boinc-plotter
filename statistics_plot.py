@@ -15,6 +15,7 @@ from collections import defaultdict
 import logging
 logger = logging.getLogger('boinc.statistics_plot')
 
+from loggerSetup import loggerSetup
 from importMatplotlib import *
 import config
 import async
@@ -294,11 +295,7 @@ def main():
         plotDailyTransfer(fig, daily_transfer.ret)
 
 if __name__ == '__main__':
-    logger.setLevel(logging.INFO)
-    ch = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    loggerSetup(logging.INFO)
 
     ### Make global variables ###
     config.main()

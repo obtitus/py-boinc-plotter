@@ -12,6 +12,8 @@ import project
 import logging
 logger = logging.getLogger('boinc.parse')
 
+from loggerSetup import loggerSetup
+
 # Only contains info on currently running tasks, but contains slot number and short name
 # class InitDataParser(task.Task):
 #     # Parse a init_data.xml file into a single task.Task object
@@ -314,13 +316,15 @@ class HTMLParser_boinc_workunit(HTMLParser):
 
     def feed(self, data):
         # Apperently there is some bad html somewhere, so we do it the ugly way
+        reg_exp = re.compile('"fieldvalue">([\w\s]+)')
         for line in data.split('\n'):
             if line.startswith('<center>'):
-                reg = re.search('"fieldvalue">([\w\s]+)', line)
+                reg = re.search(reg_exp, line)
                 if reg:
                     self.projectName = reg.group(1)
                 #line = '<center><table bgcolor=000000 cellpadding=0 cellspacing=1 cellpadding=5 width=100%><td bgcolor=white><table border=0 bgcolor=white cellpadding=5 width=100%><td><table border=0 cellpadding=10 cellspacing=0 width=100%><td width=100%><table border="1" cellpadding="5" width="100%"><tr><td width="40%" class="fieldname">application</td><td class="fieldvalue">Rosetta Mini</td></tr>'
                 #HTMLParser.feed(self, line)
+
 class HTMLParser_boinc(HTMLParser):
     def __init__(self, browser, tasks=None, projects=None):
         HTMLParser.__init__(self)
@@ -340,6 +344,7 @@ class HTMLParser_boinc(HTMLParser):
 
         self.browser = browser
         self.parse_workUnit = HTMLParser_boinc_workunit()
+        self.listOfPages = list()       # list of additional pages to visit
 
     def handle_starttag(self, tag, attrs):
         if tag == 'table': #and len(attrs) == 2: # Only the main table seems to have 2 entries (for now!)
@@ -354,10 +359,16 @@ class HTMLParser_boinc(HTMLParser):
             except IndexError: pass
             try:
                 if attrs[0][0] == 'href' and 'workunit.php' in attrs[0][1]:
-                    content = self.browser.visitURL('http://{name}/{id}'.format(name=self.browser.name, id=attrs[0][1]))
+                    content = self.browser.visitPage(attrs[0][1])
                     self.parse_workUnit.feed(content)
                     self.projectName = self.parse_workUnit.projectName
-                    
+            except IndexError: pass
+            try:
+                if attrs[0][0] == 'href' and 'results.php?userid=' in attrs[0][1]:
+                    reg = re.search('userid=\d+&offset=(\d+)', attrs[0][1])
+                    page = reg.group(1)
+                    if not(page in self.listOfPages) and int(page) != 0:
+                        self.listOfPages.append(page) # results.php?userid=<userid>&offset=40
             except IndexError: pass
         
     def handle_endtag(self, tag):
@@ -399,15 +410,20 @@ class HTMLParser_boinc(HTMLParser):
             if data.strip() != '':
                 self.currentTask.append(data)
 
-if __name__ == '__main__':
-    import browser
-    logger = logging.getLogger('boinc')
-    logger.setLevel(logging.DEBUG)
-    ch = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    def feed(self, *args, **kwargs):
+        HTMLParser.feed(self, *args, **kwargs)
 
+        # Lets check if there are additional pages we should visit (browser keeps track so that we don't bombard the same page multiple times)
+        for page in self.listOfPages:
+            logger.info('additional %s', page)
+            content = self.browser.visit(page)
+            if content != '':
+                self.feed(content) # recursion!
+
+if __name__ == '__main__':
+    loggerSetup(logging.INFO)
+
+    import browser
     import config
     config.main()
     browser.main()

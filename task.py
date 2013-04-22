@@ -9,6 +9,7 @@ import datetime
 import logging
 logger = logging.getLogger('boinc.task')
 
+from loggerSetup import loggerSetup
 import config
 
 class Task(object):
@@ -281,8 +282,8 @@ class BoincCMD(object):
             return stdout
 
 if __name__ == '__main__':
+    loggerSetup(logging.INFO)
     p1 = Boinccmd('--get_cc_status')
     p2 = boinccmd('--get_state')    
     print p1.communicate()
-    print p2.communicate()    
-
+    print p2.communicate()

@@ -7,7 +7,7 @@ import os
 import sys
 import re
 import logging
-logger = logging.getLogger('boinc.task')
+logger = logging.getLogger('boinc.browser')
 
 import requests
 
@@ -45,7 +45,7 @@ class Browser_cache(object):
             age = (now - fileChanged)/(60*60) # age of file in hours
             logger.debug('%s is %s h old', filename, age)
             oldAge = 1
-            if 'viewWorkunitStatus' in filename:
+            if 'viewWorkunitStatus' in filename or 'workunit.php?' in filename:
                 oldAge = 24*14 # Currently the workunit page is only used for project name, which will never change. Set to 14 days so that the file will eventually be cleaned
             if age < oldAge:
                 logger.debug('Adding %s to valid cache', filename)
@@ -115,14 +115,17 @@ class BrowserSuper(object):
         sessionCache = pk.dumps(self.client.cookies)
         self.writeFile(self.name, sessionCache, '.pickle')
 
-    def visit(self, page=1, projectId=-1):
+    def visit(self, page=1):
         # Visit task page
-        URL = self.URL.format(projectId, page)
+        URL = self.URL.format(page)
         
         if URL in self.visitedPages: return ''
         self.visitedPages.append(URL)
 
         return self.visitURL(URL)
+
+    def visitPage(self, page):
+        return self.visitURL('http://{name}/{page}'.format(name=self.name, page=page))
 
     def visitURL(self, URL, recursionCall=False, extension='.html'):
         # recursionCall is used to limit recursion to 1 step
@@ -165,7 +168,7 @@ class Browser_worldcommunitygrid(BrowserSuper):
         self.name = 'worldcommunitygrid'
         BrowserSuper.__init__(self)
         self.URL = 'http://www.worldcommunitygrid.org/ms/viewBoincResults.do'
-        self.URL += '?filterDevice=0&filterStatus=-1&projectId={}&'
+        self.URL += '?filterDevice=0&filterStatus=-1&projectId=-1&'
         self.URL += 'pageNum={}&sortBy=sentTime'
 
         self.loginInfo = {
@@ -185,9 +188,10 @@ class Browser(BrowserSuper):
         self.name = webpageName
         BrowserSuper.__init__(self)
         self.webpageName = webpageName
-        self.URL = 'http://{name}/results.php?userid={userid}&offset=0&show_names=1&state=0&appid='.format(
+        self.URL = 'http://{name}/results.php?userid={userid}'.format(
             name = webpageName,
             userid=config.CONFIG.get(webpageName, 'userid'))
+        self.URL += '&offset={}&show_names=1&state=0&appid='
 
         self.loginInfo = {'email_addr': config.CONFIG.get(webpageName, 'username'),
                           'mode': 'Log in',
@@ -200,7 +204,8 @@ class Browser(BrowserSuper):
     def visitHome(self):
         return self.visitURL('http://{}/home.php'.format(self.webpageName))
 
-                
+    def visit(self, offset=0):
+        return BrowserSuper.visit(self, offset)
 # class Browser_Rosetta(Browser):
 #     def __init__(self):
 #         Browser.__init__(self, 'boinc.bakerlab.org')

@@ -9,6 +9,7 @@ from HTMLParser import HTMLParser
 import logging
 logger = logging.getLogger('boinc.statistics')
 
+from loggerSetup import loggerSetup
 import config
 
 
@@ -198,6 +199,8 @@ class HTMLParser_boinchome(HTMLParser):
                 self.currentProject.append(data)
         
 if __name__ == "__main__":    
+    loggerSetup(logging.INFO)
+
     import browser
     ### Make global variables ###
     config.main()

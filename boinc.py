@@ -11,6 +11,7 @@ import logging
 logger = logging.getLogger('boinc')
 
 # Project import
+from loggerSetup import loggerSetup
 import task
 import parse
 import statistics
@@ -180,6 +181,7 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--plot', action='store_true', help='Use matplotlib to plot statistics and progress')
     #parser.add_argument('-s', '--save', action='store_true', help='Use in combination with --plot, saves the figures to disk in the current working directory')
     parser.add_argument('--verbose', '-v', action='store_true', help='Sets logging level to DEBUG')
+    parser.add_argument('--silent', '-s', action='store_true', help='Sets logging level to ERROR')    
     parser.add_argument('--always', action='store_true', help='Passes "--set_run_mode always --set_network_mode always" to boinccmd')
     parser.add_argument('--auto', action='store_true', help='Passes "--set_run_mode auto --set_network_mode auto" to boinccmd')
     parser.add_argument('--never', action='store_true', help='Passes "--set_run_mode never --set_network_mode never" to boinccmd')
@@ -187,16 +189,6 @@ if __name__ == '__main__':
     parser.add_argument('--add', help='Add account, example: "--add wuprop.boinc-af.org/"')
     parser.add_argument('args', nargs=argparse.REMAINDER, help='Remaining args are passed to boinccmd')
     args = parser.parse_args()
-
-    if args.verbose:
-        logger.setLevel(logging.DEBUG)
-    else:
-        logger.setLevel(logging.INFO)
-        
-    ch = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
 
     # If you pass in multiple of these, say --always --never, then let boinccmd deal with the ambiguity
     if args.always:
@@ -209,6 +201,11 @@ if __name__ == '__main__':
     ### Make global variables ###
     config.main()
     browser.main()
+    # configure logger
+    loggerLevel = logging.INFO
+    if args.verbose: loggerLevel = logging.DEBUG
+    if args.silent: loggerLevel = logging.ERROR    
+    loggerSetup(loggerLevel)    
     ###
 
     # Add account
