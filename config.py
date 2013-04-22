@@ -53,7 +53,7 @@ class MyConfigParser(ConfigParser.ConfigParser):
             name = username
         keyring.set_password(section, name, password)
         
-__version_info__ = (0, 1, 2)
+__version_info__ = (0, 1, 3)
 __version__ = '.'.join(map(str, __version_info__))
 appName = 'BoincPlotter'
 appAuthor = 'obtitus'                   # [at] gmail.com
