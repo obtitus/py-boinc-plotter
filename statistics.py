@@ -83,10 +83,10 @@ class Statistics_worldcommunitygrid(object):
         self.lastResult = lastResult
 
     def __str__(self):
-        s = 'Worldcommunitygrid.org\nLast result returned: {}\n'.format(self.lastResult)
-        run = 'Run time {:>20} total, {:>10} per day (#{})'.format(self.runtime, self.runtimePerDay, fmtNumber(self.runtimeRank))
-        p   = 'Points   {:>20} total, {:>10.3g} per day (#{})'.format(fmtNumber(self.points), self.pointsPerDay, fmtNumber(self.pointsRank))
-        res = 'Results  {:>20} total, {:>10.3g} per day (#{})'.format(fmtNumber(self.results), self.resultsPerDay, fmtNumber(self.resultsRank))
+        s = 'Worldcommunitygrid.org\nLast result returned: {0}\n'.format(self.lastResult)
+        run = 'Run time {0:>20} total, {1:>10} per day (#{3})'.format(self.runtime, self.runtimePerDay, fmtNumber(self.runtimeRank))
+        p   = 'Points   {0:>20} total, {1:>10.3g} per day (#{3})'.format(fmtNumber(self.points), self.pointsPerDay, fmtNumber(self.pointsRank))
+        res = 'Results  {0:>20} total, {1:>10.3g} per day (#{3})'.format(fmtNumber(self.results), self.resultsPerDay, fmtNumber(self.resultsRank))
         s += '{:>10}\n{:>10}\n{:>10}'.format(run, p, res)
         return s
 

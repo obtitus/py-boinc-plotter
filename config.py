@@ -105,18 +105,18 @@ def setupBoincDir():
 def setupPassword(domain, additionalInfo=[], forgetOld=False):
     username = CONFIG.get(domain, 'username')
     if username == None or forgetOld:
-        username = raw_input('Enter username for {}:\n'.format(domain))
+        username = raw_input('Enter username for {0}:\n'.format(domain))
         CONFIG.set(domain, 'username', username)
         
     password = CONFIG.getpassword(domain, 'username')
     if password == None or forgetOld:
-        password = getpass.getpass('Enter password for user "{}" at {}: '.format(username, domain))
+        password = getpass.getpass('Enter password for user "{0}" at {1}: '.format(username, domain))
         CONFIG.setpassword(domain, 'username', password)
 
     for a in additionalInfo:
         password = CONFIG.get(domain, a)
         if password == None or forgetOld:
-            password = getpass.getpass('Enter {} for user "{}" at {}: '.format(a, username, domain))
+            password = getpass.getpass('Enter {0} for user "{1}" at {3}: '.format(a, username, domain))
             CONFIG.set(domain, a, password)
 
 global CONFIG, CACHE_DIR, BOINC_DIR

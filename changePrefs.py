@@ -50,7 +50,7 @@ def toggleCPUusage():
 
         p = task.BoincCMD('--read_global_prefs_override')
     except IOError as e:
-        logger.error('Could not open prefs file due to {}'.format(e))
+        logger.error('Could not open prefs file due to {0}'.format(e))
         
     
 if __name__ == '__main__':

@@ -96,7 +96,7 @@ class BrowserSuper(object):
             cookies = pk.loads(cookies)
             return cookies            
         except IOError:
-            logger.warning('No previous cookies found for {}'.format(self.name))            
+            logger.warning('No previous cookies found for {0}'.format(self.name))            
             return None
         except AttributeError:          # Raised when self.name is not defined, meaning we iniated BrowserSuper directly
             return None
@@ -137,7 +137,7 @@ class BrowserSuper(object):
             try:
                 r = self.client.get(URL)
             except requests.ConnectionError:
-                print('Could not connect to {}'.format(URL))
+                print('Could not connect to {0}'.format(URL))
                 return ''
 
             logger.info('%s, %s', r, r.history)
@@ -169,7 +169,7 @@ class Browser_worldcommunitygrid(BrowserSuper):
         BrowserSuper.__init__(self)
         self.URL = 'http://www.worldcommunitygrid.org/ms/viewBoincResults.do'
         self.URL += '?filterDevice=0&filterStatus=-1&projectId=-1&'
-        self.URL += 'pageNum={}&sortBy=sentTime'
+        self.URL += 'pageNum={0}&sortBy=sentTime'
 
         self.loginInfo = {
             'settoken': 'on',
@@ -179,7 +179,7 @@ class Browser_worldcommunitygrid(BrowserSuper):
         self.loginPage = 'https://secure.worldcommunitygrid.org/j_security_check'
 
     def visitStatistics(self):
-        page = self.visitURL("http://www.worldcommunitygrid.org/verifyMember.do?name={}&code={}".format(config.CONFIG.get('worldcommunitygrid.org', 'username'),
+        page = self.visitURL("http://www.worldcommunitygrid.org/verifyMember.do?name={0}&code={1}".format(config.CONFIG.get('worldcommunitygrid.org', 'username'),
                                                                                                         config.CONFIG.get('worldcommunitygrid.org', 'code')), extension='.xml')
         return page
 
@@ -191,7 +191,7 @@ class Browser(BrowserSuper):
         self.URL = 'http://{name}/results.php?userid={userid}'.format(
             name = webpageName,
             userid=config.CONFIG.get(webpageName, 'userid'))
-        self.URL += '&offset={}&show_names=1&state=0&appid='
+        self.URL += '&offset={0}&show_names=1&state=0&appid='
 
         self.loginInfo = {'email_addr': config.CONFIG.get(webpageName, 'username'),
                           'mode': 'Log in',
@@ -199,23 +199,13 @@ class Browser(BrowserSuper):
                           'passwd': config.CONFIG.getpassword(webpageName, 'username'),
                           'stay_logged_in': 'on', # normal one
                           'send_cookie': 'on'}    # used by rosetta at home
-        self.loginPage = 'http://{}/login_action.php'.format(webpageName)
+        self.loginPage = 'http://{1}/login_action.php'.format(webpageName)
 
     def visitHome(self):
-        return self.visitURL('http://{}/home.php'.format(self.webpageName))
+        return self.visitURL('http://{0}/home.php'.format(self.webpageName))
 
     def visit(self, offset=0):
         return BrowserSuper.visit(self, offset)
-# class Browser_Rosetta(Browser):
-#     def __init__(self):
-#         Browser.__init__(self, 'boinc.bakerlab.org')
-
-#         self.loginInfo = {'email_addr': config.CONFIG.get(webpageName, 'username'),
-#                           'mode': 'Log in',
-#                           'next_url': 'home.php',
-#                           'passwd': config.CONFIG.getpassword(webpageName, 'username'),
-#                           'send_cookie': 'on'} # only difference from above
-#         self.loginPage = 'http://{}/login_action.php'.format(webpageName)
 
 global browser_cache
 browser_cache = None                    # There should be only 1 instance of this class

@@ -40,7 +40,7 @@ def getFile(filename, directory=None):
         page = open(f, 'r')
         return page
     except IOError as e:
-        logger.warning('Unable to open file {}, error {}'.format(f, e))
+        logger.warning('Unable to open file {0}, error {1}'.format(f, e))
         return None
     
 def getPages(boincDir=None, name='', extension='.xml'):
@@ -50,7 +50,7 @@ def getPages(boincDir=None, name='', extension='.xml'):
         logger.error('Could not find boinc dir "%s"', boincDir)
         return ;
 
-    reg_exp = '{}_(\S*){}'.format(name, extension)
+    reg_exp = '{0}_(\S*){1}'.format(name, extension)
     logger.debug(reg_exp)
     reg_exp = re.compile(reg_exp)    
     for f in os.listdir(boincDir):
@@ -83,14 +83,14 @@ def parseStatistics(page):
 def plotStatistics(fig, data, name):
     ax1 = fig.add_subplot(211)
     kwargs = dict(marker='*', ls='-')
-    ax1.plot(data['day'], data['user_total_credit'], label='{} user total'.format(name), **kwargs)
-    ax1.plot(data['day'], data['host_total_credit'], label='{} host total'.format(name), **kwargs)
+    ax1.plot(data['day'], data['user_total_credit'], label='{0} user total'.format(name), **kwargs)
+    ax1.plot(data['day'], data['host_total_credit'], label='{0} host total'.format(name), **kwargs)
     ax1.legend(loc='best').draggable()
     ax1.set_ylabel('Total boinc credit')
 
     ax2 = fig.add_subplot(212, sharex=ax1)
-    ax2.plot(data['day'], data['user_expavg_credit'], label='{} user average'.format(name), **kwargs)
-    ax2.plot(data['day'], data['host_expavg_credit'], label='{} host average'.format(name), **kwargs)
+    ax2.plot(data['day'], data['user_expavg_credit'], label='{0} user average'.format(name), **kwargs)
+    ax2.plot(data['day'], data['host_expavg_credit'], label='{0} host average'.format(name), **kwargs)
     ax2.legend(loc='best').draggable()
 
     ax2.set_xlabel('Date')
@@ -109,7 +109,7 @@ def parseJobLog(page):
     now = datetime.datetime.now()
     for line in page:
         s = line.split()
-        assert len(s) == 11, 'Line in job log not recognized {} "{}" -> "{}"'.format(len(s), line, s)
+        assert len(s) == 11, 'Line in job log not recognized {0} "{1}" -> "{2}"'.format(len(s), line, s)
         t = int(s[0])
         t = datetime.datetime.fromtimestamp(t)
         if limitDaysToPlot == None or now - t < limitDaysToPlot:
@@ -244,7 +244,7 @@ def parseDailyTransfer(page):
 def plotDailyTransfer(fig, data):
     day, up, down = data['when'], data['up'], data['down']
 
-    fig.suptitle('Total upload/download = {}/{}'.format(sum(up), sum(down)))
+    fig.suptitle('Total upload/download = {0}/{1}'.format(sum(up), sum(down)))
     ax = fig.add_subplot(111)
     kwargs = dict(align='center')
     for ix in range(len(day)):

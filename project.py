@@ -29,9 +29,9 @@ class Project(object):
     def __str__(self):
         name = "=== {self.name} ({self.name_short}) ===".format(self=self)
         if self.active == False:
-            name = 'Completed {}'.format(name)
+            name = 'Completed {0}'.format(name)
         if self.stat != None:
-            name += ' {}'.format(self.stat)
+            name += ' {0}'.format(self.stat)
             #name = '{name}\n{stat}'.format(name=name, stat=self.stat)
         s = name + '\n'
         for task in self.tasks:

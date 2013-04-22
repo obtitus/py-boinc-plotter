@@ -68,7 +68,7 @@ class CMDparser(object):
         heading = re.match("======== ([\w ]*) ========", line)
         if heading != None:
             key = heading.group(1)
-            assert key in self.state, 'Could not find "{}" in known states'.format(key)
+            assert key in self.state, 'Could not find "{0}" in known states'.format(key)
             self.state.switchState(key)
         else:
             self.state.callParser(line)
@@ -84,8 +84,8 @@ class CMDparser(object):
         
     def parseProject(self, line):
         name, value = self.splitColon(line)
-        if name == 'master URL': self.info += '{}\n'.format(value)        
-        if name == 'user_name': self.info += 'User: {}\n'.format(value)
+        if name == 'master URL': self.info += '{0}\n'.format(value)        
+        if name == 'user_name': self.info += 'User: {0}\n'.format(value)
         if name == 'user_total_credit': self.info += 'Total boinc credits: {:.0f}\n'.format(float(value))
         if name == 'user_expavg_credit': self.info += 'Average boinc credits: {:.0f}\n'.format(float(value))
 
@@ -192,7 +192,7 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
                 reg = re.search("javascript:addHostPopup\('/ms/device/viewWorkunitStatus.do\?workunitId=(\d*)'", url) # Look for detailed work information
                 if reg:
                     workId = reg.group(1)
-                    url = 'http://www.worldcommunitygrid.org/ms/device/viewWorkunitStatus.do?workunitId={}'.format(workId)
+                    url = 'http://www.worldcommunitygrid.org/ms/device/viewWorkunitStatus.do?workunitId={0}'.format(workId)
                     content = self.browser.visitURL(url)
                     self.parse_workUnit.feed(content)
                     self.currentTask.append(self.parse_workUnit.projectName)
@@ -305,7 +305,7 @@ class HTMLParser_boinc_workunit(HTMLParser):
 #             self.inFieldValue = False
 
 #     def handle_data(self, data):
-#         print 'data "{}"'.format(data.strip())
+#         print 'data "{0}"'.format(data.strip())
 #         if self.inFieldName:
 #             if data == 'application':
 #                 self.inApplication = True
@@ -391,7 +391,7 @@ class HTMLParser_boinc(HTMLParser):
                                      device='', # does not give info about device
                                      sent=self.currentTask[2],
                                      deadline=self.currentTask[3],
-                                     state="{} {} {}".format(self.currentTask[4] , self.currentTask[5] , self.currentTask[6]),
+                                     state="{0} {1} {2}".format(self.currentTask[4] , self.currentTask[5] , self.currentTask[6]),
                                      finaltime='', # not given
                                      finalCPUtime=self.currentTask[7],
                                      granted=self.currentTask[9],
