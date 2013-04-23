@@ -89,11 +89,19 @@ def plotRunningTimeByProject_worldcommunitygrid(projects, title, browser):
         h = stat.runtime.total_seconds()
         color = 'k'
         badge_ix = 0
-        for reg in re.finditer('(\w+) Level Badge \((\d+) days\)', stat.badge):
+        for reg in re.finditer('(\w+) Level Badge \((\d+) (days|years)\)', stat.badge):
             color = badgeToColor(reg.group(1))
 
-            day = int(reg.group(2))
-            day = datetime.timedelta(days=day).total_seconds()
+            if reg.group(3) == 'years':
+                year = int(reg.group(2))
+                day = datetime.timedelta(years=years).total_seconds()
+            elif reg.group(3) == 'days':
+                day = int(reg.group(2))
+                day = datetime.timedelta(days=day).total_seconds()
+            else:
+                logger.error('Badge level not recognized "%s", "%s"', stat.badge, reg.groups())
+                continue
+            
             if not(day in days): days.append([day, color])
 
             try:

@@ -11,6 +11,7 @@ import datetime
 import re
 import xml.etree.ElementTree
 from collections import defaultdict
+import calendar
 
 import logging
 logger = logging.getLogger('boinc.statistics_plot')
@@ -19,6 +20,8 @@ from loggerSetup import loggerSetup
 from importMatplotlib import *
 import config
 import async
+
+import stacked_graph
 
 limitDaysToPlot = datetime.timedelta(days=15)
 def dayFormat(ax):
@@ -193,7 +196,6 @@ def plotJobLog(fig, data, projectName, prevBars=None):
     b2 = BarPlotter(ax2)
     b3 = BarPlotter(ax3)
     b4 = BarPlotter(ax4)
-    halfDay = 0.5
     def myBarPlot(currentDay, cumulative):
         d = currentDay.replace(hour=0, minute=0, second=0, microsecond=0) # Reset to 0:00:00 this day for alignment of bars
         x = plt.date2num(d)
@@ -221,6 +223,38 @@ def plotJobLog(fig, data, projectName, prevBars=None):
     myBarPlot(plt.num2date(time[-1]), cumulative)
     for ax in fig.axes:
         dayFormat(ax)
+
+def plotStream(inputStream):
+    now = datetime.datetime.now()
+    cal = calendar.Calendar()
+    days = list(cal.itermonthdates(year=now.year, month=now.month))
+    N = len(days)
+#     N = 0
+#     for data in inputStream:
+#         N = max(N, len(data['time']))
+        
+    stream = list()
+    for data in inputStream:
+        #time, ue, ct, fe, name, et = data['time'], data['ue'], data['ct'], data['fe'], data['name'], data['et']
+        
+        this_dset = np.zeros(N)
+        for ix in range(len(data['time'])):
+            date = plt.num2date(data['time'][ix])
+            #date = datetime.datetime(year=date.year, month=date.month, day=date.day)
+            #jx = days.index(date)
+            for jx in range(N):
+                if date.year == days[jx].year and date.month == days[jx].month and date.day == days[jx].day:
+                    break
+            else:
+                continue
+            this_dset[jx] += data['ue'][ix]
+
+        stream.append(this_dset)
+
+    stacked_graph.stacked_graph(days, stream, baseline_fn = stacked_graph.zero, color_seq='linear')
+    plt.gcf().autofmt_xdate()
+#    for day in days:
+#        plt.num2date(time[ix])
         
 def parseDailyTransfer(page):
     # Not sure about the unit
@@ -283,11 +317,16 @@ def main():
         plotStatistics(fig, data, name)
 
     fig = plt.figure('job log', figsize=(10, 8))
-    fig.clf()        
+    fig.clf()
+    stream = list()
     for data, name in job_log.ret:
-        # Make the legend a bit shorter:
-        name = shortenProjectName(name)
+        name = shortenProjectName(name) # Make the legend a bit shorter
         plotJobLog(fig, data, name)
+        stream.append(data)
+
+    fig = plt.figure('Stream plot', figsize=(10, 8))
+    fig.clf()    
+    plotStream(stream)
 
     fig = plt.figure('daily transfer', figsize=(10, 8))
     fig.clf()
