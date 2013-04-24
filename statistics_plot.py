@@ -183,7 +183,7 @@ def plotJobLog(fig, data, projectName, prevBars=None):
         ax.set_xlabel('Date')
     for ax in [ax1, ax2, ax3]:
         plt.setp(ax.get_xticklabels(), visible=False)
-        ax1.yaxis.set_major_formatter(formatter_timedelta)        
+        ax1.yaxis.set_major_formatter(formatter_timedelta)
 
     # Now for the histogram part
     if len(time) == 0: return ;         # make sure we actually have data to work with
@@ -224,7 +224,9 @@ def plotJobLog(fig, data, projectName, prevBars=None):
     for ax in fig.axes:
         dayFormat(ax)
 
-def plotStream(inputStream):
+    return color[0]
+
+def plotStream(inputStream, labels, color):
     now = datetime.datetime.now()
     cal = calendar.Calendar()
     days = list(cal.itermonthdates(year=now.year, month=now.month))
@@ -251,8 +253,9 @@ def plotStream(inputStream):
 
         stream.append(this_dset)
 
-    stacked_graph.stacked_graph(days, stream, baseline_fn = stacked_graph.zero, color_seq='linear')
+    stacked_graph.stacked_graph(days, stream, labels, baseline_fn = stacked_graph.zero, color_seq=color)
     plt.gcf().autofmt_xdate()
+    plt.gca().yaxis.set_major_formatter(formatter_timedelta)
 #    for day in days:
 #        plt.num2date(time[ix])
         
@@ -319,14 +322,17 @@ def main():
     fig = plt.figure('job log', figsize=(10, 8))
     fig.clf()
     stream = list()
+    color = list()
+    labels = list()
     for data, name in job_log.ret:
         name = shortenProjectName(name) # Make the legend a bit shorter
-        plotJobLog(fig, data, name)
+        labels.append(name)
+        color.append(plotJobLog(fig, data, name))
         stream.append(data)
 
     fig = plt.figure('Stream plot', figsize=(10, 8))
-    fig.clf()    
-    plotStream(stream)
+    fig.clf()
+    plotStream(stream, labels=labels, color=color)
 
     fig = plt.figure('daily transfer', figsize=(10, 8))
     fig.clf()

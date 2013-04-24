@@ -34,7 +34,7 @@ def min_weighted_wiggles(sorted_streams, stream_bounds):
     return g
     
 
-def stacked_graph(time, streams, cmap=pl.cm.bone, color_seq='linear', baseline_fn=min_weighted_wiggles):
+def stacked_graph(time, streams, labels, cmap=pl.cm.bone, color_seq='linear', baseline_fn=min_weighted_wiggles):
     """
     Produces stacked graphs using matplotlib.
     
@@ -51,7 +51,9 @@ def stacked_graph(time, streams, cmap=pl.cm.bone, color_seq='linear', baseline_f
     onset_times = [np.where(np.abs(stream)>0)[0][0] for stream in streams]
     order = np.argsort(onset_times)
     streams = np.asarray(streams)
+    # sort
     sorted_streams = streams[order]
+    labels = np.asarray(labels)[order]
     t = time#np.arange(streams.shape[1])
     
     # Establish bounds
@@ -74,17 +76,20 @@ def stacked_graph(time, streams, cmap=pl.cm.bone, color_seq='linear', baseline_f
     t_poly = np.hstack((t,t[::-1]))
     if color_seq=='linear':
         colors = np.linspace(0,1,len(stream_bounds))
+        colors = map(cmap, colors)        
     elif color_seq=='random':
         colors = np.random.random(size=streams.shape[1])
+        colors = map(cmap, colors)
     else:
-        raise ValueError, 'Color sequence %s unrecognized'%color_seq
+        colors = np.asarray(color_seq)[order]
     
     # Plot    
     #pl.axis('off')        
     for i in xrange(len(stream_bounds)):
         bound = stream_bounds[i]
-        color = cmap(colors[i])
-        pl.fill(t_poly, np.hstack((bound[0]-baseline,(bound[1]-baseline)[::-1])), facecolor=color, linewidth=0.,edgecolor='none')
+        color = colors[i]
+        pl.fill(t_poly, np.hstack((bound[0]-baseline,(bound[1]-baseline)[::-1])), facecolor=color, linewidth=0.,edgecolor='none', label=labels[i])
+    pl.legend()
         
         
 # Demo
