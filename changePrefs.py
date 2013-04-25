@@ -54,9 +54,8 @@ def toggleCPUusage():
         
     
 if __name__ == '__main__':
-    loggerSetup(logging.INFO)
-
     config.set_globals()
+    loggerSetup(logging.INFO)    
 
     p = Prefs()
 
