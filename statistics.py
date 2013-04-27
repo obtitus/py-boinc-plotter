@@ -171,7 +171,7 @@ class HTMLParser_boinchome(HTMLParser):
         if tag == 'tr':
             self.inTr = False
             self.inBadge = False            
-            
+
             if len(self.currentProject) == 4 and self.currentProject[0] != 'Project': # correct length and not heading
                 name = self.currentProject[1]
                 
@@ -186,6 +186,7 @@ class HTMLParser_boinchome(HTMLParser):
 
     def handle_data(self, data):
         if self.inHeading:
+            print 'heading', data
             if data == 'Reported data':
                 self.inReportTable = True
         if self.inBadge:
@@ -206,12 +207,20 @@ if __name__ == "__main__":
     config.main()
     browser.main()
     
-    b = browser.Browser('wuprop.boinc-af.org')
+#     b = browser.Browser('wuprop.boinc-af.org')
+#     page = b.visitHome()
+#     parser = HTMLParser_boinchome()
+#     parser.feed(page)
+#     print parser.projects
+
+    b = browser.Browser('www.rechenkraft.net/yoyo')
     page = b.visitHome()
+    print page
     parser = HTMLParser_boinchome()
+
     parser.feed(page)
     print parser.projects
-
+    print parser.badge    
     
 #     page = getPage()
 #     if page == None: exit(1)

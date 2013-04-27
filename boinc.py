@@ -184,6 +184,7 @@ if __name__ == '__main__':
     datetime.strptime("", "") # avoids threading bug, see http://bugs.python.org/issue7980
     parser = argparse.ArgumentParser(description='Boinc statistics for world community grid')
     parser.add_argument('-p', '--plot', action='store_true', help='Use matplotlib to plot statistics and progress')
+    parser.add_argument('-dmacosx', action='store_true', help='Use the macosx backend for plotting')    
     #parser.add_argument('-s', '--save', action='store_true', help='Use in combination with --plot, saves the figures to disk in the current working directory')
     parser.add_argument('--verbose', '-v', action='store_true', help='Sets logging level to DEBUG')
     parser.add_argument('--silent', '-s', action='store_true', help='Sets logging level to ERROR')    

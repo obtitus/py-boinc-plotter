@@ -330,9 +330,13 @@ def main():
         color.append(plotJobLog(fig, data, name))
         stream.append(data)
 
-    fig = plt.figure('Stream plot', figsize=(10, 8))
-    fig.clf()
-    plotStream(stream, labels=labels, color=color)
+    try:
+        fig = plt.figure('Stream plot', figsize=(10, 8))
+        fig.clf()
+        plotStream(stream, labels=labels, color=color)
+    except Exception as e:
+        logger.error('Stream plot error %s', e)
+        #fig.close()
 
     fig = plt.figure('daily transfer', figsize=(10, 8))
     fig.clf()
