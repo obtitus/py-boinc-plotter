@@ -69,12 +69,8 @@ class MyConfigParser(ConfigParser.ConfigParser):
         if username != None:
             name = username
         keyring.set_password(section, name, password)
-        
-__version_info__ = (0, 2, 0)
-__version__ = '.'.join(map(str, __version_info__))
-appName = 'BoincPlotter'
-appAuthor = 'obtitus'                   # [at] gmail.com
 
+from version import appName, appAuthor
 from appdirs import AppDirs
 appDirs = AppDirs(appName, appAuthor)
 
