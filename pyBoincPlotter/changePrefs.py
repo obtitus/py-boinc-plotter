@@ -53,7 +53,7 @@ def toggleCPUusage():
         logger.error('Could not open prefs file due to {0}'.format(e))
         
     
-if __name__ == '__main__':
+def run():
     config.set_globals()
     loggerSetup(logging.INFO)    
 
@@ -80,3 +80,5 @@ if __name__ == '__main__':
         task.BoincCMD('--read_global_prefs_override').communicate()
     #toggleCPUusage().communicate()
     
+if __name__ == '__main__':
+    run()

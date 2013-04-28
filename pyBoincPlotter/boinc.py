@@ -180,7 +180,7 @@ def main(shouldPlot):
         import statistics_plot
         statistics_plot.main()
     
-if __name__ == '__main__':
+def run():
     datetime.strptime("", "") # avoids threading bug, see http://bugs.python.org/issue7980
     parser = argparse.ArgumentParser(description='Boinc statistics for world community grid')
     parser.add_argument('-p', '--plot', action='store_true', help='Use matplotlib to plot statistics and progress')
@@ -250,3 +250,6 @@ if __name__ == '__main__':
         if boinccmd: print boinccmd.communicate()
         
         user_input = raw_input(prompt)
+
+if __name__ == '__main__':
+    run()
