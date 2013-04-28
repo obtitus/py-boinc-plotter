@@ -18,6 +18,7 @@ setup(
         "matplotlib",
         "numpy",
         "PIL",
-        "beautifulsoup4"
+        "beautifulsoup4",
+        "appdirs"
     ],
 )
