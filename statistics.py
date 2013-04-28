@@ -4,10 +4,11 @@ Deals with the 'public' xml stat
 
 import datetime
 import xml.etree.ElementTree
-from HTMLParser import HTMLParser
 
 import logging
 logger = logging.getLogger('boinc.statistics')
+
+from bs4 import BeautifulSoup
 
 from loggerSetup import loggerSetup
 import config
@@ -31,14 +32,14 @@ def strToTimedelta(string):
         return None
     
 class Project(object):
-    def __init__(self, short, name, runtime=None, points=None, results=None, badge='', pending=None, wuRuntime=None, wuPending=None):
+    def __init__(self, short='', name='', runtime=None, points=None, results=None, badge='', pending=None, wuRuntime=None, wuPending=None):
         self.short = short
         self.name = name
         self.runtime = strToTimedelta(runtime)
         self.pending = strToTimedelta(pending)
             
         if points != None:
-            self.points = int(points)
+            self.points = float(points)
             self.points = fmtNumber(self.points)
         else:
             self.points = points
@@ -135,69 +136,55 @@ def parse(page):
                 
     return statistics, projects
 
-class HTMLParser_boinchome(HTMLParser):
+class HTMLParser_boinchome():
     def __init__(self):
-        HTMLParser.__init__(self)
-        self.inTable = False
-        self.inTr = False
-        self.inHeading = False
-        self.inFieldname = False
-        self.inReportTable = False
-        self.inBadge = False
+#         HTMLParser.__init__(self)
+#         self.inTable = False
+#         self.inTr = False
+#         self.inHeading = False
+#         self.inFieldname = False
+#         self.inReportTable = False
+#         self.inBadge = False
 
         # Public info
         self.projects = dict()
-        self.currentProject = list()
         self.badge = ''
-        
-    def handle_starttag(self, tag, attrs):
-        if tag == 'table':
-            self.inTable = True
-        if tag == 'tr' and self.inTable:
-            self.inTr = True
-        if tag == 'td' and self.inTable:
-            try:
-                if attrs[0][1] == 'heading':
-                    self.inHeading = True
-                if attrs[1][1] == 'fieldname':
-                    self.inFieldname = True
-            except IndexError: pass
-        
-        
-    def handle_endtag(self, tag):
-        if tag == 'table':
-            self.inTable = False
-            self.inReportTable = False
-        if tag == 'tr':
-            self.inTr = False
-            self.inBadge = False            
 
-            if len(self.currentProject) == 4 and self.currentProject[0] != 'Project': # correct length and not heading
-                name = self.currentProject[1]
-                
-                self.projects[name] = Project(short=self.currentProject[0],
-                                              name=name,
-                                              wuRuntime=float(self.currentProject[2])*60*60, # hours
-                                              wuPending=float(self.currentProject[3])*60*60)
-            self.currentProject = list() # reset
-        if tag == 'td':
-            self.inHeading = False
-            self.inFieldname = False
+    def feed(self, page):
+        self.soup = BeautifulSoup(page)
+        self.getYoYoTable()
+        self.getWuPropTable()
 
-    def handle_data(self, data):
-        if self.inHeading:
-            print 'heading', data
-            if data == 'Reported data':
-                self.inReportTable = True
-        if self.inBadge:
-            if data.strip() != '':
-                self.badge += data      # TODO does this work?
-        if self.inFieldname:
-            if data == 'Badge':
-                self.inBadge = True
-        if self.inReportTable:
-            if data.strip() != '':
-                self.currentProject.append(data)
+    def getYoYoTable(self):
+        # Extracts projects table from www.rechenkraft.net/yoyo
+        # Hopefully does nothing if the page is not www.rechenkraft.net/yoyo.
+        # In case other projects implement a similar table a test is not made
+        for t in self.soup.find_all('table'):
+            badgeTable = t.table            # The table within a table
+            if badgeTable != None:
+                for row in badgeTable.find_all('tr'):
+                    data = row.find_all('td')
+                    if len(data) == 4:
+                        name = data[0].text
+                        totalCredits = data[1].text.replace(',', '') # thousand seperator
+                        workunits = data[2].text
+                        badge = data[3].text
+                        self.projects[name] = Project(name=name, points=totalCredits, results=workunits, badge=badge)
+
+    def getWuPropTable(self):
+        # Extracts projects table from wuprop.boinc-af.org/home.php
+        # Hopefully does nothing if the page is not wuprop.boinc-af.org/home.php
+        # In case other projects implement a similar table a test is not made
+        t = self.soup.find_all('table')
+        if len(t) == 5:
+            for row in t[4].find_all('tr'):
+                data = row.find_all('td')
+                if len(data) == 4:
+                    projects = data[0].text
+                    application = data[1].text
+                    runningTime = float(data[2].text)*60*60
+                    pending = float(data[3].text)*60*60
+                    self.projects[application] = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
         
 if __name__ == "__main__":    
     loggerSetup(logging.INFO)
@@ -207,24 +194,14 @@ if __name__ == "__main__":
     config.main()
     browser.main()
     
-#     b = browser.Browser('wuprop.boinc-af.org')
-#     page = b.visitHome()
-#     parser = HTMLParser_boinchome()
-#     parser.feed(page)
-#     print parser.projects
+    b = browser.Browser('wuprop.boinc-af.org')
+    page = b.visitHome()
+    parser = HTMLParser_boinchome()
+    parser.feed(page)
+    print parser.projects
 
     b = browser.Browser('www.rechenkraft.net/yoyo')
     page = b.visitHome()
-    print page
     parser = HTMLParser_boinchome()
-
     parser.feed(page)
     print parser.projects
-    print parser.badge    
-    
-#     page = getPage()
-#     if page == None: exit(1)
-#     totalStats, projects = parse(page)
-#     print totalStats
-#     for key in projects:
-#         print projects[key]
