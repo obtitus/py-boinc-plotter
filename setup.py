@@ -6,10 +6,10 @@ appName = 'pyBoincPlotter'
 appAuthor = 'obtitus'                   # [at] gmail.com
 with open('pyBoincPlotter/version.py', 'w') as f:
     f.write("""__version_info__ = {0}
-    __version__ = {1}
-    appName = {2}
-    appAuthor = {3}
-    """.format(__version_info__, __version__, appName, appAuthor))
+__version__ = "{1}"
+appName = "{2}"
+appAuthor = "{3}"
+""".format(__version_info__, __version__, appName, appAuthor))
 
 setup(
     name='pyBoincPlotter',

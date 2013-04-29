@@ -1,5 +1,4 @@
 __version_info__ = (0, 2, 0)
-    __version__ = 0.2.0
-    appName = pyBoincPlotter
-    appAuthor = obtitus
-    
+__version__ = "0.2.0"
+appName = "pyBoincPlotter"
+appAuthor = "obtitus"
