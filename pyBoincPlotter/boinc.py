@@ -94,13 +94,14 @@ def getWebstat(shouldPlot=False):
             if not(projects.has_key(k)):
                 projects[k] = parser.projects[k]
 
-            projects[k].wuRuntime = parser.projects[k].wuRuntime
-            projects[k].wuPending = parser.projects[k].wuPending
+            if parser.projects[k].wuRuntime != None:
+                projects[k].wuRuntime = parser.projects[k].wuRuntime
+                projects[k].wuPending = parser.projects[k].wuPending
 
             if projects[k].points == None and parser.projects[k].points != None:
                projects[k].points = parser.projects[k].points
                projects[k].results = parser.projects[k].results               
-            print projects[k]
+            print k, projects[k]
 
     return totalStats, projects
 
