@@ -18,7 +18,7 @@
 """
 Deals with the 'public' xml stat
 """
-
+import re
 import datetime
 import xml.etree.ElementTree
 
@@ -186,7 +186,8 @@ class HTMLParser_boinchome():
                         totalCredits = data[1].text.replace(',', '') # thousand seperator
                         workunits = data[2].text
                         badge = data[3].text
-                        self.projects[name] = Project(name=name, points=totalCredits, results=workunits, badge=badge)
+                        if not(re.match('\d+ \w\w\w \d\d\d\d', badge)): # Hack to avoid the "Projects in which you are participating" table.
+                            self.projects[name] = Project(name=name, points=totalCredits, results=workunits, badge=badge)
 
     def getWuPropTable(self):
         # Extracts projects table from wuprop.boinc-af.org/home.php
@@ -211,13 +212,19 @@ if __name__ == "__main__":
     config.main()
     browser.main()
     
-    b = browser.Browser('wuprop.boinc-af.org')
+#     b = browser.Browser('wuprop.boinc-af.org')
+#     page = b.visitHome()
+#     parser = HTMLParser_boinchome()
+#     parser.feed(page)
+#     print parser.projects
+
+    b = browser.Browser('www.rechenkraft.net/yoyo')
     page = b.visitHome()
     parser = HTMLParser_boinchome()
     parser.feed(page)
     print parser.projects
 
-    b = browser.Browser('www.rechenkraft.net/yoyo')
+    b = browser.Browser('boinc.bakerlab.org')
     page = b.visitHome()
     parser = HTMLParser_boinchome()
     parser.feed(page)

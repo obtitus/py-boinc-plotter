@@ -84,6 +84,7 @@ def getWebstat(shouldPlot=False):
         if section in ['configuration', 'worldcommunitygrid.org']:
             continue
     #if 'wuprop.boinc-af.org' in config.CONFIG.sections():
+        print 'Visiting', section
         b = browser.Browser(section)
         page = b.visitHome()
         parser = statistics.HTMLParser_boinchome()
@@ -95,6 +96,11 @@ def getWebstat(shouldPlot=False):
 
             projects[k].wuRuntime = parser.projects[k].wuRuntime
             projects[k].wuPending = parser.projects[k].wuPending
+
+            if projects[k].points == None and parser.projects[k].points != None:
+               projects[k].points = parser.projects[k].points
+               projects[k].results = parser.projects[k].results               
+            print projects[k]
 
     return totalStats, projects
 
