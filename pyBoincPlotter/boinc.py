@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # This file is part of the py-boinc-plotter, which provides parsing and plotting of boinc statistics and badge information.
 # Copyright (C) 2013 obtitus@gmail.com
 # 
@@ -15,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # 
 # END LICENCE
-#!/usr/bin/env python
 """
 Main file
 """
@@ -59,16 +59,18 @@ def getWebstate():
     parser.feed(content)
 
     for section in config.CONFIG.sections():
+        if section in ['configuration', 'worldcommunitygrid.org']:
+            continue
+        # Pick browser
         if 'rechenkraft.net/yoyo' in section:
             b = browser.Browser_yoyo()
-            parser = parse.HTMLParser_boinc(browser=b, projects=parser.projects, tasks=parser.tasks)
-            content = b.visit()
-            parser.feed(content)
-        elif not(section in ['configuration', 'worldcommunitygrid.org']):
+        else:
             b = browser.Browser(section)
-            parser = parse.HTMLParser_boinc(browser=b, projects=parser.projects, tasks=parser.tasks)
-            content = b.visit()
-            parser.feed(content)
+        # todo: similar with parser
+        parser = parse.HTMLParser_boinc(browser=b, projects=parser.projects, tasks=parser.tasks)
+        content = b.visit()
+        parser.feed(content)
+
 
     return parser
 
@@ -78,8 +80,11 @@ def getWebstat(shouldPlot=False):
     if page == '': return None, None
     totalStats, projects = statistics.parse(page)
 
-    if 'wuprop.boinc-af.org' in config.CONFIG.sections():
-        b = browser.Browser('wuprop.boinc-af.org')
+    for section in config.CONFIG.sections():
+        if section in ['configuration', 'worldcommunitygrid.org']:
+            continue
+    #if 'wuprop.boinc-af.org' in config.CONFIG.sections():
+        b = browser.Browser(section)
         page = b.visitHome()
         parser = statistics.HTMLParser_boinchome()
         parser.feed(page)
@@ -190,6 +195,7 @@ def printState(shouldPlot=False):
             project.plotRunningTimeByProject_worldcommunitygrid(projectDict, totalStats.runtime, b)
             if 'wuprop.boinc-af.org' in config.CONFIG.sections():            
                 project.plotRunningTimeByProject_wuprop(projectDict)
+            project.plotCredits(projectDict)
 
 def main(shouldPlot):
     printState(shouldPlot=shouldPlot)

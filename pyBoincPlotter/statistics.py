@@ -57,7 +57,7 @@ class Project(object):
             
         if points != None:
             self.points = float(points)
-            self.points = fmtNumber(self.points)
+            #self.points = fmtNumber(self.points)
         else:
             self.points = points
             
@@ -79,7 +79,7 @@ class Project(object):
         if self.results != None:
             ret += "{self.results:>3} results returned, ".format(self=self)
         if self.points != None:
-            ret += "{self.points:>6} points, ".format(self=self)
+            ret += "{points:>6} points, ".format(points=fmtNumber(self.points))
         if self.runtime != None:
             ret += "runtime of {runtime:>17}. ".format(runtime=timedeltaToStr(self.runtime))
         if self.pending != None:

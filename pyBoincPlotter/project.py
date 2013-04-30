@@ -224,7 +224,31 @@ def plotRunningTimeByProject_wuprop(projects):
     plt.gca().yaxis.set_major_formatter(formatter_timedelta)
 
     plt.title('Stats for {} projects, total runtime {}'.format(len(labels), totalRuntime))
+
+def plotCredits(projects):
+    fig = plt.figure('Credits by projects', figsize=(10, 8))
+    fig.clf()
+    ax = fig.add_subplot(111)
+    width = 0.75
+    labels = list()
+    ix = 0
+    for key in sorted(projects.keys()):
+        stat = projects[key].stat
+        if stat == None or stat.points == None:
+            continue
+        h = stat.points
+        kwargs = dict(color='k', width=width)
         
+        ax.bar(ix, h, **kwargs)
+
+        ix += 1
+        labels.append(stat.name)
+
+    pos = np.arange(ix)
+    plt.xticks(pos+width/2, labels, rotation=17, horizontalalignment='right')
+    ax.set_xlabel('Project')
+    ax.set_ylabel('Credits')
+    
 def plotTaskPipeline(projects):
     fig = plt.figure('Task pipeline', figsize=(10, 8))
     fig.clf()
