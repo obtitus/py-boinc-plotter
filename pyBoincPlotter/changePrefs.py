@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # This file is part of the py-boinc-plotter, which provides parsing and plotting of boinc statistics and badge information.
 # Copyright (C) 2013 obtitus@gmail.com
 # 
@@ -15,7 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # 
 # END LICENCE
-#!/usr/bin/env python
+
 import os
 import xml.etree.ElementTree
 
@@ -72,7 +73,6 @@ def toggleCPUusage():
     
 def run():
     config.set_globals()
-    loggerSetup(logging.INFO)    
 
     p = Prefs()
 
@@ -98,4 +98,5 @@ def run():
     #toggleCPUusage().communicate()
     
 if __name__ == '__main__':
+    loggerSetup(logging.INFO)
     run()

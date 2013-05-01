@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # This file is part of the py-boinc-plotter, which provides parsing and plotting of boinc statistics and badge information.
 # Copyright (C) 2013 obtitus@gmail.com
 # 

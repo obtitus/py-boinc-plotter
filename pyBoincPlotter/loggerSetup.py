@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # This file is part of the py-boinc-plotter, which provides parsing and plotting of boinc statistics and badge information.
 # Copyright (C) 2013 obtitus@gmail.com
 # 
@@ -19,8 +20,10 @@ import logging
 def loggerSetup(loggerLevel):
     logger = logging.getLogger('boinc')
     logger.setLevel(loggerLevel)
-    ch = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
-    
+    if not logger.handlers:
+        ch = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        ch.setFormatter(formatter)
+        logger.addHandler(ch)
+    else:
+        logger.warning("Logger already setup")
