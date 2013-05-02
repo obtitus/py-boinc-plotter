@@ -266,7 +266,7 @@ def plotCredits(projects, browser):
                 img = mpimg.imread(png, format='.png')
                 # Add image:
                 of = matplotlib.offsetbox.OffsetImage(img)
-                ab = matplotlib.offsetbox.AnnotationBbox(of, (ix, b), frameon=False, box_alignment=(0, 0.5))
+                ab = matplotlib.offsetbox.AnnotationBbox(of, (ix, b), frameon=True, box_alignment=(0, 0.5))
                 ax.add_artist(ab)
             except KeyError:
                 logger.warning('badge key error %s, %s', stat.badge, reg.groups())
