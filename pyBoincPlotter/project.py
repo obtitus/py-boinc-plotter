@@ -356,7 +356,7 @@ def plotDeadline(projects):
                 p = (d - r)/norm
                 color = colormap(p)
                 plt.barh(ix, r, height=width, color=color)
-                plt.barh(ix, 1, height=width, left=d, color=color)
+                plt.barh(ix, 1, height=1, left=d, color=color)
                 plt.barh(ix, -c, height=width, color=color)
                 names.append(task.nameShort.replace('_', ' '))
                 ix += 1
