@@ -187,14 +187,16 @@ class HTMLParser_boinchome():
                         name = data[0].text
                         totalCredits = data[1].text.replace(',', '') # thousand seperator
                         workunits = data[2].text
-                        #badge = data[3].text
+                        if re.match('\d+ \w\w\w \d\d\d\d', data[3].text): # Hack to avoid the "Projects in which you are participating" table.
+                            continue
+                        
                         badge = ''
                         badgeURL = None
                         if data[3].a:
                             badge = data[3].a.img['alt']
                             badgeURL = data[3].a.img['src']
-                        if not(re.match('\d+ \w\w\w \d\d\d\d', badge)): # Hack to avoid the "Projects in which you are participating" table.
-                            self.projects[name] = Project(name=name, points=totalCredits, results=workunits, badge=badge, badgeURL=badgeURL)
+
+                        self.projects[name] = Project(name=name, points=totalCredits, results=workunits, badge=badge, badgeURL=badgeURL)
 
     def getWuPropTable(self):
         # Extracts projects table from wuprop.boinc-af.org/home.php
