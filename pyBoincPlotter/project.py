@@ -84,10 +84,11 @@ class Project(object):
         return running, pending
 
 def badgeToColor(name):
-    if name == 'Bronze': name = '#8C7853'
-    elif name == 'Ruby': name = 'r'
-    elif name == 'Emerald': name = 'g'
-    elif name == 'Sapphire': name = 'b'
+    name = name.lower()
+    if name == 'bronze': name = '#8C7853'
+    elif name == 'ruby': name = 'r'
+    elif name == 'emerald': name = 'g'
+    elif name == 'sapphire': name = 'b'
     return name
     
 def plotRunningTimeByProject_worldcommunitygrid(projects, title, browser):
@@ -106,8 +107,9 @@ def plotRunningTimeByProject_worldcommunitygrid(projects, title, browser):
         # 'Approved' runtime
         h = stat.runtime.total_seconds()
         color = 'k'
-        badge_ix = 0
-        for reg in re.finditer('(\w+) Level Badge \((\d+) (days|years)\)', stat.badge):
+        #badge_ix = 0
+        reg = re.search('(\w+) Level Badge \((\d+) (days|years)\)', stat.badge)
+        if reg:
             color = badgeToColor(reg.group(1))
 
             if reg.group(3) == 'years':
@@ -123,7 +125,7 @@ def plotRunningTimeByProject_worldcommunitygrid(projects, title, browser):
             if not(day in days): days.append([day, color])
 
             try:
-                b = stat.badgeURL[badge_ix]   # may raise IndexError
+                b = stat.badgeURL
                 jpg = browser.visitURL(b, extension='.jpg')
                 jpg = StringIO(jpg)
                 img = mpimg.imread(jpg, format='.jpg') # may raise error due to .jpg, support for other images than .png is added by PIL
@@ -134,7 +136,6 @@ def plotRunningTimeByProject_worldcommunitygrid(projects, title, browser):
             except Exception as e:
                 logger.error('Badge image failed with "%s"', e)
 
-            badge_ix += 1
         barKwargs = dict(width=width, color=color)
         plt.bar(ix, h, **barKwargs)
 
@@ -226,28 +227,63 @@ def plotRunningTimeByProject_wuprop(projects):
 
     plt.title('Stats for {} projects, total runtime {}'.format(len(labels), totalRuntime))
 
-def plotCredits(projects):
+def plotCredits(projects, browser):
     fig = plt.figure('Credits by projects', figsize=(10, 8))
     fig.clf()
     ax = fig.add_subplot(111)
+
+    badges = {'bronze': 10000,
+              'silver': 100000,
+              'gold': 500000,
+              'master': int(1e6),
+              'grandmaster': int(2e6),
+              'guru': int(5e6),
+              'spirit': int(10e6),
+              'held': int(25e6),
+              'half god' : int(50e6),
+              'god': int(100e6)}
+    
     width = 0.75
     labels = list()
     ix = 0
+    creditsToMark = list()
     for key in sorted(projects.keys()):
         stat = projects[key].stat
         if stat == None or stat.points == None:
             continue
         h = stat.points
         kwargs = dict(color='k', width=width)
-        
+
+        reg = re.search('([\w\s]+) badge', stat.badge)
+        if reg:
+            try:
+                b = badges[reg.group(1)]
+                c = badgeToColor(reg.group(1))
+                creditsToMark.append([b, c])
+                kwargs['color'] = c
+                png = browser.visitURL(stat.badgeURL, extension='.png')
+                png = StringIO(png)
+                img = mpimg.imread(png, format='.png')
+                # Add image:
+                of = matplotlib.offsetbox.OffsetImage(img)
+                ab = matplotlib.offsetbox.AnnotationBbox(of, (ix, b), frameon=False, box_alignment=(0, 0.5))
+                ax.add_artist(ab)
+            except KeyError:
+                logger.warning('badge key error %s, %s', stat.badge, reg.groups())
+            except Exception as e:
+                logger.error('Badge image failed with "%s"', e)                
+                
         ax.bar(ix, h, **kwargs)
 
         ix += 1
         labels.append(stat.name)
+    
+    for credit, color in creditsToMark:
+        plt.axhline(credit, color=color)
 
     pos = np.arange(ix)
     plt.xticks(pos+width/2, labels, rotation=17, horizontalalignment='right')
-    ax.set_xlabel('Project')
+    #ax.set_xlabel('Project')
     ax.set_ylabel('Credits')
     
 def plotTaskPipeline(projects):

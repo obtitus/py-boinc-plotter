@@ -83,11 +83,12 @@ def getWebstat(shouldPlot=False):
     for section in config.CONFIG.sections():
         if section in ['configuration', 'worldcommunitygrid.org']:
             continue
-    #if 'wuprop.boinc-af.org' in config.CONFIG.sections():
         b = browser.Browser(section)
         page = b.visitHome()
         parser = statistics.HTMLParser_boinchome()
-        parser.feed(page)
+        wuprop = section == 'wuprop.boinc-af.org'
+        parser.feed(page, wuprop=wuprop)
+        logger.debug('Visited section %s, got %s', section, parser.projects)
 
         for k in parser.projects:
             if not(projects.has_key(k)):
@@ -99,7 +100,9 @@ def getWebstat(shouldPlot=False):
 
             if projects[k].points == None and parser.projects[k].points != None:
                projects[k].points = parser.projects[k].points
-               projects[k].results = parser.projects[k].results               
+               projects[k].results = parser.projects[k].results
+               projects[k].badge = parser.projects[k].badge
+               projects[k].badgeURL = parser.projects[k].badgeURL
 
     return totalStats, projects
 
@@ -197,10 +200,10 @@ def printState(shouldPlot=False):
         project.plotDeadline(projectDict)
         if totalStats != None:
             b = browser.BrowserSuper()
-            project.plotRunningTimeByProject_worldcommunitygrid(projectDict, totalStats.runtime, b)
+            project.plotRunningTimeByProject_worldcommunitygrid(projectDict, totalStats.runtime, browser=b)
             if 'wuprop.boinc-af.org' in config.CONFIG.sections():            
                 project.plotRunningTimeByProject_wuprop(projectDict)
-            project.plotCredits(projectDict)
+            project.plotCredits(projectDict, browser=b)
 
 def main(shouldPlot):
     printState(shouldPlot=shouldPlot)

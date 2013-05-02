@@ -50,7 +50,7 @@ def strToTimedelta(string):
         return None
     
 class Project(object):
-    def __init__(self, short='', name='', runtime=None, points=None, results=None, badge='', pending=None, wuRuntime=None, wuPending=None):
+    def __init__(self, short='', name='', runtime=None, points=None, results=None, badge='', badgeURL='', pending=None, wuRuntime=None, wuPending=None):
         self.short = short
         self.name = name
         self.runtime = strToTimedelta(runtime)
@@ -64,7 +64,7 @@ class Project(object):
             
         self.results = results
         self.badge = badge
-        self.badgeURL = list()
+        self.badgeURL = badgeURL
         self.__repr__ = self.__str__
 
         self.wuRuntime = strToTimedelta(wuRuntime)
@@ -146,8 +146,8 @@ def parse(page):
         name = badge.find('ProjectName').text
         badgeURL = badge.iter('Url').next().text        
         t = badge.iter('Description').next().text
-        projects[name].badge += t
-        projects[name].badgeURL.append(badgeURL)
+        projects[name].badge = t
+        projects[name].badgeURL = badgeURL
 #         for key in projects:
 #             if projects[key].name == name:
 #                 projects[key].badge += badge
@@ -168,10 +168,11 @@ class HTMLParser_boinchome():
         self.projects = dict()
         self.badge = ''
 
-    def feed(self, page):
+    def feed(self, page, wuprop=False):
         self.soup = BeautifulSoup(page)
         self.getYoYoTable()
-        self.getWuPropTable()
+        if wuprop:
+            self.getWuPropTable()
 
     def getYoYoTable(self):
         # Extracts projects table from www.rechenkraft.net/yoyo
@@ -186,24 +187,26 @@ class HTMLParser_boinchome():
                         name = data[0].text
                         totalCredits = data[1].text.replace(',', '') # thousand seperator
                         workunits = data[2].text
-                        badge = data[3].text
+                        #badge = data[3].text
+                        badge = ''
+                        badgeURL = None
+                        if data[3].a:
+                            badge = data[3].a.img['alt']
+                            badgeURL = data[3].a.img['src']
                         if not(re.match('\d+ \w\w\w \d\d\d\d', badge)): # Hack to avoid the "Projects in which you are participating" table.
-                            self.projects[name] = Project(name=name, points=totalCredits, results=workunits, badge=badge)
+                            self.projects[name] = Project(name=name, points=totalCredits, results=workunits, badge=badge, badgeURL=badgeURL)
 
     def getWuPropTable(self):
         # Extracts projects table from wuprop.boinc-af.org/home.php
-        # Hopefully does nothing if the page is not wuprop.boinc-af.org/home.php
-        # In case other projects implement a similar table a test is not made
         t = self.soup.find_all('table')
-        if len(t) == 5:
-            for row in t[4].find_all('tr'):
-                data = row.find_all('td')
-                if len(data) == 4:
-                    projects = data[0].text
-                    application = data[1].text
-                    runningTime = float(data[2].text)*60*60
-                    pending = float(data[3].text)*60*60
-                    self.projects[application] = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
+        for row in t[-1].find_all('tr'):
+            data = row.find_all('td')
+            if len(data) == 4:
+                projects = data[0].text
+                application = data[1].text
+                runningTime = float(data[2].text)*60*60
+                pending = float(data[3].text)*60*60
+                self.projects[application] = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
         
 if __name__ == "__main__":    
     loggerSetup(logging.INFO)
@@ -213,20 +216,22 @@ if __name__ == "__main__":
     config.main()
     browser.main()
     
-#     b = browser.Browser('wuprop.boinc-af.org')
-#     page = b.visitHome()
-#     parser = HTMLParser_boinchome()
-#     parser.feed(page)
-#     print parser.projects
+    b = browser.Browser('wuprop.boinc-af.org')
+    page = b.visitHome()
+    parser = HTMLParser_boinchome()
+    parser.feed(page)
+    print parser.projects
 
     b = browser.Browser('www.rechenkraft.net/yoyo')
     page = b.visitHome()
     parser = HTMLParser_boinchome()
     parser.feed(page)
-    print parser.projects
+    for k in parser.projects:
+        print k, parser.projects[k]
 
-    b = browser.Browser('boinc.bakerlab.org')
-    page = b.visitHome()
-    parser = HTMLParser_boinchome()
-    parser.feed(page)
-    print parser.projects
+#     b = browser.Browser('boinc.bakerlab.org')
+#     page = b.visitHome()
+#     parser = HTMLParser_boinchome()
+#     parser.feed(page)
+#     for k in parser.projects:
+#         print k, parser.projects[k]

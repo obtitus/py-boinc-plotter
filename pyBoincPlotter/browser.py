@@ -76,6 +76,9 @@ class Browser_cache(object):
         for filename in self.findCacheFiles('.jpg'): # These never expire
             logger.debug('Adding %s to valid cache', filename)            
             cache[filename] = readFile(filename)
+        for filename in self.findCacheFiles('.png'): # These never expire
+            logger.debug('Adding %s to valid cache', filename)            
+            cache[filename] = readFile(filename)            
         return cache
         
     def findCacheFiles(self, extension):#htmlCache(self):
