@@ -227,7 +227,7 @@ class WebTask(Task):
     def __init__(self, name, workunit, device, sent, deadline, state, finaltime, finalCPUtime, granted, projectName, credit=0):
         Task.__init__(self)
         
-        self.fmt_date = '%d %b %Y %H:%M:%S UTC'
+        self.fmt_date = r'%d %b %Y %H:%M:%S UTC'
         # example lst: ['MindModeling-433-51616f73ef41a_0', '5649272', '35054', '7 Apr 2013, 13:13:03 UTC', '8 Apr 2013, 20:13:03 UTC', 'In progress', '---', '---', '---', 'Native Python v2.7 Application v1.02 (sse2)']
         #assert len(lst) == 10, 'Error, could not recognized task {0}'.format(lst)
 
@@ -239,7 +239,7 @@ class WebTask(Task):
 
         self.sent = sent              # TODO: add this to print?
 
-        self.deadline = deadline.replace(',', '') # some write: '%d %b %Y, %H:%M:%S UTC'
+        self.deadline = deadline.replace(',', '').replace('|', '') # some write: '%d %b %Y[,|] %H:%M:%S UTC'
 
         # Hack!
         if state.lower() == 'completed and validated':
