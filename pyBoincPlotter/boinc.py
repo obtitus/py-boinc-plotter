@@ -263,8 +263,6 @@ def run():
     if boinccmd: print boinccmd.communicate()
     if prefs: print prefs.communicate()
 
-#     if args.plot:
-#         raw_input('=== Press enter to exit ===\n')
     prompt = '=== Enter q, quit, e or exit to exit ===\n'
     user_input = raw_input(prompt)
     while not(user_input in ('q', 'quit', 'e', 'exit')):

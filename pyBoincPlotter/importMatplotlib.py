@@ -20,9 +20,10 @@ import datetime
 
 try:
     import numpy as np
-    import pylab as plt
     import matplotlib
-    import matplotlib.image as mpimg    
+    #matplotlib.use('module://mplh5canvas.backend_h5canvas')    
+    import pylab as plt
+    import matplotlib.image as mpimg
     matplotlib.rc('text', usetex=False)
     plt.ion()
 
