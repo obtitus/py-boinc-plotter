@@ -70,6 +70,12 @@ def toggleCPUusage():
     except IOError as e:
         logger.error('Could not open prefs file due to {0}'.format(e))
         
+def changePrefs(a, value):
+    # Convenient function for changing a preference
+    p = Prefs()
+    p.changePrefsFile(a, value)
+    p = task.BoincCMD('--read_global_prefs_override')
+    p.communicate()
     
 def run():
     config.set_globals()

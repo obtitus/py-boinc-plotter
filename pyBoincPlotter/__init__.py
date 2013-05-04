@@ -18,3 +18,4 @@
 # END LICENCE
 
 import boinc
+import changePrefs
