@@ -107,18 +107,18 @@ def getWebstat(shouldPlot=False):
     return totalStats, projects
 
 def findStat(projectDict_stat, key):
+    logger.debug('Trying to find stat for "%s"', key)
     if projectDict_stat.has_key(key):
         return projectDict_stat[key]
     # Hack:
     # if not lets check for similarities
     for k in projectDict_stat.keys():
-        logger.debug('Trying to find "%s", is it "%s"', key, k)
-        if key.startswith(k):
+        if key.startswith(k) or k.startswith(key):
             ret = projectDict_stat[k]
             del projectDict_stat[k]
             return ret
     else:
-        logger.debug('Failed to find %s', key)                
+        logger.debug('Failed to find %s, in %s', key, projectDict_stat)
     return None
     
 def intertwineData(projectDict, projectDict_stat, localList, webList):
@@ -141,7 +141,6 @@ def intertwineData(projectDict, projectDict_stat, localList, webList):
         ix = 0
         found = False
         while ix < len(webList):        # For each web
-            logger.debug('is it: %s %s', webList[ix].name, localTask.name.startswith(webList[ix].name))
             if localTask.name.startswith(webList[ix].name): # found
                 found = True
                 projectDict[webList[ix].projectName].tasks.append(localTask)

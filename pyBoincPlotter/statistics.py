@@ -221,15 +221,17 @@ if __name__ == "__main__":
     b = browser.Browser('wuprop.boinc-af.org')
     page = b.visitHome()
     parser = HTMLParser_boinchome()
-    parser.feed(page)
-    print parser.projects
-
-    b = browser.Browser('www.rechenkraft.net/yoyo')
-    page = b.visitHome()
-    parser = HTMLParser_boinchome()
-    parser.feed(page)
+    parser.feed(page, wuprop=True)
     for k in parser.projects:
         print k, parser.projects[k]
+
+
+#     b = browser.Browser('www.rechenkraft.net/yoyo')
+#     page = b.visitHome()
+#     parser = HTMLParser_boinchome()
+#     parser.feed(page)
+#     for k in parser.projects:
+#         print k, parser.projects[k]
 
 #     b = browser.Browser('boinc.bakerlab.org')
 #     page = b.visitHome()

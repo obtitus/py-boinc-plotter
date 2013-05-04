@@ -337,7 +337,8 @@ def plotTaskPipeline(projects):
 def plotDeadline(projects):
     fig = plt.figure('Deadline', figsize=(10, 8))
     fig.clf()
-    plt.title('Time until deadline')
+    ax = fig.add_subplot(111)
+    fig.suptitle('Time until deadline')
     
     width = 0.8
     now = datetime.datetime.today()
@@ -355,9 +356,11 @@ def plotDeadline(projects):
 
                 p = (d - r)/norm
                 color = colormap(p)
-                plt.barh(ix, r, height=width, color=color)
-                plt.barh(ix, 1, height=1, left=d, color=color)
-                plt.barh(ix, -c, height=width, color=color)
+                ax.barh(ix, r, height=width, color=color)
+                ax.barh(ix, 1, height=1, left=d, color=color)
+                ax.barh(ix, -c, height=width, color=color)
+                ax.text(x = -c, y = ix + width/2,
+                        s=task.fractionDone, horizontalalignment='right', fontsize=10)
                 names.append(task.nameShort.replace('_', ' '))
                 ix += 1
 
