@@ -44,9 +44,14 @@ import stacked_graph
 limitDaysToPlot = datetime.timedelta(days=15)
 def dayFormat(ax):
     ax.xaxis.set_major_locator(matplotlib.dates.DayLocator(interval=1))
-#     N = len(ax.get_xticks())
-#     if N > 20:
-#         ax.xaxis.set_major_locator(matplotlib.dates.DayLocator(interval=N//15))    
+    try:
+        N = len(ax.get_xticks())
+    except RuntimeError as e:
+        logger.warning('day format error %s', e)
+        N = 10000
+    if N > 20:
+        ax.xaxis.set_major_locator(matplotlib.dates.DayLocator(interval=N//15))
+            
     ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%Y-%m-%d'))
     for label in ax.get_xticklabels():
         label.set_rotation(17)

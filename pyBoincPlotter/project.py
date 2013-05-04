@@ -68,7 +68,7 @@ class Project(object):
         # Returns total time of pending validations
         p = datetime.timedelta(0)
         for task in self.tasks:
-            if int(task.granted) == 0 and task.remainingCPUtime == '0:00:00':#task.state.startswith('Pending'):
+            if task.granted == 0 and task.remainingCPUtime == '0:00:00':#task.state.startswith('Pending'):
                 p += task._finalCPUtime
         return p
 
@@ -76,7 +76,7 @@ class Project(object):
         pending = datetime.timedelta(0)
         running = datetime.timedelta(0)
         for task in self.tasks:
-            if int(task.granted) == 0 and task.remainingCPUtime != '0:00:00':
+            if task.granted == 0 and task.remainingCPUtime != '0:00:00':
                 if task._currentCPUtime != datetime.timedelta(0):
                     running += task._currentCPUtime + task._remainingCPUtime
                 else:

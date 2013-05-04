@@ -224,7 +224,7 @@ class WebTask_worldcommunitygrid(Task):
 
 class WebTask(Task):
     desc_state = ['in progress', 'validation pending', 'validation inconclusive', 'valid', 'invalid', 'error']
-    def __init__(self, name, workunit, device, sent, deadline, state, finaltime, finalCPUtime, granted, projectName, credit=0):
+    def __init__(self, name, workunit, device, sent, deadline, state, finaltime, finalCPUtime, granted, projectName, claimed=0):
         Task.__init__(self)
         
         self.fmt_date = r'%d %b %Y %H:%M:%S UTC'
@@ -262,10 +262,10 @@ class WebTask(Task):
 
         if granted == '---':
             granted = '0'
-        self.credit = granted
-        if credit == '---':
-            credit = '0'
-        self.granted = float(credit)
+        self.granted = granted
+        if claimed == '---':
+            claimed = '0'
+        self.claimed = float(claimed)
 
         self.projectName = projectName
 

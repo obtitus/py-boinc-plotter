@@ -410,7 +410,7 @@ class HTMLParser_boinc(HTMLParser):
                                      finalCPUtime=self.currentTask[7],
                                      granted=self.currentTask[9],
                                      projectName=self.projectName,
-                                     credit=self.currentTask[8])
+                                     claimed=self.currentTask[8])
                     name_long = self.projectName
                     name_short = ''
                     logger.debug('rosetta style task %s', t)
