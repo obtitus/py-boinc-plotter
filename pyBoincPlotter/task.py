@@ -246,6 +246,8 @@ class WebTask(Task):
             state = 'valid'
         elif state.lower() == 'over success done':
             state = 'valid'
+        elif state.lower().endswith('waiting for validation'):
+            state = 'pending validation'
         elif state.lower().startswith('in progress'):
             state = 'in progress'
         if 'error' in state.lower():
