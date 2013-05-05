@@ -108,15 +108,16 @@ def parseStatistics(page):
 
 def plotStatistics(fig, data, name):
     ax1 = fig.add_subplot(211)
-    kwargs = dict(marker='*', ls='-')
-    ax1.plot(data['day'], data['user_total_credit'], label='{0} user total'.format(name), **kwargs)
-    ax1.plot(data['day'], data['host_total_credit'], label='{0} host total'.format(name), **kwargs)
+    kwargs = dict(ls='-')
+    kwargsHost = dict(marker='*', ls='-')
+    ax1.plot(data['day'], data['user_total_credit'], label='{0}'.format(name), **kwargs)
+    ax1.plot(data['day'], data['host_total_credit'], **kwargsHost)
     ax1.legend(loc='best').draggable()
     ax1.set_ylabel('Total boinc credit')
 
     ax2 = fig.add_subplot(212, sharex=ax1)
-    ax2.plot(data['day'], data['user_expavg_credit'], label='{0} user average'.format(name), **kwargs)
-    ax2.plot(data['day'], data['host_expavg_credit'], label='{0} host average'.format(name), **kwargs)
+    ax2.plot(data['day'], data['user_expavg_credit'], label='{0}'.format(name), **kwargs)
+    ax2.plot(data['day'], data['host_expavg_credit'], **kwargsHost)
     ax2.legend(loc='best').draggable()
 
     ax2.set_xlabel('Date')
