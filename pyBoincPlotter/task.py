@@ -35,9 +35,9 @@ class Task(object):
     # and a set <property> for converting from a string
     # and a get <property> for returning a string representation
 
-    desc_state = ['Downloading', 'Ready to run', 'Running', 'Suspended', 'Paused', 'Computation Completed', 'Uploading', 'Ready to Report']
-    desc_active = ['Paused', 'Running', 2, 3, 4, 5, 6, 7, 8, 'Running']
-    desc_schedularState = ['Ready to start', 'Suspended', 'Running']
+    desc_state = ['downloading', 'ready to run', 'running', 'suspended', 'paused', 'computation completed', 'uploading', 'ready to report']
+    desc_active = ['paused', 'running', 2, 3, 4, 5, 6, 7, 8, 'running']
+    desc_schedularState = ['ready to start', 'suspended', 'running']
 
     def strToTimedelta(self, sec):
         timedelta = datetime.timedelta(seconds=float(sec))
@@ -54,39 +54,23 @@ class Task(object):
 
         self.fmt_date = '%a %b %d %H:%M:%S %Y'
         #self.fmt = "{self.name:<20} {stateDesc:<15} {self.fractionDone:<5} {self.currentCPUtime:<10} {self.remainingCPUtime:<10} {self.deadline:<25} {self.state} {self.active} {self.schedularState}"
-        self.fmt = "{self.nameShort:<20} {stateDesc:<20} {self.fractionDone:<5} {self.currentCPUtime:<10} {self.remainingCPUtime:<10} {self.deadline:<25} {self.claimed:>5} {self.granted:>5} {self.device:>20}"
+        self.fmt = "{self.nameShort:<20} {self.state:<20} {self.fractionDone:<5} {self.currentCPUtime:<10} {self.remainingCPUtime:<10} {self.deadline:<25} {self.claimed:>5} {self.granted:>5} {self.device:>20}"
         self.header = self.fmt.replace('self.', '')
-        self.header = self.header.format(nameShort="Name", stateDesc="State", fractionDone="Done",
+        self.header = self.header.format(nameShort="Name", state="State", fractionDone="Done",
                                          currentCPUtime='Current', remainingCPUtime="Remaining",
-                                         deadline="Deadline/Return time", state="state", active="active", schedularState="schedular",
+                                         deadline="Deadline/Return time",
                                          claimed="Claimed", granted='Granted', device='Device')
         # These are given meaning in subclass webTask
         self.claimed = 0
         self.granted = 0
         self.device = 'localhost'
     
-    def __str__(self):
-        state = 'unknown'                     # TODO: not correct
-        if self.done():#self.readyToReport == 'yes':
-            self.fractionDone = '1' # this is set to 0 when done, weird!
-            self._currentCPUtime = self._finalCPUtime
-            state = 'Ready to report'
-        elif self.state == 'computation completed':
-            state = 'Completed'
-        elif self.schedularState in ['Suspended', 'Ready to start']:
-            state = self.schedularState
-        elif self.active in ['Paused', 'Running']:
-            state = self.active
-
-        if self.isWebTask():
-            # hack
-            state = self.state
-            
-        return self.fmt.format(stateDesc=state, self=self)
+    def __str__(self):            
+        return self.fmt.format(self=self)
 
     def done(self):
         # Is the task finished?
-        if self.state == 'in progress': # For tasks on other computers
+        if self.desc_state[self._state] == 'in progress': # For tasks on other computers
             return False
         else:
             return self.remainingCPUtime == '0:00:00'
@@ -137,7 +121,21 @@ class Task(object):
 
     @property
     def state(self):
-        return self.desc_state[self._state]
+        state = self.desc_state[self._state]
+        # Hack
+        if self.remainingCPUtime == '0:00:00' and not(state == 'in progress') and self._schedularState != -1: # done and not on other computer
+            self.fractionDone = '1' # this is set to 0 when done, weird!
+            self._currentCPUtime = self._finalCPUtime
+            state = 'ready to report'
+        elif state == 'computation completed':
+            state = 'completed'
+        elif self.schedularState in ['suspended', 'ready to start']:
+            state = self.schedularState
+        elif self.active in ['Paused', 'Running']:
+            state = self.active
+
+        return state
+    
     @state.setter
     def state(self, state):
         try:
@@ -165,6 +163,7 @@ class Task(object):
     
     @property
     def currentCPUtime(self):
+        if self.done(): self._currentCPUtime = self._finalCPUtime
         return self.timedeltaToStr(self._currentCPUtime)
     @currentCPUtime.setter
     def currentCPUtime(self, currentCPUtime):
@@ -172,6 +171,7 @@ class Task(object):
     
     @property
     def fractionDone(self):
+        if self.done(): self._fractionDone = 100
         return "{:.0f} %".format(self._fractionDone)
     @fractionDone.setter
     def fractionDone(self, fractionDone):
