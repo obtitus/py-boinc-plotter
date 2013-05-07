@@ -129,8 +129,10 @@ class Task(object):
             state = 'ready to report'
         elif state == 'computation completed':
             state = 'completed'
-        elif self.schedularState in ['suspended', 'ready to start']:
+        elif self.schedularState == 'suspended':
             state = self.schedularState
+        elif self.schedularState == 'ready to start':
+            state = 'ready to run'
         elif self.active in ['Paused', 'Running']:
             state = self.active
 
