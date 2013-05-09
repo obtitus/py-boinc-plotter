@@ -22,6 +22,7 @@ Main file
 
 # Standard python imports
 import sys
+import re
 from datetime import datetime
 import argparse
 import logging
@@ -112,8 +113,9 @@ def findStat(projectDict_stat, key):
         return projectDict_stat[key]
     # Hack:
     # if not lets check for similarities
+    reg = re.compile(key + ' \(\w*\)')
     for k in projectDict_stat.keys():
-        if key.startswith(k) or k.startswith(key):
+        if key.startswith(k) or re.match(reg, k):
             ret = projectDict_stat[k]
             del projectDict_stat[k]
             return ret
@@ -167,8 +169,9 @@ def intertwineData(projectDict, projectDict_stat, localList, webList):
 
     # If the only information we have is statistics, remember to add that
     for key in sorted(projectDict_stat):
-        if not(findStat(projectDict, key)):
+        if findStat(projectDict, key) == None:
             projectDict[key] = project.Project(stat=projectDict_stat[key])
+
     return s, projectDict
 
 def printState(shouldPlot=False):

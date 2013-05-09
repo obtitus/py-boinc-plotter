@@ -109,14 +109,17 @@ def parseStatistics(page):
 def plotStatistics(fig, data, name):
     ax1 = fig.add_subplot(211)
     kwargs = dict(ls='-')
-    kwargsHost = dict(marker='*', ls='-')
-    ax1.plot(data['day'], data['user_total_credit'], label='{0}'.format(name), **kwargs)
+    l = ax1.plot(data['day'], data['user_total_credit'], label='{0}'.format(name), **kwargs)
+
+    kwargsHost = dict(marker='*', ls='-', color=l[0].get_color())
     ax1.plot(data['day'], data['host_total_credit'], **kwargsHost)
     ax1.legend(loc='best').draggable()
     ax1.set_ylabel('Total boinc credit')
 
     ax2 = fig.add_subplot(212, sharex=ax1)
-    ax2.plot(data['day'], data['user_expavg_credit'], label='{0}'.format(name), **kwargs)
+    l = ax2.plot(data['day'], data['user_expavg_credit'], label='{0}'.format(name), **kwargs)
+
+    kwargsHost['color'] = l[0].get_color()
     ax2.plot(data['day'], data['host_expavg_credit'], **kwargsHost)
     ax2.legend(loc='best').draggable()
 
@@ -196,8 +199,8 @@ def plotJobLog(fig, data, projectName, prevBars=None):
     ax3.set_ylabel('Final clock time')
 
     ax4 = fig.add_subplot(N, 1, ix, sharex=ax1); ix += 1
-    l4 = ax4.plot(time, np.array(fe)/1e9, label=projectName, **kwargs)
-    ax4.set_ylabel('Gflops')
+    l4 = ax4.plot(time, np.array(fe)/1e12, label=projectName, **kwargs)
+    ax4.set_ylabel('Tflops')
 
     color = [l1[0].get_color(), l2[0].get_color(), l3[0].get_color(), l4[0].get_color()]
 
@@ -227,7 +230,7 @@ def plotJobLog(fig, data, projectName, prevBars=None):
         b1.bar(x, cumulative[0], width=1, alpha=0.5, color=color[0])
         b2.bar(x, cumulative[1], width=1, alpha=0.5, color=color[1])
         b3.bar(x, cumulative[2], width=1, alpha=0.5, color=color[2])
-        b4.bar(x, cumulative[3]/1e9, width=1, alpha=0.5, color=color[3])
+        b4.bar(x, cumulative[3]/1e12, width=1, alpha=0.5, color=color[3])
 
     for ix in range(len(time)):
         # If new day, plot and null out cumulative

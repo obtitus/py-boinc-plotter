@@ -55,13 +55,13 @@ class Project(object):
         for task in self.tasks:
             s += str(task) + '\n'
 
-        p = self.pendingValidationTime()
-        if p != datetime.timedelta(0):
-            p = str(p)
-            ix = p.find('.')
-            if ix != -1:
-                p = p[:ix]
-            s += 'Total pending: {0:>41}\n'.format(p)
+#         p = self.pendingValidationTime()
+#         if p != datetime.timedelta(0):
+#             p = str(p)
+#             ix = p.find('.')
+#             if ix != -1:
+#                 p = p[:ix]
+#             s += 'Total pending: {0:>41}\n'.format(p)
         return s[:-1]
 
     def pendingValidationTime(self):
@@ -76,6 +76,7 @@ class Project(object):
         pending = datetime.timedelta(0)
         running = datetime.timedelta(0)
         for task in self.tasks:
+            #print task.granted == 0, task.remainingCPUtime != '0:00:00', task._currentCPUtime != datetime.timedelta(0)
             if task.granted == 0 and task.remainingCPUtime != '0:00:00':
                 if task._currentCPUtime != datetime.timedelta(0):
                     running += task._currentCPUtime + task._remainingCPUtime
@@ -359,8 +360,11 @@ def plotDeadline(projects):
                 ax.barh(ix, r, height=width, color=color)
                 ax.barh(ix, 1, height=1, left=d, color=color)
                 ax.barh(ix, -c, height=width, color=color)
+                if task.state == 'running': color = 'k'
+                elif task.state == 'ready to report': color='g'
+                else: color = 'b'
                 ax.text(x = -c, y = ix + width/2,
-                        s=task.fractionDone, horizontalalignment='right', fontsize=10)
+                        s=task.fractionDone, horizontalalignment='right', fontsize=10, color=color)
                 names.append(task.nameShort.replace('_', ' '))
                 ix += 1
 

@@ -186,6 +186,33 @@ class Task(object):
     def remainingCPUtime(self, remainingCPUtime):
         self._remainingCPUtime = self.strToTimedelta(remainingCPUtime)
 
+    @property
+    def granted(self):
+        return self._granted 
+    @granted.setter
+    def granted(self, granted):
+        if hasattr(granted, 'replace'):
+            granted = granted.replace(',', '')
+            granted = granted.replace('---', '0')
+
+        try:
+            self._granted = float(granted)
+        except ValueError:
+            self._claimed = granted
+    @property
+    def claimed(self):
+        return self._claimed 
+    @claimed.setter
+    def claimed(self, claimed):
+        if hasattr(claimed, 'replace'):
+            claimed = claimed.replace(',', '')
+            claimed = claimed.replace('---', '0')
+
+        try:
+            self._claimed = float(claimed)
+        except ValueError:
+            self._claimed = claimed
+
 class WebTask_worldcommunitygrid(Task):
     desc_state = ['in progress', 'aborted', 'detached', 'error', 'no reply', 'pending validation', 'pending verification', 'valid', 'invalid', 'inconclusive', 'too late', 'waiting to send', 'other']
     def strToTimedelta(self, hours):
@@ -213,8 +240,8 @@ class WebTask_worldcommunitygrid(Task):
         self.timeHours = split[1]
 
         split = lst[7].split('/')
-        self.claimed = float(split[0])
-        self.granted = float(split[1])
+        self.claimed = split[0]
+        self.granted = split[1]
 
         self._currentCPUtime = self._finalCPUtime
         self.remainingCPUtime = 0
@@ -264,12 +291,8 @@ class WebTask(Task):
             finalCPUtime = finalCPUtime.replace(',', '') # used as thousand seperator
         self.finalCPUtime = finalCPUtime
 
-        if granted == '---':
-            granted = '0'
         self.granted = granted
-        if claimed == '---':
-            claimed = '0'
-        self.claimed = float(claimed)
+        self.claimed = claimed
 
         self.projectName = projectName
 
