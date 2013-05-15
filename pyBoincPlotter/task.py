@@ -279,6 +279,8 @@ class WebTask(Task):
             state = 'pending validation'
         elif state.lower().endswith('validation inconclusive'):
             state = 'inconclusive'
+        elif state.lower().endswith('invalid'):
+            state = 'invalid'
         elif state.lower().startswith('in progress'):
             state = 'in progress'
         if 'error' in state.lower():
