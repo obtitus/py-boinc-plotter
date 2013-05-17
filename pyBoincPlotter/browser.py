@@ -63,7 +63,7 @@ class Browser_cache(object):
             age = (now - fileChanged)/(60*60) # age of file in hours
             logger.debug('%s is %s h old', filename, age)
             oldAge = 1
-            if ('viewWorkunitStatus' in filename) or ('workunitphpwuid' in filename):
+            if 'workunit' in filename:
                 oldAge = 24*14 # Currently the workunit page is only used for project name, which will never change. Set to 14 days so that the file will eventually be cleaned
                 
             if age < oldAge:
@@ -165,7 +165,7 @@ class BrowserSuper(object):
             logger.info('%s, %s', r, r.history)
             firstLine = r.content.split('\n')[0].strip()
             logger.debug('First line "%s"', firstLine)
-            if r.url != URL or firstLine == '<html><head><title>Please log in</title>': # Last is a hack for rosetta: boinc.bakerlab.org/
+            if r.url != URL or firstLine == '<html><head><title>Please log in</title>' or '<td><h3 align="center" class="txtTitle">Please log in</h3>' in r.content: # redirected or hack for rosetta or hack for climateprediction
                 if not(recursionCall):
                     logger.info('Seem to have been redirected, trying to authenticate first. %s', r.url)
                     self.authenticate()
