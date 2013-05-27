@@ -379,11 +379,11 @@ class HTMLParser_boinc(HTMLParser):
                 content = self.browser.visitPage(attrs[0][1])
                 self.parse_workUnit.feed(content)
                 self.projectName = self.parse_workUnit.projectName
-            if len(attrs) > 0 and attrs[0][0] == 'href' and 'results.php?userid=' in attrs[0][1]:
-                reg = re.search('userid=\d+&offset=(\d+)', attrs[0][1])
-                page = reg.group(1)
-                if not(page in self.listOfPages) and int(page) != 0:
-                    self.listOfPages.append(page) # results.php?userid=<userid>&offset=40
+        if len(attrs) > 0 and attrs[0][0] == 'href' and 'results.php?userid=' in attrs[0][1]:
+            reg = re.search('offset=(\d+)', attrs[0][1])
+            page = reg.group(1)
+            if not(page in self.listOfPages) and int(page) != 0:
+                self.listOfPages.append(page) # results.php?userid=<userid>&offset=40
         
     def handle_endtag(self, tag):
         if tag == 'table':
@@ -391,6 +391,7 @@ class HTMLParser_boinc(HTMLParser):
         if tag == 'tr':
             self.inTr = False
             logger.debug('%s %s', self.currentTask, len(self.currentTask))
+            t = None
             if len(self.currentTask) == 10:
                 name_long, name_short = shortLongName(self.currentTask[9])
                 self.currentTask[9] = name_long
@@ -414,6 +415,25 @@ class HTMLParser_boinc(HTMLParser):
                     name_long = self.projectName
                     name_short = ''
                     logger.debug('rosetta style task %s', t)
+            if len(self.currentTask) == 11: # climateprediction
+                try:
+                    t = task.WebTask(name=self.currentTask[0],
+                                     workunit=self.currentTask[1],
+                                     device=self.currentTask[2],
+                                     sent=self.currentTask[3],
+                                     deadline=self.currentTask[4],
+                                     state=self.currentTask[5],
+                                     finaltime=self.currentTask[6],
+                                     finalCPUtime=self.currentTask[7],
+                                     claimed=self.currentTask[8],
+                                     granted=self.currentTask[9],
+                                     projectName=self.currentTask[10])
+                    logger.debug('climateprediction task created %s', t)
+                    name_long = self.currentTask[10]
+                    name_short = ''
+                except Exception as e:
+                    logger.debug('climateprediction task error %s', e)
+            if t != None:
                 self.tasks.append(t)
                 self.projects[name_long] = project.Project(name_long=name_long,
                                                            name_short=name_short) # hack
@@ -443,10 +463,12 @@ if __name__ == '__main__':
     browser.main()
     
     #browser = browser.Browser('mindmodeling.org')
-    browser = browser.Browser('boinc.bakerlab.org')
+    #browser = browser.Browser('boinc.bakerlab.org')
+    #browser = browser.Browser('boincsimap.org/boincsimap')
+    browser = browser.Browser('climateapps2.oerc.ox.ac.uk/cpdnboinc')    
 
     parser = HTMLParser_boinc(browser)
     content = browser.visit()
     print content
     parser.feed(content)
-    print parser
+    print parser.tasks

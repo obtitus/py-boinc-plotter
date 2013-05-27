@@ -47,7 +47,8 @@ class Browser_cache(object):
     # Cache aware browser
     # This is just to seperate the code a little
     # Using this class directly makes no sense
-    # Beware, not thread safe!
+    # Beware, not thread safe to initialize or update
+    # Note: the entire cache folder is currently read into memory
     def __init__(self):
         self.cacheDir = config.CACHE_DIR
         self.update()

@@ -126,7 +126,7 @@ def findStat(projectDict_stat, key):
 def intertwineData(projectDict, projectDict_stat, localList, webList):
     # Fill out the project information from the local and web information given
     # First, figure out local and web list link
-    logger.debug('intertwine called with %s\n, %s\n, %s\n, %s\n', projectDict, projectDict_stat, localList, webList)
+    logger.debug('intertwine called with ProjectDict: "%s"\n, ProjectDict_stat: "%s"\n , localList: "%s", webList: "%s"', projectDict, projectDict_stat, localList, webList)
     s = ''
     try:
         h = localList[0].header
@@ -143,6 +143,7 @@ def intertwineData(projectDict, projectDict_stat, localList, webList):
         ix = 0
         found = False
         while ix < len(webList):        # For each web
+            #print 'Is "%s" == "%s"' % (localTask.name, webList[ix].name)
             if localTask.name.startswith(webList[ix].name): # found
                 found = True
                 projectDict[webList[ix].projectName].tasks.append(localTask)
@@ -151,6 +152,7 @@ def intertwineData(projectDict, projectDict_stat, localList, webList):
             else:
                 ix += 1
         if found == False:              # We can't determine project name, so add a new project called notFound (happends when there is no internett connection or when the cache is outdated)
+            logger.debug('Failed to find %s in webList', localTask.name)
             if not(projectDict.has_key(notFound)):
                 projectDict[notFound] = project.Project(name_long=notFound, name_short="not found")
             projectDict[notFound].tasks.append(localTask)

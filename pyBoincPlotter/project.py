@@ -72,16 +72,20 @@ class Project(object):
                 p += task._finalCPUtime
         return p
 
-    def pendingComputationTime(self):
+    def pendingComputationTime(self, includeComputed=True):
         pending = datetime.timedelta(0)
         running = datetime.timedelta(0)
         for task in self.tasks:
             #print task.granted == 0, task.remainingCPUtime != '0:00:00', task._currentCPUtime != datetime.timedelta(0)
             if task.granted == 0 and task.remainingCPUtime != '0:00:00':
                 if task._currentCPUtime != datetime.timedelta(0):
-                    running += task._currentCPUtime + task._remainingCPUtime
+                    running += task._remainingCPUtime
+                    if includeComputed:
+                        running += task._currentCPUtime
                 else:
-                    pending += task._currentCPUtime + task._remainingCPUtime
+                    pending += task._remainingCPUtime
+                    if includeComputed:
+                        pending += task._currentCPUtime
         return running, pending
 
 def badgeToColor(name):
@@ -204,7 +208,7 @@ def plotRunningTimeByProject_wuprop(projects):
             plt.bar(ix, pending, bottom=h, alpha=0.5, **kwargs)
             h += pending
 
-        running, waiting = projects[key].pendingComputationTime()
+        running, waiting = projects[key].pendingComputationTime(includeComputed=False)
         if running != datetime.timedelta(0):
             running = running.total_seconds()
             plt.bar(ix, running, bottom=h, alpha=0.25, **kwargs)

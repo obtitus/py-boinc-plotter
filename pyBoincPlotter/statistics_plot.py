@@ -137,9 +137,12 @@ def parseJobLog(page):
     name = list()                       # name, 'wu name'
     et = list()                         # final_elapsed_time, 'Col 6: 501.640625 is the clock time in seconds that it took to complete the WU.' or 'The green field is the elapsed time for the task.'
     now = datetime.datetime.now()
-    for line in page:
+    for ix, line in enumerate(page):
         s = line.split()
-        assert len(s) == 11, 'Line in job log not recognized {0} "{1}" -> "{2}"'.format(len(s), line, s)
+        #assert len(s) == 11, 
+        if len(s) != 11:
+            logger.warning('Line {} in job log not recognized, split length {} "{}" -> "{}"'.format(ix, len(s), line, s))
+            continue
         t = int(s[0])
         t = datetime.datetime.fromtimestamp(t)
         if limitDaysToPlot == None or now - t < limitDaysToPlot:
