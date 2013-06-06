@@ -343,7 +343,7 @@ def plotTimeStats(fig, data, limitDays=None):
             for key in self.cumsum:
                 x.append(self.cumsum[key])
                 colors.append(self.getColor(key))
-                labels.append(key)
+                labels.append(key.replace('_', ' ').capitalize())
                 
             ax.pie(x, labels=labels, colors=colors)
             
@@ -383,13 +383,15 @@ def plotTimeStats(fig, data, limitDays=None):
 
     # y labels
     ticks = np.arange(N)
-    labels = ['power', 'net', 'proc']
+    labels = ['Power', 'Network', 'Processor']
     for ix, ax in enumerate(axes):
         ax.set_ylabel(labels[ix])
         if limitDays != None:
             ax.set_xlim(xmin=now-limitDays.days)
         dayFormat(ax)
-    
+        plt.setp(ax.get_yticklabels(), visible=False)
+    for ax in [ax0, ax1]:
+        plt.setp(ax.get_xticklabels(), visible=False)
 def shortenProjectName(name):
     name = name.replace('www.', '')
     name = name.replace('.org', '')        
