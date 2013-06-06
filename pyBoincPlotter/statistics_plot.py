@@ -24,11 +24,12 @@ daily_xfer_history.xml
 todo?: time_stats_log
 Files are skipped if not found, or if they can't be opened.
 """
+from __future__ import division
 import os
 import datetime
 import re
 import xml.etree.ElementTree
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 import calendar
 
 import logging
@@ -39,7 +40,6 @@ from importMatplotlib import *
 import config
 import async
 
-import stacked_graph
 
 limitDaysToPlot = datetime.timedelta(days=15)
 def dayFormat(ax):
@@ -256,38 +256,6 @@ def plotJobLog(fig, data, projectName, prevBars=None):
 
     return color[0]
 
-def plotStream(inputStream, labels, color):
-    now = datetime.datetime.now()
-    cal = calendar.Calendar()
-    days = list(cal.itermonthdates(year=now.year, month=now.month))
-    N = len(days)
-#     N = 0
-#     for data in inputStream:
-#         N = max(N, len(data['time']))
-        
-    stream = list()
-    for data in inputStream:
-        #time, ue, ct, fe, name, et = data['time'], data['ue'], data['ct'], data['fe'], data['name'], data['et']
-        
-        this_dset = np.zeros(N)
-        for ix in range(len(data['time'])):
-            date = plt.num2date(data['time'][ix])
-            #date = datetime.datetime(year=date.year, month=date.month, day=date.day)
-            #jx = days.index(date)
-            for jx in range(N):
-                if date.year == days[jx].year and date.month == days[jx].month and date.day == days[jx].day:
-                    break
-            else:
-                continue
-            this_dset[jx] += data['ue'][ix]
-
-        stream.append(this_dset)
-
-    stacked_graph.stacked_graph(days, stream, labels, baseline_fn = stacked_graph.zero, color_seq=color)
-    plt.gcf().autofmt_xdate()
-    plt.gca().yaxis.set_major_formatter(formatter_timedelta)
-#    for day in days:
-#        plt.num2date(time[ix])
         
 def parseDailyTransfer(page):
     # Not sure about the unit
@@ -322,6 +290,106 @@ def plotDailyTransfer(fig, data):
     ax.set_ylabel('upload/download')
     dayFormat(ax)
 
+def parseTimeStats(page):
+    """
+    Parses the time_stats_log, returns time and description iterators
+    """
+    for line in page:
+        s = line.split()
+        if len(s) == 3: continue # version and platform are longer
+        elif s[0] == '': continue
+        elif len(s) != 2:
+            logger.warning('time_stats_log line not recognized "{}"'.format(line))
+            continue
+
+        t = float(s[0])
+        t = datetime.datetime.fromtimestamp(t)
+        desc = s[1]
+
+        yield plt.date2num(t), desc
+
+def plotTimeStats(fig, data, limitDays=None):
+    now = plt.date2num(datetime.datetime.now())
+    
+    gs = gridspec.GridSpec(3, 3)
+    
+    class PrevState(object): # namedtuple('PreviousState', ['t', 'desc'])
+        states = dict(on='green', off='red', start='green', stop='red', not_connected='red', unknown='blue')
+        def __init__(self, t, desc):
+            self.t = t
+            self.desc = desc
+            self.cumsum = defaultdict(int) # Keep a sum over all plotted
+        
+        def getColor(self, desc=None):
+            if desc == None: desc = self.desc
+            try:
+                return self.states[desc]
+            except KeyError:
+                logger.warning('plotTimeStats unknown state "{}"'.format(desc))
+                return 'k'
+
+        def barh(self, ax, t):
+            if self.t != None and (limitDays == None or now - t < limitDays.days):
+                color = self.getColor()
+                ax.barh(bottom=0, width=(t - self.t), left=self.t, height=1, color=color)
+
+                self.cumsum[self.desc] += (t - self.t) # todo substract outside wanted range
+
+        def pie(self, ax):
+            # use the cumsum to plot a pie chart
+            x = list()
+            colors = list()
+            labels = list()
+            for key in self.cumsum:
+                x.append(self.cumsum[key])
+                colors.append(self.getColor(key))
+                labels.append(key)
+                
+            ax.pie(x, labels=labels, colors=colors)
+            
+        def update(self, t, desc):
+            self.t = t
+            self.desc = desc
+
+    N = 3
+    power = PrevState(None, None)
+    net = PrevState(None, None)
+    proc = PrevState(None, None)
+    ax0 = fig.add_subplot(gs[0, :-1])
+    ax1 = fig.add_subplot(gs[1, :-1])
+    ax2 = fig.add_subplot(gs[2, :-1])
+    axes = [ax0, ax1, ax2]
+    for t, desc in data:
+        if desc.startswith('power'):
+            newState = desc[len('power_'):]
+            power.barh(ax0, t)
+            power.update(t, newState)
+        elif desc.startswith('net'):
+            newState = desc[len('net_'):]
+            net.barh(ax1, t)
+            net.update(t, newState)
+        elif desc.startswith('proc'):
+            newState = desc[len('proc_'):]
+            proc.barh(ax2, t)
+            proc.update(t, newState)
+        else:
+            logger.warning('plotTimeStats, did not recognize "{}" as description'.format(desc))
+
+    # Draw current state to now
+    for ix, item in enumerate([power, net, proc]):
+        item.barh(axes[ix], now)
+        ax2 = fig.add_subplot(gs[ix, -1])
+        item.pie(ax2)
+
+    # y labels
+    ticks = np.arange(N)
+    labels = ['power', 'net', 'proc']
+    for ix, ax in enumerate(axes):
+        ax.set_ylabel(labels[ix])
+        if limitDays != None:
+            ax.set_xlim(xmin=now-limitDays.days)
+        dayFormat(ax)
+    
 def shortenProjectName(name):
     name = name.replace('www.', '')
     name = name.replace('.org', '')        
@@ -360,19 +428,22 @@ def main():
         color.append(plotJobLog(fig, data, name))
         stream.append(data)
 
-    try:
-        fig = plt.figure('Stream plot', figsize=(10, 8))
-        fig.clf()
-        plotStream(stream, labels=labels, color=color)
-    except Exception as e:
-        logger.error('Stream plot error %s', e)
-        #fig.close()
-
     fig = plt.figure('daily transfer', figsize=(10, 8))
     fig.clf()
     if daily_transfer.ret != None:
         plotDailyTransfer(fig, daily_transfer.ret)
 
+    fig = plt.figure('Time Stats', figsize=(10, 10))
+    fig.clf()
+    try:
+        f = open(os.path.join(config.BOINC_DIR, 'time_stats_log'))
+        data = parseTimeStats(f)
+        plotTimeStats(fig, data, limitDaysToPlot)
+    except Exception as e:
+        logger.exception('time_stats failed with %s', e)
+        try: f.close()
+        except: pass
+        
 if __name__ == '__main__':
     loggerSetup(logging.INFO)
 

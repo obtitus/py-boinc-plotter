@@ -131,10 +131,13 @@ class BrowserSuper(object):
         
     def authenticate(self):
         try:
-            r = self.client.post(self.loginPage, data=self.loginInfo)
+            r = self.client.post(self.loginPage, data=self.loginInfo, timeout=5)
             logger.info('%s', r)            
-        except requests.ConnectionError:
-            print('Could not connect to login page')
+        except requests.ConnectionError as e:
+            print('Could not connect to login page. {}'.format(e))
+        except requests.Timeout as e:
+            print('Connection to login page timed out. {}'.format(e))
+            
         sessionCache = pk.dumps(self.client.cookies)
         self.writeFile(self.name, sessionCache, '.pickle')
 
@@ -158,9 +161,12 @@ class BrowserSuper(object):
             logger.info('Visiting %s', URL)
 
             try:
-                r = self.client.get(URL)
-            except requests.ConnectionError:
-                print('Could not connect to {0}'.format(URL))
+                r = self.client.get(URL, timeout=5)
+            except requests.ConnectionError as e:
+                print('Could not connect to {0}. {1}'.format(URL, e))
+                return ''
+            except requests.Timeout as e:
+                print('Connection to {0}, timed out. {1}'.format(URL, e))
                 return ''
 
             logger.info('%s, %s', r, r.history)

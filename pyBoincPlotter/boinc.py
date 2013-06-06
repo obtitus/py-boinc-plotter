@@ -86,6 +86,7 @@ def getWebstat(shouldPlot=False):
             continue
         b = browser.Browser(section)
         page = b.visitHome()
+        if page == '': continue
         parser = statistics.HTMLParser_boinchome()
         wuprop = section == 'wuprop.boinc-af.org'
         parser.feed(page, wuprop=wuprop)
