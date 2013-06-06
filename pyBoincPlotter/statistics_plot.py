@@ -345,7 +345,7 @@ def plotTimeStats(fig, data, limitDays=None):
                 colors.append(self.getColor(key))
                 labels.append(key.replace('_', ' ').capitalize())
                 
-            ax.pie(x, labels=labels, colors=colors)
+            ax.pie(x, labels=labels, colors=colors, autopct='%.1f %%')
             
         def update(self, t, desc):
             self.t = t
