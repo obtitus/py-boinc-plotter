@@ -331,7 +331,7 @@ def plotTimeStats(fig, data, limitDays=None):
         def barh(self, ax, t):
             if self.t != None and (limitDays == None or now - t < limitDays.days):
                 color = self.getColor()
-                ax.barh(bottom=0, width=(t - self.t), left=self.t, height=1, color=color)
+                ax.barh(bottom=0, width=(t - self.t), left=self.t, height=1, color=color, linewidth=0)
 
                 self.cumsum[self.desc] += (t - self.t) # todo substract outside wanted range
 
