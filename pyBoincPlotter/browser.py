@@ -1,20 +1,23 @@
 #!/usr/bin/env python
-# This file is part of the py-boinc-plotter, which provides parsing and plotting of boinc statistics and badge information.
-# Copyright (C) 2013 obtitus@gmail.com
-# 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# 
+"""
+This file is part of the py-boinc-plotter,
+which provides parsing and plotting of boinc statistics and
+badge information.
+Copyright (C) 2013 obtitus@gmail.com
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 # END LICENCE
 """
 Uses request library to download web content, also stores a local cache.
@@ -137,6 +140,8 @@ class BrowserSuper(object):
             print('Could not connect to login page. {}'.format(e))
         except requests.Timeout as e:
             print('Connection to login page timed out. {}'.format(e))
+        except Exception as e:
+            print('Uncaught exception for login page. {}'.format(e))
             
         sessionCache = pk.dumps(self.client.cookies)
         self.writeFile(self.name, sessionCache, '.pickle')
@@ -168,7 +173,9 @@ class BrowserSuper(object):
             except requests.Timeout as e:
                 print('Connection to {0}, timed out. {1}'.format(URL, e))
                 return ''
-
+            except Exception as e:
+                print('Uncaught exception for {}. {}'.format(URL, e))
+                return ''
             logger.info('%s, %s', r, r.history)
             firstLine = r.content.split('\n')[0].strip()
             logger.debug('First line "%s"', firstLine)

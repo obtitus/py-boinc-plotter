@@ -1,20 +1,23 @@
 #!/usr/bin/env python
-# This file is part of the py-boinc-plotter, which provides parsing and plotting of boinc statistics and badge information.
-# Copyright (C) 2013 obtitus@gmail.com
-# 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# 
+"""
+This file is part of the py-boinc-plotter,
+which provides parsing and plotting of boinc statistics and
+badge information.
+Copyright (C) 2013 obtitus@gmail.com
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 # END LICENCE
 """
 Classes to represent a single workunit/task,
@@ -142,11 +145,11 @@ class Task(object):
     def state(self, state):
         try:
             self._state = int(state)
-        except ValueError: # lets hope its a string representing the state
+        except ValueError:  # lets hope its a string representing the state
             try:
                 self._state = self.desc_state.index(state.lower())
             except:                     # guess not
-                self.desc_state.append(state.lower()) # now it is!
+                self.desc_state.append(state.lower())  # now it is!
                 self._state = self.desc_state.index(state.lower())
     
     @property
@@ -159,22 +162,27 @@ class Task(object):
     @property
     def schedularState(self):
         return self.desc_schedularState[self._schedularState]
+
     @schedularState.setter
     def schedularState(self, schedularState):
         self._schedularState = int(schedularState)
     
     @property
     def currentCPUtime(self):
-        if self.done(): self._currentCPUtime = self._finalCPUtime
+        if self.done():
+            self._currentCPUtime = self._finalCPUtime
         return self.timedeltaToStr(self._currentCPUtime)
+
     @currentCPUtime.setter
     def currentCPUtime(self, currentCPUtime):
         self._currentCPUtime = self.strToTimedelta(currentCPUtime)
     
     @property
     def fractionDone(self):
-        if self.done(): self._fractionDone = 100
+        if self.done():
+            self._fractionDone = 100
         return "{:.0f} %".format(self._fractionDone)
+
     @fractionDone.setter
     def fractionDone(self, fractionDone):
         self._fractionDone = float(fractionDone)*100
@@ -182,13 +190,15 @@ class Task(object):
     @property
     def remainingCPUtime(self):
         return self.timedeltaToStr(self._remainingCPUtime)
+
     @remainingCPUtime.setter
     def remainingCPUtime(self, remainingCPUtime):
         self._remainingCPUtime = self.strToTimedelta(remainingCPUtime)
 
     @property
     def granted(self):
-        return self._granted 
+        return self._granted
+
     @granted.setter
     def granted(self, granted):
         if hasattr(granted, 'replace'):
@@ -199,9 +209,11 @@ class Task(object):
             self._granted = float(granted)
         except ValueError:
             self._claimed = granted
+
     @property
     def claimed(self):
-        return self._claimed 
+        return self._claimed
+
     @claimed.setter
     def claimed(self, claimed):
         if hasattr(claimed, 'replace'):
