@@ -1,26 +1,30 @@
 #!/usr/bin/env python
-# This file is part of the py-boinc-plotter, which provides parsing and plotting of boinc statistics and badge information.
-# Copyright (C) 2013 obtitus@gmail.com
-# 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# 
+"""
+This file is part of the py-boinc-plotter,
+which provides parsing and plotting of boinc statistics and
+badge information.
+Copyright (C) 2013 obtitus@gmail.com
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 # END LICENCE
+from __future__ import division
 """
 Main project class and utility plotting functions.
 Project has a short and long name, some statistics and a list of tasks
 """
-from __future__ import division
+
 import re
 import datetime
 try:
@@ -34,10 +38,12 @@ logger = logging.getLogger('boinc.project')
 from loggerSetup import loggerSetup
 from importMatplotlib import *
 
+
 class Project(object):
     # top class, contains list of status of tasks (local or web)
     # and a single web stat
-    def __init__(self, name_long=None, name_short=None, active=None, stat=None):
+    def __init__(self, name_long=None, name_short=None, active=None,
+                 stat=None):
         self.name = name_long
         self.name_short = name_short
         self.tasks = list()
@@ -46,9 +52,9 @@ class Project(object):
 
     def __str__(self):
         name = "=== {self.name} ({self.name_short}) ===".format(self=self)
-        if self.active == False:
+        if self.active is False:
             name = 'Completed {0}'.format(name)
-        if self.stat != None:
+        if self.stat is not None:
             name += ' {0}'.format(self.stat)
             #name = '{name}\n{stat}'.format(name=name, stat=self.stat)
         s = name + '\n'
@@ -88,6 +94,7 @@ class Project(object):
                         pending += task._currentCPUtime
         return running, pending
 
+
 def badgeToColor(name):
     name = name.lower()
     if name == 'bronze': name = '#8C7853'
@@ -95,7 +102,7 @@ def badgeToColor(name):
     elif name == 'emerald': name = 'g'
     elif name == 'sapphire': name = 'b'
     return name
-    
+
 def plotRunningTimeByProject_worldcommunitygrid(projects, title, browser):
     fig = plt.figure('Running time by worldcommunitygrid project', figsize=(10, 8))
     fig.clf()
@@ -276,7 +283,7 @@ def plotCredits(projects, browser):
             except KeyError:
                 logger.warning('badge key error %s, %s', stat.badge, reg.groups())
             except Exception as e:
-                logger.error('Badge image failed with "%s"', e)                
+                logger.error('Badge image failed with "%s"', e)
                 
         ax.bar(ix, h, **kwargs)
 
@@ -343,7 +350,6 @@ def plotDeadline(projects):
     fig = plt.figure('Deadline', figsize=(10, 8))
     fig.clf()
     ax = fig.add_subplot(111)
-    fig.suptitle('Time until deadline')
     
     width = 0.8
     now = datetime.datetime.today()
@@ -351,6 +357,7 @@ def plotDeadline(projects):
     colormap = matplotlib.cm.get_cmap('hot')
     names = list()
     ix = 0
+    totalRemaining = datetime.timedelta(0)
     for key in sorted(projects.keys()):
         for task in projects[key].tasks:
             logger.debug("%s %s %s %s", task.nameShort, task._state, task.remainingCPUtime, type(task.remainingCPUtime))
@@ -358,6 +365,8 @@ def plotDeadline(projects):
                 r = task._remainingCPUtime.total_seconds()
                 d = (task._deadline - now).total_seconds()
                 c = task._currentCPUtime.total_seconds()
+
+                totalRemaining += task._remainingCPUtime
 
                 p = (d - r)/norm
                 color = colormap(p)
@@ -378,8 +387,10 @@ def plotDeadline(projects):
     plt.yticks(np.arange(len(names))+width/2, names)
     ax = plt.gca()
     ax.xaxis.set_major_formatter(formatter_timedelta)
-    plt.xlabel('Time')
-    plt.ylabel('Task')
+
+    fig.suptitle('Time until deadline, total estimated remaining %s' % totalRemaining)
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Task')
 
 #     ticks = np.linspace(0, norm, 5)
 #     ax, kw = matplotlib.colorbar.make_axes(ax)

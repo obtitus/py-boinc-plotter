@@ -1,20 +1,23 @@
 #!/usr/bin/env python
-# This file is part of the py-boinc-plotter, which provides parsing and plotting of boinc statistics and badge information.
-# Copyright (C) 2013 obtitus@gmail.com
-# 
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-# 
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# 
+"""
+This file is part of the py-boinc-plotter,
+which provides parsing and plotting of boinc statistics and
+badge information.
+Copyright (C) 2013 obtitus@gmail.com
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 # END LICENCE
 """
 Deals with the 'public' xml stat
@@ -206,8 +209,9 @@ class HTMLParser_boinchome():
             if len(data) == 4:
                 projects = data[0].text
                 application = data[1].text
-                runningTime = float(data[2].text)*60*60
-                pending = float(data[3].text)*60*60
+                toFloat = lambda x: float(x.text.replace(',', ''))
+                runningTime = toFloat(data[2])*60*60
+                pending = toFloat(data[3])*60*60
                 self.projects[application] = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
         
 if __name__ == "__main__":    
