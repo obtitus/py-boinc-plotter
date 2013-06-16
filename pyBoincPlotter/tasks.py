@@ -1,3 +1,6 @@
+# Standard python imports
+import datetime
+
 
 class Task(object):
     desc_state = ['downloading', 'ready to run', 'running', 'suspended', 'paused', 'computation completed', 'uploading', 'ready to report', 'unknown']
@@ -15,7 +18,7 @@ class Task(object):
         """
         self.name = name                # There is also a self.name_short which is max 15 characters long
         self.device = device
-        
+
         self.state = state # Stored as integer representing index in the self.desc_state list
         self.fractionDone = fractionDone # stored as float
 
@@ -44,12 +47,12 @@ class Task(object):
         if len(self.name) > 15:
             return self.name[:15] + '...'
         else:
-            return self.name        
+            return self.name
 
     @property
     def state(self):
         state = self.desc_state[self._state]
-        return state    
+        return state
     @state.setter
     def state(self, state):
         try:
@@ -63,11 +66,13 @@ class Task(object):
 
     @property
     def fractionDone(self):
-        if self.done(): self._fractionDone = 100
+        if self.done():
+            self._fractionDone = 100
         return "{:.0f} %".format(self._fractionDone)
     @fractionDone.setter
     def fractionDone(self, fractionDone):
         self._fractionDone = float(fractionDone)*100
+
 
 class Task_local(Task):
     def __init__(self, schedularState, active, **kwargs):
@@ -77,8 +82,8 @@ class Task_local(Task):
 
     def done(self):
         return self.remainingCPUtime == '0:00:00'
-        
-    @Task.property
+
+    @Task.state.getter
     def state(self):
         state = self.desc_state[self._state]
         # Hack
