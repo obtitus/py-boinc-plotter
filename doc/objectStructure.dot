@@ -1,0 +1,33 @@
+digraph G {
+	// 	Projects -> Applications -> Workunits;
+	node [shape=box];
+	subgraph cluster_p {label=Projects;
+		web_statistics;
+		jobLog;
+		subgraph cluster_u {label=User;
+			username;
+			password;
+			userid;
+		};			
+		subgraph cluster_a { label=Applications;
+			stats;
+			subgraph cluster_b {label=Badge; color=green; style=filled;
+				url;
+				name;
+				color;
+				value;
+			};
+			subgraph cluster_t {label=Tasks;
+				name;
+				deadline;
+				remainingCPUtime;
+				elapsedCPUtime;
+				fractionDone;
+				claimed;
+				granted;
+				state;
+				device;
+			};
+		};
+	};
+}

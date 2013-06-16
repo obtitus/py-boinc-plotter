@@ -19,17 +19,17 @@
 """
 Uses request library to download web content, also stores a local cache.
 """
+# Standard python imports
 import pickle as pk
 import time
 import os
 import sys
 import re
+# Logger
 import logging
 logger = logging.getLogger('boinc.browser')
-
+# Non-standard python
 import requests
-
-import config
 
 # Helper functions:
 def sanitizeURL(url):
@@ -43,43 +43,49 @@ def readFile(filename):
         return f.read()
 join = os.path.join
 
-class Browser_cache(object):
+class Browser_file(object):
     # Cache aware browser
-    # This is just to seperate the code a little
-    # Using this class directly makes no sense
-    # Beware, not thread safe!
-    def __init__(self):
-        self.cacheDir = config.CACHE_DIR
+    # Use self.update() (which is called on init) to read in content from the cache folder (in a lazy way)
+    # then use self.visitURL(...) which either returns your content or None if not found in cache.
+    # Cache is invalidated and removed based on age
+    # Using this class directly makes little sense, unless you have the entire updated internet in our cache folder
+    # Beware, not thread safe to update
+    def __init__(self, CACHE_DIR):
+        self.cacheDir = CACHE_DIR
         self.update()
 
-    def update(self):
-        self.cache = self.read_cache()        
+    def add(self, filename):
+        logger.debug('Adding %s to valid cache', filename)
+        self.cache[filename] = None
+    def remove(self, filename):
+        logger.info('Removing old cache %s', filename)
+        try:
+            os.remove(filename)
+        except:
+            logger.exception('Unable to clean up old cach file %s', filename)
 
-    def read_cache(self):
-        cache = dict()
-        now = time.time()
+    def fileAge(self, filename):
+        fileChanged = os.path.getmtime(filename)
+        age = (self.now - fileChanged)/(60*60) # age of file in hours
+        logger.debug('%s is %s h old', filename, age)
+        return age
+    
+    def update(self):
+        self.cache = dict()
+        self.now = time.time()
         for filename in self.findCacheFiles(('.html', '.xml')):
-            fileChanged = os.path.getmtime(filename)
-            age = (now - fileChanged)/(60*60) # age of file in hours
-            logger.debug('%s is %s h old', filename, age)
+            age = self.fileAge(filename)
             oldAge = 1
             if 'workunit' in filename:
-                oldAge = 24*14 # Currently the workunit page is only used for project name, which will never change. Set to 14 days so that the file will eventually be cleaned
+                oldAge = 30*24 # Currently the workunit page is only used for project name, which will never change. Set to 30 days so that the file will eventually be cleaned
                 
             if age < oldAge:
-                logger.debug('Adding %s to valid cache', filename)
-                cache[filename] = readFile(filename)
+                self.add(filename)
             else:
-                logger.info('Removing old cache %s', filename)
-                os.remove(filename)
+                self.remove(filename)
 
-        for filename in self.findCacheFiles('.jpg'): # These never expire
-            logger.debug('Adding %s to valid cache', filename)            
-            cache[filename] = readFile(filename)
-        for filename in self.findCacheFiles('.png'): # These never expire
-            logger.debug('Adding %s to valid cache', filename)            
-            cache[filename] = readFile(filename)            
-        return cache
+        for filename in self.findCacheFiles(('.jpg', '.png')): # These never expire
+            self.add(filename)
         
     def findCacheFiles(self, extension):#htmlCache(self):
         for root, dirs, files in os.walk(self.cacheDir):
@@ -91,6 +97,8 @@ class Browser_cache(object):
         try:
             filename = join(self.cacheDir, sanitizeURL(URL)) + extension
             content = self.cache[filename]
+            if content == None:         # Cached evaluation, if none then replace by content
+                self.cache[filename] = readFile(filename)
             logger.debug('Getting from cache %s, %s', URL, filename)
         except KeyError:                # Not found in cache
             content = None
@@ -100,7 +108,7 @@ class BrowserSuper(object):
     # Browser for visiting the web, use subclass to actually connect somewhere
     # Subclass must define self.URL, self.loginInfo, self.loginPage and self.name
     # or use the visitURL function directly
-    def __init__(self):
+    def __init__(self, browser_cache):
         self.visitedPages = list()
         self.browser_cache = browser_cache # address of cache class
         self.client = requests.session()
@@ -186,39 +194,40 @@ class BrowserSuper(object):
 #             yield self.visit(page, projectId)
 
 class Browser_worldcommunitygrid(BrowserSuper):
-    def __init__(self):
+    def __init__(self, browser_cache, CONFIG):
+        self.CONFIG = CONFIG
         self.name = 'worldcommunitygrid'
-        BrowserSuper.__init__(self)
+        BrowserSuper.__init__(self, browser_cache)
         self.URL = 'http://www.worldcommunitygrid.org/ms/viewBoincResults.do'
         self.URL += '?filterDevice=0&filterStatus=-1&projectId=-1&'
         self.URL += 'pageNum={0}&sortBy=sentTime'
 
         self.loginInfo = {
             'settoken': 'on',
-            'j_username': config.CONFIG.get('worldcommunitygrid.org', 'username'),
-            'j_password': config.CONFIG.getpassword('worldcommunitygrid.org', 'username'),
+            'j_username': CONFIG.get('worldcommunitygrid.org', 'username'),
+            'j_password': CONFIG.getpassword('worldcommunitygrid.org', 'username'),
             }
         self.loginPage = 'https://secure.worldcommunitygrid.org/j_security_check'
 
     def visitStatistics(self):
-        page = self.visitURL("http://www.worldcommunitygrid.org/verifyMember.do?name={0}&code={1}".format(config.CONFIG.get('worldcommunitygrid.org', 'username'),
-                                                                                                        config.CONFIG.get('worldcommunitygrid.org', 'code')), extension='.xml')
+        page = self.visitURL("http://www.worldcommunitygrid.org/verifyMember.do?name={0}&code={1}".format(self.CONFIG.get('worldcommunitygrid.org', 'username'),
+                                                                                                          self.CONFIG.get('worldcommunitygrid.org', 'code')), extension='.xml')
         return page
 
 class Browser(BrowserSuper):
-    def __init__(self, webpageName):
+    def __init__(self, browser_cache, webpageName, CONFIG):
         self.name = webpageName
-        BrowserSuper.__init__(self)
+        BrowserSuper.__init__(self, browser_cache)
         self.webpageName = webpageName
         self.URL = 'http://{name}/results.php?userid={userid}'.format(
             name = webpageName,
-            userid=config.CONFIG.get(webpageName, 'userid'))
+            userid=CONFIG.get(webpageName, 'userid'))
         self.URL += '&offset={0}&show_names=1&state=0&appid='
 
-        self.loginInfo = {'email_addr': config.CONFIG.get(webpageName, 'username'),
+        self.loginInfo = {'email_addr': CONFIG.get(webpageName, 'username'),
                           'mode': 'Log in',
                           'next_url': 'home.php',
-                          'passwd': config.CONFIG.getpassword(webpageName, 'username'),
+                          'passwd': CONFIG.getpassword(webpageName, 'username'),
                           'stay_logged_in': 'on', # used by mindmodeling and wuprop
                           'send_cookie': 'on'}    # used by rosetta and yoyo
         self.loginPage = 'http://{0}/login_action.php'.format(webpageName)
@@ -230,13 +239,7 @@ class Browser(BrowserSuper):
         return BrowserSuper.visit(self, offset)
 
 class Browser_yoyo(Browser):
-    def __init__(self):
-        Browser.__init__(self, webpageName='www.rechenkraft.net/yoyo')
+    def __init__(self, browser_cache, CONFIG):
+        Browser.__init__(self, browser_cache, webpageName='www.rechenkraft.net/yoyo', CONFIG=CONFIG)
         self.loginInfo['mode'] = 'Log in with email/password'
         self.loginInfo['next_url'] = '/yoyo/home.php'
-        
-global browser_cache
-browser_cache = None                    # There should be only 1 instance of this class
-def main():
-    global browser_cache    
-    browser_cache = Browser_cache()         # The one and only instance of this class!    

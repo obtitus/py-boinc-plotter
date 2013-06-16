@@ -74,7 +74,7 @@ from version import appName, appAuthor
 from appdirs import AppDirs
 appDirs = AppDirs(appName, appAuthor)
 
-def setupCacheDir():
+def setupCacheDir(CONFIG):
     cacheDir = CONFIG.get('configuration', 'cache_dir')
     if cacheDir == None:
         cacheDir = appDirs.user_cache_dir
@@ -100,7 +100,7 @@ def setupConfigFile():
     configFile = MyConfigParser(configFilename)        
     return configFile
 
-def setupBoincDir():
+def setupBoincDir(CONFIG):
     boincDir = CONFIG.get('configuration', 'boinc_dir')
     if boincDir == None:                # hmm, lets try this
         boincDir = os.environ.get('BOINC_PROJECT_DIR')
@@ -132,20 +132,21 @@ def setupPassword(domain, additionalInfo=[], forgetOld=False):
             password = getpass.getpass('Enter {0} for user "{1}" at {2}: '.format(a, username, domain))
             CONFIG.set(domain, a, password)
 
-global CONFIG, CACHE_DIR, BOINC_DIR
-BOINC_DIR = None
-CONFIG = None
-CACHE_DIR = None
+# global CONFIG, CACHE_DIR, BOINC_DIR
+# BOINC_DIR = None
+# CONFIG = None
+# CACHE_DIR = None
 def set_globals():
-    global CONFIG, CACHE_DIR, BOINC_DIR
     CONFIG = setupConfigFile()
-    CACHE_DIR = setupCacheDir()
-    BOINC_DIR = setupBoincDir()
+    CACHE_DIR = setupCacheDir(CONFIG)
+    BOINC_DIR = setupBoincDir(CONFIG)
     logger.info('Config file "%s"\nCache dir "%s"\nBoinc dir "%s"', CONFIG.filename, CACHE_DIR, BOINC_DIR)
+    return CONFIG, CACHE_DIR, BOINC_DIR
     
 def main():
-    set_globals()
+    CONFIG, CACHE_DIR, BOINC_DIR = set_globals()
     setupPassword('worldcommunitygrid.org', ['code'])
+    return CONFIG, CACHE_DIR, BOINC_DIR
 
 def addAccount(name):
     setupPassword(name, ['userid'], forgetOld=True)
