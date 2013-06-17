@@ -17,7 +17,7 @@ digraph G {
 				color;
 				value;
 			};
-			subgraph cluster_t {label=Tasks;
+			subgraph cluster_t {label=Tasks; color=green; style=filled;
 				name;
 				deadline;
 				remainingCPUtime;
