@@ -111,7 +111,7 @@ def getWebstat(shouldPlot=False):
 
     return totalStats, projects
 
-def findStat(projectDict_stat, key):
+def findStat(projectDict_stat, key, delete=True):
     logger.debug('Trying to find stat for "%s"', key)
     if projectDict_stat.has_key(key):
         return projectDict_stat[key]
@@ -121,7 +121,8 @@ def findStat(projectDict_stat, key):
     for k in projectDict_stat.keys():
         if key.startswith(k) or re.match(reg, k):
             ret = projectDict_stat[k]
-            #del projectDict_stat[k]
+            if delete:
+                del projectDict_stat[k]
             return ret
     else:
         logger.debug('Failed to find %s, in %s', key, projectDict_stat)
@@ -176,7 +177,7 @@ def intertwineData(projectDict, projectDict_stat, localList, webList):
 
     # If the only information we have is statistics, remember to add that
     for key in sorted(projectDict_stat):
-        if findStat(projectDict, key) == None:
+        if findStat(projectDict, key, delete=False) == None:
             try:
                 projectDict[key].stat = projectDict_stat[key]
                 logger.warning('Something is not quite right key = "%s", %s', key, projectDict[key])
