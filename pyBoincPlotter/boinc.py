@@ -121,7 +121,7 @@ def findStat(projectDict_stat, key):
     for k in projectDict_stat.keys():
         if key.startswith(k) or re.match(reg, k):
             ret = projectDict_stat[k]
-            del projectDict_stat[k]
+            #del projectDict_stat[k]
             return ret
     else:
         logger.debug('Failed to find %s, in %s', key, projectDict_stat)
@@ -150,6 +150,7 @@ def intertwineData(projectDict, projectDict_stat, localList, webList):
             #print 'Is "%s" == "%s"' % (localTask.name, webList[ix].name)
             if localTask.name.startswith(webList[ix].name): # found
                 found = True
+                logger.debug('Infered match %s == %s, project name = %s', localTask.name, webList[ix].name, webList[ix].projectName)
                 projectDict[webList[ix].projectName].tasks.append(localTask)
                 del webList[ix]
                 break
@@ -161,7 +162,7 @@ def intertwineData(projectDict, projectDict_stat, localList, webList):
                 projectDict[notFound] = project.Project(name_long=notFound, name_short="not found")
             projectDict[notFound].tasks.append(localTask)
             #s += str(localTask) + '\tProject name not found' + '\n'
-
+    
     for remaining in webList:
         if remaining.name != 'ResultName':
             projectDict[remaining.projectName].tasks.append(remaining)
@@ -176,7 +177,12 @@ def intertwineData(projectDict, projectDict_stat, localList, webList):
     # If the only information we have is statistics, remember to add that
     for key in sorted(projectDict_stat):
         if findStat(projectDict, key) == None:
-            projectDict[key] = project.Project(stat=projectDict_stat[key])
+            try:
+                projectDict[key].stat = projectDict_stat[key]
+                logger.warning('Something is not quite right key = "%s", %s', key, projectDict[key])
+            except KeyError:
+                logger.debug('adding statistics to %s', key)
+                projectDict[key] = project.Project(stat=projectDict_stat[key])
 
     return s, projectDict
 
@@ -196,6 +202,7 @@ def printState(shouldPlot=False):
     parser_web = parser_web.ret
 
     projects, projectDict = intertwineData(parser_web.projects, projects_stat, parser_local.tasks, parser_web.tasks)
+
     # Present collected data to the user
     print cc_state
     print parser_local.info

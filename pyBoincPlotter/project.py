@@ -360,7 +360,7 @@ def plotDeadline(projects):
     totalRemaining = datetime.timedelta(0)
     for key in sorted(projects.keys()):
         for task in projects[key].tasks:
-            logger.debug("%s %s %s %s", task.nameShort, task._state, task.remainingCPUtime, type(task.remainingCPUtime))
+            logger.debug("%s %s %s %s", task.nameShort, task._state, task.remainingCPUtime, task.isWebTask())
             if not(task.isWebTask()):
                 r = task._remainingCPUtime.total_seconds()
                 d = (task._deadline - now).total_seconds()
