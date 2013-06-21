@@ -2,14 +2,14 @@
 import unittest
 
 # This project
-import tasks
+import task
 
-class TestTasks_local(unittest.TestCase):   
+class TestTask_local(unittest.TestCase):   
     def setUp(self, schedularState='0', active='0', name='foobar 123451234512345', device='this',
               state='0', fractionDone='0',
               elapsedCPUtime='60', remainingCPUtime='3600', deadline='Tue Jun 25 10:41:00 2013'):
 
-        self.t = tasks.Task_local(schedularState=schedularState, active=active, name=name, device=device,
+        self.t = task.Task_local(schedularState=schedularState, active=active, name=name, device=device,
                                   state=state, fractionDone=fractionDone,
                                   elapsedCPUtime=elapsedCPUtime, remainingCPUtime=remainingCPUtime, deadline=deadline)
 
@@ -54,13 +54,13 @@ class TestTasks_local(unittest.TestCase):
     #     delta = datetime.strptime('Tue Jun 25 10:41:00 2013', '%a %b %d %H:%M:%S %Y') - now
         
 
-class TestTasks_web(TestTasks_local):
+class TestTask_web(TestTask_local):
     def setUp(self, claimedCredit='0', grantedCredit='0',
               name='foobar 123451234512345', device='this',
               state='in progress', fractionDone='0',
               elapsedCPUtime='60', remainingCPUtime='3600', deadline='25 Jun 2013 10:41:00 UTC'):
 
-        self.t = tasks.Task_web(claimedCredit=claimedCredit, grantedCredit=grantedCredit,
+        self.t = task.Task_web(claimedCredit=claimedCredit, grantedCredit=grantedCredit,
                                 name=name, device=device,
                                 state=state, fractionDone=fractionDone,
                                 elapsedCPUtime=elapsedCPUtime, remainingCPUtime=remainingCPUtime, deadline=deadline)
@@ -84,6 +84,6 @@ class TestTasks_web(TestTasks_local):
         test('100 %', state='completed and validated')
 
 if __name__ == '__main__':
-    for t in [TestTasks_local, TestTasks_web]:
+    for t in [TestTask_local, TestTask_web]:
         suite = unittest.TestLoader().loadTestsFromTestCase(t)
         unittest.TextTestRunner(verbosity=2).run(suite)

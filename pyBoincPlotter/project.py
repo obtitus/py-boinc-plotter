@@ -2,8 +2,7 @@
 import re
 # Non standard
 # Project imports
-from importMatplotlib import plt        # todo: consider removing this requirement
-from jobLog import JobLog
+from plot.jobLog import JobLog
 
 class Project(object):
     def __init__(self, url, userid, password, username):
@@ -14,7 +13,7 @@ class Project(object):
         
     def update(self):
         self.statistics_jobLog = self.get_jobLog()
-        self.statistics_ = ?
+        self.statistics_ = None
 
     @property
     def name(self):
@@ -28,7 +27,7 @@ class Project(object):
         self.name_short = self.name_short.replace('.org', '')
 
     def get_jobLog(self):
-        filename = ?
+        filename = None
         with open(filename, 'r') as f:
             data = self.parse_jobLog(f)
         return data
@@ -48,7 +47,7 @@ class Project(object):
             t = int(s[0])
             t = datetime.datetime.fromtimestamp(t)
             if limitDaysToPlot == None or now - t < limitDaysToPlot:
-                data.time.append(plt.date2num(t))
+                data.time.append(t)
                 data.ue.append(float(s[2]))
                 data.ct.append(float(s[4]))
                 data.fe.append(float(s[6]))

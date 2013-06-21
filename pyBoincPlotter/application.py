@@ -5,7 +5,7 @@ class Application(object):
         self.name = name                # Hopefully on the form Say No to Schistosoma (sn2s)
         self.tasks = list()
         self.badge = badge
-        self.statistics = ?
+        self.statistics = None
 
     # Name
     """Name should be on the form <long> (<short>), do a regexp when the name is set.

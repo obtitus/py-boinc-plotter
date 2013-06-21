@@ -4,7 +4,7 @@ digraph G {
 	subgraph cluster_p {label=Projects;
 		web_statistics;
 		jobLog;
-		subgraph cluster_u {label=User;
+		subgraph cluster_u {label=User; color=green; style=filled;
 			username;
 			password;
 			userid;

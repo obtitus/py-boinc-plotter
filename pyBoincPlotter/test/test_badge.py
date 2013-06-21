@@ -2,7 +2,7 @@
 import unittest
 import logging
 # Project import
-import badge
+import plot.badge as badge
 import config
 import browser
 import loggerSetup
@@ -19,7 +19,8 @@ Not all are currently supported.
 
 class TestBadge(unittest.TestCase):
     def setUp(self):
-        self.browser_cache = browser.Browser_cache(CACHE_DIR)
+        CONFIG, CACHE_DIR, BOINC_DIR = config.set_globals()
+        self.browser_cache = browser.Browser_file(CACHE_DIR)
 
     def worldcommunitygrid(self, name, color, value, url=''):
         self.badge = badge.Badge_worldcommunitygrid(name, url)
@@ -78,6 +79,5 @@ class TestBadge(unittest.TestCase):
 
 if __name__ == '__main__':
     loggerSetup.loggerSetup(logging.INFO)
-    CONFIG, CACHE_DIR, BOINC_DIR = config.set_globals()
     
     unittest.main()

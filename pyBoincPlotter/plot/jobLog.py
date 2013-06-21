@@ -1,13 +1,13 @@
 # Standard python
-from collection import namedtuple
+from collections import namedtuple
 # Non standard
 # Project imports
 from importMatplotlib import *
 
-class JobLog(namedtuple('JobLog', time=list(), ue=list(), ct=list(), fe=list(), et=list(), names=list())):
+class JobLog(namedtuple('JobLog', dict(time=list(), ue=list(), ct=list(), fe=list(), et=list(), names=list()))):
     def plot(self):
         self.N = 4                               # Number of subplots
-        time, ue, ct, fe, name, et = self.time, self.ue, self.ct, self.fe, self.names, self.et
+        time, ue, ct, fe, name, et = plt.date2num(self.time), self.ue, self.ct, self.fe, self.names, self.et
         self.plot_datapoints(time, ue, ct, fe, name, et)
         self.plot_hist_day(time, ue, ct, fe, name, et)
 
