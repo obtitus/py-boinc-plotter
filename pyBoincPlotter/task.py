@@ -227,6 +227,8 @@ class Task_web(Task):
             state = 'in progress'
         if 'error' in state.lower():
             state = 'error'
-        super(Task_web, self).state.fset(self, state)
+
+        super(Task_web, self.__class__).state.fset(self, state)
+
 class Task_web_worlcommunitygrid(Task_web):
     fmt_date = '%m/%d/%y %H:%M:%S'
