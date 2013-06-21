@@ -1,11 +1,11 @@
 import re
 
 class Application(object):
-    def __init__(self, name, badge):
+    def __init__(self, name, badge='', statistics=''):
         self.name = name                # Hopefully on the form Say No to Schistosoma (sn2s)
         self.tasks = list()
         self.badge = badge
-        self.statistics = None
+        self.statistics = statistics
 
     # Name
     """Name should be on the form <long> (<short>), do a regexp when the name is set.

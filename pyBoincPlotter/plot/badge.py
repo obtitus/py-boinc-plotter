@@ -36,12 +36,18 @@ class Badge(object):
         elif name == 'god': name = 'g'        
         return name
 
+    # Overriden in subclass:
     @property
     def name(self):
         return self._name
     @name.setter
     def name(self, name):
         self._name = name
+
+    def __str__(self):
+        return self.name
+    def __repr__(self):
+        return self.__class__ + self.name
 
     def getImageArtist(self, browser, *args, **kwargs):
         # Uses badge url to create a matplotlib artist where the
