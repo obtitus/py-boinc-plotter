@@ -16,10 +16,11 @@ class Application(object):
     @name.setter
     def name(self, name):
         self._name = name
-        reg = re.match('([^(]+)\((\w+)\)', name)
-        if reg:
-            self.name_long = reg.group(1).strip()
-            self.name_short = reg.group(2).strip()
+        reg = re.findall('([^(]+)\((\w+)\)', name)
+        if reg != []:
+            reg = reduce(lambda x,y: x+y, reg) # flatten list
+            self.name_long = "".join(reg[:-1]).strip()
+            self.name_short = reg[-1].strip()
         else:
             self.name_long = self._name
             self.name_short = ''
