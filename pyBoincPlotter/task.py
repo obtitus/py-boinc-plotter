@@ -134,7 +134,6 @@ class Task(object):
         self._deadline = datetime.datetime.strptime(deadline, self.fmt_date)
 
 class Task_local(Task):
-    fmt_date = '%a %b %d %H:%M:%S %Y'
     desc_schedularState = ['ready to start', 'suspended', 'running']
     desc_active = ['paused', 'running', 2, 3, 4, 5, 6, 7, 8, 'running']
     def __init__(self, schedularState, active, **kwargs):
@@ -144,6 +143,10 @@ class Task_local(Task):
 
     def done(self):
         return self.remainingCPUtime == '0:00:00'
+
+    @Task.deadline.setter
+    def deadline(self, deadline):
+        self._deadline = datetime.datetime.fromtimestamp(float(deadline))
 
     @Task.state.getter
     def state(self):

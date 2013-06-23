@@ -17,7 +17,7 @@ class TestApplication(unittest.TestCase):
         self.ignoreSpaces(p.name, 'http://boinc.bakerlab.org/rosetta/')
         self.ignoreSpaces(p.name_short, 'boinc.bakerlab/rosetta')
         self.ignoreSpaces(str(p.statistics), """Total credit,  user: 2 543, host: 2 543, 100%
-Avg credit,    user: 227, host: 227, 100%""")
+        Avg credit, user: 227, host: 227, 100%""")
 
     def test_worldcommunitygrid(self):
         p = parse.boinccmd.project(parse_input.project_worldcommunitygrid)
@@ -25,8 +25,19 @@ Avg credit,    user: 227, host: 227, 100%""")
         self.ignoreSpaces(p.name, 'http://www.worldcommunitygrid.org/')
         self.ignoreSpaces(p.name_short, 'worldcommunitygrid')
         self.ignoreSpaces(str(p.statistics), """Total credit,  user: 213 009, host: 207 378, 97%
-Avg credit,    user: 1 770, host: 1 769, 100%""")
+        Avg credit, user: 1 770, host: 1 769, 100%""")
 
+    def test_app(self):
+        p = parse.boinccmd.application("""<app>
+    <name>hcc1</name>
+    <user_friendly_name>Help Conquer Cancer</user_friendly_name>
+    <non_cpu_intensive>0</non_cpu_intensive>
+    </app>""")
+        print p
+    
+    def test_task(self):
+        p = parse.boinccmd.task(parse_input.task_active)
+        print p
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestApplication)
     unittest.TextTestRunner(verbosity=2).run(suite)

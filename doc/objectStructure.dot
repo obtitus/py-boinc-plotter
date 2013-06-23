@@ -2,8 +2,8 @@ digraph G {
 	// 	Projects -> Applications -> Workunits;
 	node [shape=box];
 	subgraph cluster_p {label=Projects;
-		web_statistics;
-		jobLog;
+		statistics;
+		settings;
 		subgraph cluster_u {label=User; color=green; style=filled;
 			username;
 			password;

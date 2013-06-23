@@ -157,3 +157,36 @@ project_worldcommunitygrid = """
     <project_files_downloaded_time>0.000000</project_files_downloaded_time>
 </project>
 """
+
+task_active = """<result>
+    <name>faah41423_ZINC08270033_xBr27_refmac2_A_PR_03_0</name>
+    <wu_name>faah41423_ZINC08270033_xBr27_refmac2_A_PR_03</wu_name>
+    <version_num>715</version_num>
+    <plan_class></plan_class>
+    <project_url>http://www.worldcommunitygrid.org/</project_url>
+    <final_cpu_time>0.000000</final_cpu_time>
+    <final_elapsed_time>0.000000</final_elapsed_time>
+    <exit_status>0</exit_status>
+    <state>2</state>
+    <report_deadline>1372752295.000000</report_deadline>
+    <received_time>1371888297.544660</received_time>
+    <estimated_cpu_time_remaining>14328.936352</estimated_cpu_time_remaining>
+<active_task>
+    <active_task_state>1</active_task_state>
+    <app_version_num>715</app_version_num>
+    <slot>5</slot>
+    <pid>96072</pid>
+    <scheduler_state>2</scheduler_state>
+    <checkpoint_cpu_time>12200.950000</checkpoint_cpu_time>
+    <fraction_done>0.514148</fraction_done>
+    <current_cpu_time>12867.580000</current_cpu_time>
+    <elapsed_time>12883.982196</elapsed_time>
+    <swap_size>2781458432.000000</swap_size>
+    <working_set_size>173539328.000000</working_set_size>
+    <working_set_size_smoothed>173539328.000000</working_set_size_smoothed>
+    <page_fault_rate>0.000000</page_fault_rate>
+   <graphics_exec_path>/Library/Application Support/BOINC Data/projects/www.worldcommunitygrid.org/wcgrid_faah_graphics_prod_darwin_64.x86.7.15</graphics_exec_path>
+   <slot_path>/Library/Application Support/BOINC Data/slots/5</slot_path>
+</active_task>
+</result>
+"""

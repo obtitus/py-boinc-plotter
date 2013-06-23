@@ -24,3 +24,6 @@ class Application(object):
         else:
             self.name_long = self._name
             self.name_short = ''
+
+    def __str__(self):
+        return str(self.name)
