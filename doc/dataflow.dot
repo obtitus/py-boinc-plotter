@@ -1,0 +1,15 @@
+digraph G{
+	Project, User [shape=box];
+	Application, Task, Badge [shape=box];
+	"User\n(config)" -> Project -> User -> Browser
+	"Source\n(webpage)" -> Browser -> parser -> object -> Application -> Task, Badge
+	"Source\n(file)" -> parser
+	parser -> plot
+	"Boinc" -> boinccmd-> parser
+	{rank = same;
+		"User\n(config)";
+		"Source\n(webpage)";
+		"Source\n(file)"
+		"Boinc"
+	}
+}
