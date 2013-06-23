@@ -1,4 +1,7 @@
+# Standard import
 import re
+# non standard
+from bs4 import BeautifulSoup
 
 class Application(object):
     def __init__(self, name, badge='', statistics=''):
@@ -7,6 +10,24 @@ class Application(object):
         self.badge = badge
         self.statistics = statistics
 
+    def setNameFromXML(self, xml):
+        """
+        Expects the application block:
+        <app>
+        ...
+        </app>
+        from the boinc rpc
+        """        
+        soup = BeautifulSoup(xml, "xml")
+        self.setNameFromSoup(soup)
+
+    def setNameFromSoup(self, soupe):
+        self.name_short = soup.find('name').text   # Vops: soup.name is 'reserved' so need to use find('name')
+        self.name_long  = soup.find('user_friendly_name').text
+
+        self._name = "{} ({})".format(long, short)
+
+    
     # Name
     """Name should be on the form <long> (<short>), do a regexp when the name is set.
     name_long returns <long> and name_short returns <short>"""

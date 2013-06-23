@@ -8,6 +8,24 @@ class Project(object):
         self.applications = dict()
         self.statistics = statistics
         self.settings = settings
+        
+    def createFromXML(xml):
+        """
+        Expects the project block:
+        <project>
+        ...
+        </project>
+        from the boinc rpc
+        """        
+        soup = BeautifulSoup(xml, "xml")
+        # For now, settings is just a string
+        settings = 'Resource share {:.3g}%'.format(float(soup.resource_share.text))
+        if soup.dont_request_more_work is not None:
+            settings += ", Don't request more work"
+        # Get the statistics
+        s = Statistics.createFromSoup(soup)
+        return Project(soup.master_url.text, statistics=s, settings=pref)
+
 
     @property
     def name(self):

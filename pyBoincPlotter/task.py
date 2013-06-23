@@ -5,6 +5,8 @@ Task -> Task_web -> Task_web_worlcommunitygrid
 
 # Standard python imports
 import datetime
+# non standard:
+from bs4 import BeautifulSoup
 
 class Task(object):
     """
@@ -140,6 +142,25 @@ class Task_local(Task):
         self.schedularState = schedularState
         self.active = active
         Task.__init__(self, **kwargs)
+
+    @staticmethod
+    def createFromXML(xml):
+        """
+        Expects the result block:
+        <result>
+        ...
+        </result>
+        from the boinc rpc
+        """
+        soup = BeautifulSoup(xml, "xml")
+        return Task_local(name=soup.wu_name.text,
+                          state=soup.state.text,
+                          fractionDone=soup.fraction_done.text,
+                          elapsedCPUtime=soup.elapsed_time.text,
+                          remainingCPUtime=soup.estimated_cpu_time_remaining.text,
+                          deadline=soup.report_deadline.text,
+                          schedularState=soup.scheduler_state.text,
+                          active=soup.active_task_state.text)
 
     def done(self):
         return self.remainingCPUtime == '0:00:00'

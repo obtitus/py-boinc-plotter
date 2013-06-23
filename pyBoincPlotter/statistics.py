@@ -14,6 +14,24 @@ class Statistics(object):
         self.user = (float(user_total_credit), float(user_expavg_credit))
         self.host = (float(host_total_credit), float(host_expavg_credit))        
     
+    @staticmethod
+    def createFromXML(xml):
+        """
+        Expects the project block:
+        <project>
+        ...
+        </project>
+        from the boinc rpc
+        """        
+        soup = BeautifulSoup(xml, "xml")
+        return Statistics.createFromSoup(soup)
+    @staticmethod
+    def createFromSoup(soupe):
+        return Statistics(soup.user_total_credit.text,
+                          soup.user_expavg_credit.text,
+                          soup.host_total_credit.text,
+                          soup.host_expavg_credit.text)
+
     def __str__(self):
         length_user = len(fmtNumber(self.user[0], '.0f')) # user will always be longer than host
         length_host = len(fmtNumber(self.host[0], '.0f')) # user will always be longer than host
