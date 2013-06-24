@@ -4,7 +4,7 @@ import re
 from bs4 import BeautifulSoup
 
 class Application(object):
-    def __init__(self, name, badge='', statistics=''):
+    def __init__(self, name='', badge='', statistics=''):
         self.name = name                # Hopefully on the form Say No to Schistosoma (sn2s)
         self.tasks = list()
         self.badge = badge
@@ -21,11 +21,12 @@ class Application(object):
         soup = BeautifulSoup(xml, "xml")
         self.setNameFromSoup(soup)
 
-    def setNameFromSoup(self, soupe):
+    def setNameFromSoup(self, soup):
         self.name_short = soup.find('name').text   # Vops: soup.name is 'reserved' so need to use find('name')
         self.name_long  = soup.find('user_friendly_name').text
 
-        self._name = "{} ({})".format(long, short)
+        self._name = "{} ({})".format(self.name_long, 
+                                      self.name_short)
 
     
     # Name

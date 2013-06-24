@@ -26,7 +26,7 @@ class Statistics(object):
         soup = BeautifulSoup(xml, "xml")
         return Statistics.createFromSoup(soup)
     @staticmethod
-    def createFromSoup(soupe):
+    def createFromSoup(soup):
         return Statistics(soup.user_total_credit.text,
                           soup.user_expavg_credit.text,
                           soup.host_total_credit.text,

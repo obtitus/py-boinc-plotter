@@ -1,5 +1,10 @@
 # Standard python
 import re
+# non standard
+from bs4 import BeautifulSoup
+# This project:
+from application import Application
+from statistics import Statistics
 
 class Project(object):
     def __init__(self, url, user=None, statistics=None, settings=None):
@@ -8,7 +13,8 @@ class Project(object):
         self.applications = dict()
         self.statistics = statistics
         self.settings = settings
-        
+
+    @staticmethod
     def createFromXML(xml):
         """
         Expects the project block:
@@ -24,8 +30,12 @@ class Project(object):
             settings += ", Don't request more work"
         # Get the statistics
         s = Statistics.createFromSoup(soup)
-        return Project(soup.master_url.text, statistics=s, settings=pref)
+        return Project(soup.master_url.text, statistics=s, settings=settings)
 
+    def appendApplicationFromXML(self, xml):
+        a = Application()
+        a.setNameFromXML(xml)
+        self.applications[a.name_long] = a
 
     @property
     def name(self):
