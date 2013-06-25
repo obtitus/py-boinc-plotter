@@ -4,48 +4,50 @@ from collections import namedtuple
 # Project imports
 from importMatplotlib import *
 
-class JobLog(namedtuple('JobLog', dict(time=list(), ue=list(), ct=list(), fe=list(), et=list(), names=list()))):
+class JobLog(list):
+    """
+    List of Tasks, where additional information is available for tasks still on the web or 'ready to report'.
+    Focus is on plotting as either points or bars
+    """
     @staticmethod
-    def createFromFilename(filename):
+    def createFromFilename(filename, limitDays=None):
         """ Returns a JobLog instance from a given filename
         """
         with open(filename, 'r') as f:
-            return self.createFromFilehandle(f)
+            return self.createFromFilehandle(f, limitDays=limitDays)
 
     @staticmethod
-    def createFromFilehandle(f):
+    def createFromFilehandle(f, limitDays=None):
         """ Returns a JobLog instance from a given filehandle
         ue - estimated_runtime_uncorrected
         ct - final_cpu_time, cpu time to finish
         fe - rsc_fpops_est, estimated flops
         et - final_elapsed_time, clock time to finish
         """
-        data = JobLog()
+        tasks = JobLog()
         now = datetime.datetime.now()
         for line in f:
-            s = line.split()
-            assert len(s) == 11, 'Line in job log not recognized {0} "{1}" -> "{2}"'.format(len(s), line, s)
-            t = int(s[0])
-            t = datetime.datetime.fromtimestamp(t)
-            if limitDaysToPlot == None or now - t < limitDaysToPlot:
-                data.time.append(plt.date2num(t))
-                data.ue.append(float(s[2]))
-                data.ct.append(float(s[4]))
-                data.fe.append(float(s[6]))
-                data.names.append(s[8])
-                data.et.append(float(s[10]))
-        return data
+            t = Task_jobLog.createFromJobLog(line)
+            if limitDaysToPlot == None or now - t._time < limitDays:
+                tasks.append(t)
+        return tasks
 
     def plot(self, fig):
         """ Plots the job_log to the given figure instance
         """
-        self.N = 4                               # Number of subplots
+        N = 4                               # Number of subplots
+        axes = list()
+        ax1 = fig.add_subplot(N, 1, ix)
+        for ix in range(N):
+            ax = fig.add_subplot(N, 1, ix+1, sharex=ax1, sharey=ax1)
+            barPlotter = BarPlotter(ax)
+            axes.append(barPlotter)
 
         # Plot datapoints and bars, make sure the same colors are used.
-        color = self.plot_datapoints(fig)
-        self.plot_hist_day(color, fig)
+        color = self.plot_datapoints(axes)
+        self.plot_hist_day(color, axes)
 
-    def plot_datapoints(self, fig):
+    def plot_datapoints(self, axes):
         """
         Let each datapoint be a single dot
         """
@@ -53,35 +55,32 @@ class JobLog(namedtuple('JobLog', dict(time=list(), ue=list(), ct=list(), fe=lis
         ix = 1                              # current subplot
         kwargs = dict(ls='none', marker='o')
 
-        ax1 = fig.add_subplot(self.N, 1, ix); ix += 1
-        l1 = ax1.plot(time, ue, label=projectName, **kwargs)
-        ax1.set_ylabel('Estimated time')    # uncorrected
+        l1 = axes[0].plot(time, ue, label=projectName, **kwargs)
+        axes[0].set_ylabel('Estimated time')    # uncorrected
 
-        ax2 = fig.add_subplot(self.N, 1, ix, sharex=ax1, sharey=ax1); ix += 1
-        l2 = ax2.plot(time, ct, label=projectName, **kwargs)
-        ax2.set_ylabel('Final CPU time')
+        l2 = axes[1].plot(time, ct, label=projectName, **kwargs)
+        axes[1].set_ylabel('Final CPU time')
 
-        ax3 = fig.add_subplot(self.N, 1, ix, sharex=ax1, sharey=ax1); ix += 1    
-        l3 = ax3.plot(time, et, label=projectName, **kwargs)    
-        ax3.set_ylabel('Final clock time')
+        l3 = axes[2].plot(time, et, label=projectName, **kwargs)    
+        axes[2].set_ylabel('Final clock time')
 
-        ax4 = fig.add_subplot(self.N, 1, ix, sharex=ax1); ix += 1
-        l4 = ax4.plot(time, np.array(fe)/1e12, label=projectName, **kwargs)
-        ax4.set_ylabel('Tflops')
+        l4 = axes[3].plot(time, np.array(fe)/1e12, label=projectName, **kwargs)
+        axes[3].set_ylabel('Tflops')
 
         color = [l1[0].get_color(), l2[0].get_color(), l3[0].get_color(), l4[0].get_color()]
 
-        ax4.legend().draggable()
+        axes[3].legend().draggable()
 
-        for ax in fig.axes:
+        for ix, ax in enumerate(axes):
             ax.set_xlabel('Date')
-        for ax in [ax1, ax2, ax3]:
-            plt.setp(ax.get_xticklabels(), visible=False)
-            ax1.yaxis.set_major_formatter(formatter_timedelta)
+            if ix == len(axes)-1: # last axes
+                ax1.yaxis.set_major_formatter(formatter_timedelta)
+            else:               # hide the rest
+                plt.setp(ax.get_xticklabels(), visible=False)
 
         return color
 
-    def plot_hist_day(self, color, fig):
+    def plot_hist_day(self, color, axes):
         """
         Create a single bar for each day
         """
@@ -93,18 +92,14 @@ class JobLog(namedtuple('JobLog', dict(time=list(), ue=list(), ct=list(), fe=lis
         cumulative = np.zeros(4) # [ue, ct, et, fe]
         #cumulative = np.zeros(3) # [ue, ct, et]
 
-        b1 = BarPlotter(ax1)
-        b2 = BarPlotter(ax2)
-        b3 = BarPlotter(ax3)
-        b4 = BarPlotter(ax4)
         def myBarPlot(currentDay, cumulative):
             d = currentDay.replace(hour=0, minute=0, second=0, microsecond=0) # Reset to 0:00:00 this day for alignment of bars
             x = plt.date2num(d)
             # Plot bars
-            b1.bar(x, cumulative[0], width=1, alpha=0.5, color=color[0])
-            b2.bar(x, cumulative[1], width=1, alpha=0.5, color=color[1])
-            b3.bar(x, cumulative[2], width=1, alpha=0.5, color=color[2])
-            b4.bar(x, cumulative[3]/1e12, width=1, alpha=0.5, color=color[3])
+            axes[0].bar(x, cumulative[0], width=1, alpha=0.5, color=color[0])
+            axes[1].bar(x, cumulative[1], width=1, alpha=0.5, color=color[1])
+            axes[2].bar(x, cumulative[2], width=1, alpha=0.5, color=color[2])
+            axes[3].bar(x, cumulative[3]/1e12, width=1, alpha=0.5, color=color[3])
 
         for ix in range(len(time)):
             # If new day, plot and null out cumulative
@@ -136,6 +131,11 @@ class BarPlotter(object):
         if not(hasattr(self.ax, 'bottom')):
             self.ax.bottom = dict()     # key is x coordinate and value is height
         
+    def __getattr__(self, name):
+        """ Redirect to axes
+        """
+        return self.ax.__getattr__(name)
+
     def bar(self, x, *args, **kwargs):
         # Find previous (if any)
         try:
@@ -151,5 +151,5 @@ class BarPlotter(object):
         self.ax.bottom[x] = y + rect.get_height()
         return b
 
-    def plot(self, *args, **kwargs):
-        self.ax.plot(*args, **kwargs)
+    # def plot(self, *args, **kwargs):
+    #     self.ax.plot(*args, **kwargs)

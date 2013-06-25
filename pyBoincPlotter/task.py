@@ -32,8 +32,9 @@ class Task(object):
                  elapsedCPUtime=None, remainingCPUtime=None, deadline=None):
         """
         Each attribute has a string representation and a 'data' representation:
-        type(self.fractionDone) == str
-        type(self._fractionDone) == float
+        Use self.set_fractionDone(str) for the string to object conversion.
+        type(self.fractionDone_str) == str
+        type(self.fractionDone) == float
         each attribute has a setter method that assumes a string is passed in. This is then converted to a python object
         like float, datetime or timedelta.
         """
@@ -256,3 +257,38 @@ class Task_web(Task):
 
 class Task_web_worlcommunitygrid(Task_web):
     fmt_date = '%m/%d/%y %H:%M:%S'
+
+class Task_jobLog(Task):
+    """
+    Represents a task from the job_log, with the following fields:
+        ue - estimated_runtime_uncorrected
+        ct - final_cpu_time, cpu time to finish
+        fe - rsc_fpops_est, estimated flops
+        et - final_elapsed_time, clock time to finish    
+    """
+    def __init__(self, time, name, 
+                 ue, ct, fe, et):
+        super(__class__, self).__init__(name=name, fractionDone='100',
+                                        elapsedCPUtime=ct, remainingCPUtime='0')
+        self.time = time
+        self.estimated_runtime_uncorrected = float(ue)
+        self.rsc_fpops_est = float(fe)
+        self.final_elapsed_time = float(et)
+
+    @staticmethod
+    def createFromJobLog(line):
+        """
+        Expects a single line from the job log file
+        """
+        s = line.split()
+        assert len(s) == 11, 'Line in job log not recognized {0} "{1}" -> "{2}"'.format(len(s), line, s)
+        return Task_jobLog(time=s[0], name=s[8],
+                           ue=s[2], ct=s[4], fe=s[6], et=s[10])
+
+    @property
+    def time(self):
+        return self._time
+    @property.setter
+    def time(self, value):
+        t = int(s[0])
+        self._time = datetime.datetime.fromtimestamp(t)
