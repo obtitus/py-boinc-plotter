@@ -38,21 +38,21 @@ class Task(object):
         each attribute has a setter method that assumes a string is passed in. This is then converted to a python object
         like float, datetime or timedelta.
         """
-        self.name = name                # There is also a self.name_short which is max 15 characters long
-        self.device = device
+        self.setName(name)                # There is also a self.name_short which is max 15 characters long
+        self.setDevice(device)
 
-        self.state = state # Stored as integer representing index in the self.desc_state list
-        self.fractionDone = fractionDone # stored as float
+        self.setState(state) # Stored as integer representing index in the self.desc_state list
+        self.setFractionDone(fractionDone) # stored as float
 
-        self.elapsedCPUtime = elapsedCPUtime # stored as timedelta, see strToTimedelta and timedeltaToStr
-        self.remainingCPUtime = remainingCPUtime # stored as timedelta, see strToTimedelta and timedeltaToStr
-        self.deadline = deadline                 # stored as datetime, string is time until deadline
+        self.setElapsedCPUtime(elapsedCPUtime) # stored as timedelta, see strToTimedelta and timedeltaToStr
+        self.setRemainingCPUtime(remainingCPUtime) # stored as timedelta, see strToTimedelta and timedeltaToStr
+        self.setDeadline(deadline)                 # stored as datetime, string is time until deadline
 
     def __str__(self):
-        return self.fmt.format(self.nameShort,
-                               self.state, self.fractionDone,
-                               self.elapsedCPUtime, self.remainingCPUtime, self.deadline, 
-                               self.claimedCredit, self.grantedCredit, self.device, **self.columnSpacing)
+        return self.fmt.format(self.nameShort_str,
+                               self.state_str, self.fractionDone_str,
+                               self.elapsedCPUtime_str, self.remainingCPUtime_str, self.deadline_str, 
+                               self.claimedCredit_str, self.grantedCredit_str, self.device_str, **self.columnSpacing)
     
     #
     # Conversion functions
@@ -70,78 +70,79 @@ class Task(object):
         return timedelta
 
     #
-    # Properties
+    # Setters and <>_str
     #
     @property
-    def nameShort(self):
+    def nameShort_str(self):
         if len(self.name) > 15:
             return self.name[:15] + '...'
         else:
             return self.name
 
-    # device - not needed
+    def setDevicce(self, device):
+        self.device = device
 
     @property
-    def state(self):
-        state = self.desc_state[self._state]
+    def state_str(self):
+        state = self.desc_state[self.state]
         return state
-    @state.setter
-    def state(self, state):
+
+    def setState(self, state):
         try:
-            self._state = int(state)
+            self.state = int(state)
         except ValueError: # lets hope its a string representing the state
             try:
-                self._state = self.desc_state.index(state.lower())
+                self.state = self.desc_state.index(state.lower())
             except:                     # guess not
                 self.desc_state.append(state.lower()) # now it is!
-                self._state = self.desc_state.index(state.lower())
+                self.state = self.desc_state.index(state.lower())
 
     @property
-    def fractionDone(self):
+    def fractionDone_str(self):
         if self.done():
-            self._fractionDone = 100
-        return "{:.0f} %".format(self._fractionDone)
-    @fractionDone.setter
-    def fractionDone(self, fractionDone):
-        self._fractionDone = float(fractionDone)*100
+            self.fractionDone = 100
+        return "{:.0f} %".format(self.fractionDone)
+
+    def setFractionDone(self, fractionDone):
+        self.fractionDone = float(fractionDone)*100
 
     @property
-    def elapsedCPUtime(self):
-        return self.timedeltaToStr(self._elapsedCPUtime)
-    @elapsedCPUtime.setter
-    def elapsedCPUtime(self, elapsedCPUtime):
-        self._elapsedCPUtime = self.strToTimedelta(elapsedCPUtime)
+    def elapsedCPUtime_str(self):
+        return self.timedeltaToStr(self.elapsedCPUtime)
+
+    def setElapsedCPUtime(self, elapsedCPUtime):
+        self.elapsedCPUtime = self.strToTimedelta(elapsedCPUtime)
 
     @property
     def remainingCPUtime(self):
-        return self.timedeltaToStr(self._remainingCPUtime)
-    @remainingCPUtime.setter
-    def remainingCPUtime(self, remainingCPUtime):
-        self._remainingCPUtime = self.strToTimedelta(remainingCPUtime)
+        return self.timedeltaToStr(self.remainingCPUtime)
+
+    def setRemainingCPUtime(self, remainingCPUtime):
+        self.remainingCPUtime = self.strToTimedelta(remainingCPUtime)
 
     @property
     def deadline(self):
         """ Time until deadline
         """
         now = datetime.datetime.today()
-        delta = self._deadline - now
+        delta = self.deadline - now
         s = self.timedeltaToStr(delta)
         if delta.days < 0:
-            delta = now - self._deadline
+            delta = now - self.deadline
             s = '-' + self.timedeltaToStr(delta)
         return s
-    @deadline.setter
-    def deadline(self, deadline):
+
+    def setDeadline(self, deadline):
         """ Store deadline as datetime object
         """
-        self._deadline = datetime.datetime.strptime(deadline, self.fmt_date)
+        self.deadline = datetime.datetime.strptime(deadline, self.fmt_date)
 
 class Task_local(Task):
     desc_schedularState = ['ready to start', 'suspended', 'running']
     desc_active = ['paused', 'running', 2, 3, 4, 5, 6, 7, 8, 'running']
     def __init__(self, schedularState, active, **kwargs):
-        self.schedularState = schedularState
-        self.active = active
+        self.setSchedularState(schedularState)
+        self.setActive(active)
         Task.__init__(self, **kwargs)
 
     @staticmethod
@@ -166,18 +167,17 @@ class Task_local(Task):
     def done(self):
         return self.remainingCPUtime == '0:00:00'
 
-    @Task.deadline.setter
-    def deadline(self, deadline):
-        self._deadline = datetime.datetime.fromtimestamp(float(deadline))
+    def setDeadline(self, deadline):
+        self.deadline = datetime.datetime.fromtimestamp(float(deadline))
 
-    @Task.state.getter
-    def state(self):
-        state = self.desc_state[self._state]
+    @Task.state_str.getter
+    def state_str(self):
+        state = self.desc_state[self.state]
         # Hack
         # The current state seems to be determined by 3 numbers: state, active and schedularState.
         # I have been unable to determine their exact meaning, so the following is based on comparision with the boincManager.
         if self.done(): # done
-            self._currentCPUtime = self._finalCPUtime
+            self.currentCPUtime = self.finalCPUtime
             state = 'ready to report'
         elif state == 'computation completed':
             state = 'completed'
@@ -190,28 +190,27 @@ class Task_local(Task):
         return state
 
     @property
-    def schedularState(self):
-        state = self.desc_schedularState[self._schedularState]
+    def schedularState_str(self):
+        state = self.desc_schedularState[self.schedularState]
         return state
-    @schedularState.setter
-    def schedularState(self, state):
-        self._schedularState = int(state)
 
+    def setSchedularState(self, state):
+        self.schedularState = int(state)
 
     @property
-    def active(self):
-        state = self.desc_active[self._active]
+    def active_str(self):
+        state = self.desc_active[self.active]
         return state
-    @active.setter
-    def active(self, state):
-        self._active = int(state)
+
+    def setActive(self, state):
+        self.active = int(state)
 
 class Task_web(Task):
     fmt_date = '%d %b %Y %H:%M:%S UTC'
 
     def __init__(self, claimedCredit='0', grantedCredit='0', **kwargs):
-        self.grantedCredit = grantedCredit # stored as float
-        self.claimedCredit = claimedCredit # stored as float
+        self.setGrantedCredit(grantedCredit) # stored as float
+        self.setClaimedCredit(claimedCredit) # stored as float
         super(Task_web, self).__init__(**kwargs)
 
     def toFloat(self, value):
@@ -220,24 +219,23 @@ class Task_web(Task):
         return float(value)
 
     def done(self):
-        return not(self.desc_state[self._state] == 'in progress')
+        return not(self.desc_state[self.state] == 'in progress')
 
     @property
-    def grantedCredit(self):
-        return str(self._grantedCredit)
-    @grantedCredit.setter
-    def grantedCredit(self, grantedCredit):
-        self._grantedCredit = self.toFloat(grantedCredit)
+    def grantedCredit_str(self):
+        return str(self.grantedCredit)
+
+    def setGrantedCredit(self, grantedCredit):
+        self.grantedCredit = self.toFloat(grantedCredit)
 
     @property
     def claimedCredit(self):
-        return str(self._claimedCredit)
-    @claimedCredit.setter
-    def claimedCredit(self, claimedCredit):
-        self._claimedCredit = self.toFloat(claimedCredit)
+        return str(self.claimedCredit)
 
-    @Task.state.setter
-    def state(self, state):
+    def setClaimedCredit(self, claimedCredit):
+        self.claimedCredit = self.toFloat(claimedCredit)
+
+    def setState(self, state):
         if state.lower() == 'completed and validated':
             state = 'valid'
         elif state.lower() == 'over success done':
@@ -253,7 +251,7 @@ class Task_web(Task):
         if 'error' in state.lower():
             state = 'error'
 
-        super(Task_web, self.__class__).state.fset(self, state)
+        super(self._class__, self).setState(self, state)
 
 class Task_web_worlcommunitygrid(Task_web):
     fmt_date = '%m/%d/%y %H:%M:%S'
@@ -270,7 +268,8 @@ class Task_jobLog(Task):
                  ue, ct, fe, et):
         super(__class__, self).__init__(name=name, fractionDone='100',
                                         elapsedCPUtime=ct, remainingCPUtime='0')
-        self.time = time
+        self.setTime(time)
+        # Lets just keep it simple, float already has a sane str() version and matplotlib won't mind if these are strings
         self.estimated_runtime_uncorrected = float(ue)
         self.rsc_fpops_est = float(fe)
         self.final_elapsed_time = float(et)
@@ -285,10 +284,6 @@ class Task_jobLog(Task):
         return Task_jobLog(time=s[0], name=s[8],
                            ue=s[2], ct=s[4], fe=s[6], et=s[10])
 
-    @property
-    def time(self):
-        return self._time
-    @property.setter
-    def time(self, value):
+    def setTime(self, value):
         t = int(s[0])
-        self._time = datetime.datetime.fromtimestamp(t)
+        self.time = datetime.datetime.fromtimestamp(t)
