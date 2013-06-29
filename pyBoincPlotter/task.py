@@ -5,6 +5,9 @@ Task -> Task_web -> Task_web_worlcommunitygrid
 
 # Standard python imports
 import datetime
+import logging
+logger = logging.getLogger('boinc.task')
+
 # non standard:
 from bs4 import BeautifulSoup
 
@@ -22,14 +25,14 @@ class Task(object):
     Subclasses Task_local and Task_web are the one to use depending on source.
     """
     desc_state = ['downloading', 'ready to run', 'running', 'suspended', 'paused', 'computation completed', 'uploading', 'ready to report', 'unknown']
-    fmt = '{0:<{col0}} {1:<{col1}} {2:<{col2}} {3:<{col3}} {4:<{col4}} {5:<{col5}} {6:<{col6}} {6:<{col6}} {7:<{col7}} {8:<{col8}}'
+    fmt = '{0:<{col0}} {1:<{col1}} {2:<{col2}} {3:<{col3}} {4:<{col4}} {5:<{col5}} {6:<{col6}}'
     columnSpacing = dict()
-    for i in range(0, 8+1):
+    for i in range(0, 6+1):
         columnSpacing['col'+str(i)] = 0
 
     def __init__(self, name='', device='localhost',
                  state='unknown', fractionDone='0',
-                 elapsedCPUtime=None, remainingCPUtime=None, deadline=None):
+                 elapsedCPUtime='0', remainingCPUtime='0', deadline=None):
         """
         Each attribute has a string representation and a 'data' representation:
         Use self.set_fractionDone(str) for the string to object conversion.
@@ -52,7 +55,7 @@ class Task(object):
         return self.fmt.format(self.nameShort_str,
                                self.state_str, self.fractionDone_str,
                                self.elapsedCPUtime_str, self.remainingCPUtime_str, self.deadline_str, 
-                               self.claimedCredit_str, self.grantedCredit_str, self.device_str, **self.columnSpacing)
+                               self.device_str, **self.columnSpacing)
     
     #
     # Conversion functions
@@ -78,8 +81,15 @@ class Task(object):
             return self.name[:15] + '...'
         else:
             return self.name
+    
+    def setName(self, value):
+        self.name = value
 
-    def setDevicce(self, device):
+    @property
+    def device_str(self):
+        return self.device
+
+    def setDevice(self, device):
         self.device = device
 
     @property
@@ -114,14 +124,14 @@ class Task(object):
         self.elapsedCPUtime = self.strToTimedelta(elapsedCPUtime)
 
     @property
-    def remainingCPUtime(self):
+    def remainingCPUtime_str(self):
         return self.timedeltaToStr(self.remainingCPUtime)
 
     def setRemainingCPUtime(self, remainingCPUtime):
         self.remainingCPUtime = self.strToTimedelta(remainingCPUtime)
 
     @property
-    def deadline(self):
+    def deadline_str(self):
         """ Time until deadline
         """
         now = datetime.datetime.today()
@@ -138,8 +148,13 @@ class Task(object):
         self.deadline = datetime.datetime.strptime(deadline, self.fmt_date)
 
 class Task_local(Task):
-    desc_schedularState = ['ready to start', 'suspended', 'running']
-    desc_active = ['paused', 'running', 2, 3, 4, 5, 6, 7, 8, 'running']
+    desc_schedularState = ['ready to start', 'suspended', 'running', 'unknown']
+    # Based on common_defs.h
+    desc_active = ['paused', 'running',                      # 0, 1
+                   'exited', 'was signaled', 'exit unknown', # 2, 3, 4
+                   'abort pending', 'aborted', 'unable to start', # 5, 6, 7
+                   'waiting to quit', 'suspended', 'waiting for copy', # 8, 9, 10
+                   'unknown']   # -1
     def __init__(self, schedularState, active, **kwargs):
         self.setSchedularState(schedularState)
         self.setActive(active)
@@ -154,18 +169,30 @@ class Task_local(Task):
         </result>
         from the boinc rpc
         """
-        soup = BeautifulSoup(xml, "xml")
-        return Task_local(name=soup.wu_name.text,
-                          state=soup.state.text,
-                          fractionDone=soup.fraction_done.text,
-                          elapsedCPUtime=soup.elapsed_time.text,
-                          remainingCPUtime=soup.estimated_cpu_time_remaining.text,
-                          deadline=soup.report_deadline.text,
-                          schedularState=soup.scheduler_state.text,
-                          active=soup.active_task_state.text)
+        try:
+            soup = BeautifulSoup(xml, "xml")
+            print xml
+            kwargs = dict(name = soup.wu_name,
+                          state = soup.state or -1,
+                          fractionDone = soup.fraction_done or 1,
+                          remainingCPUtime = soup.estimated_cpu_time_remaining or 0,
+                          deadline = soup.report_deadline,
+                          schedularState = soup.schedular_state or -1,
+                          active = soup.active_task_state or -1)
+
+            for key in kwargs:
+                try:
+                    kwargs[key] = kwargs[key].text # ok if soup stuff
+                except AttributeError:
+                    pass
+            
+            return Task_local(**kwargs)
+        except Exception as e:
+            logger.exception('Trying to create task out of {}, got'.format(xml))
+
 
     def done(self):
-        return self.remainingCPUtime == '0:00:00'
+        return self.remainingCPUtime_str == '0:00:00'
 
     def setDeadline(self, deadline):
         self.deadline = datetime.datetime.fromtimestamp(float(deadline))
@@ -177,16 +204,18 @@ class Task_local(Task):
         # The current state seems to be determined by 3 numbers: state, active and schedularState.
         # I have been unable to determine their exact meaning, so the following is based on comparision with the boincManager.
         if self.done(): # done
-            self.currentCPUtime = self.finalCPUtime
+            #self.currentCPUtime = self.finalCPUtime
             state = 'ready to report'
         elif state == 'computation completed':
             state = 'completed'
-        elif self.schedularState == 'suspended':
-            state = self.schedularState
-        elif self.schedularState == 'ready to start':
+        elif self.schedularState_str == 'suspended':
+            state = self.schedularState_str
+        elif self.schedularState_str == 'ready to start':
             state = 'ready to run'
-        elif self.active in ['Paused', 'Running']:
-            state = self.active
+        elif self.active_str in ('paused', 'running'):
+            state = self.active_str
+        logger.debug('infered state %s, flags %s %s %s', state
+                      , self.state, self.schedularState, self.active)
         return state
 
     @property
@@ -229,7 +258,7 @@ class Task_web(Task):
         self.grantedCredit = self.toFloat(grantedCredit)
 
     @property
-    def claimedCredit(self):
+    def claimedCredit_str(self):
         return str(self.claimedCredit)
 
     def setClaimedCredit(self, claimedCredit):
@@ -251,7 +280,7 @@ class Task_web(Task):
         if 'error' in state.lower():
             state = 'error'
 
-        super(self._class__, self).setState(self, state)
+        super(self.__class__, self).setState(state)
 
 class Task_web_worlcommunitygrid(Task_web):
     fmt_date = '%m/%d/%y %H:%M:%S'
