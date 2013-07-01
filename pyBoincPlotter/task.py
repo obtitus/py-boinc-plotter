@@ -25,11 +25,7 @@ class Task(object):
     Subclasses Task_local and Task_web are the one to use depending on source.
     """
     desc_state = ['downloading', 'ready to run', 'running', 'suspended', 'paused', 'computation completed', 'uploading', 'ready to report', 'unknown']
-    fmt = '{0:<{col0}} {1:<{col1}} {2:<{col2}} {3:<{col3}} {4:<{col4}} {5:<{col5}} {6:<{col6}}'
-    columnSpacing = dict()
-    for i in range(0, 6+1):
-        columnSpacing['col'+str(i)] = 0
-
+    fmt_date = '%d %b %Y %H:%M:%S UTC'
     def __init__(self, name='', device='localhost',
                  state='unknown', fractionDone='0',
                  elapsedCPUtime='0', remainingCPUtime='0', deadline=None):
@@ -51,12 +47,23 @@ class Task(object):
         self.setRemainingCPUtime(remainingCPUtime) # stored as timedelta, see strToTimedelta and timedeltaToStr
         self.setDeadline(deadline)                 # stored as datetime, string is time until deadline
 
+    N = 7
+    fmt = []
+    columnSpacing = dict()
+    for i in range(0, N):
+        columnSpacing['col'+str(i)] = 0
+        fmt.append('{%d:<{col%d}}' % (i, i))
+    fmt = " ".join(fmt)
+
     def __str__(self):
         return self.fmt.format(self.nameShort_str,
                                self.state_str, self.fractionDone_str,
                                self.elapsedCPUtime_str, self.remainingCPUtime_str, self.deadline_str, 
                                self.device_str, **self.columnSpacing)
     
+    def done(self):
+        return not(self.desc_state[self.state] == 'in progress')
+
     #
     # Conversion functions
     #
@@ -134,18 +141,24 @@ class Task(object):
     def deadline_str(self):
         """ Time until deadline
         """
-        now = datetime.datetime.today()
-        delta = self.deadline - now
-        s = self.timedeltaToStr(delta)
-        if delta.days < 0:
-            delta = now - self.deadline
-            s = '-' + self.timedeltaToStr(delta)
+        if self.deadline is not None:
+            now = datetime.datetime.today()
+            delta = self.deadline - now
+            s = self.timedeltaToStr(delta)
+            if delta.days < 0:
+                delta = now - self.deadline
+                s = '-' + self.timedeltaToStr(delta)
+        else:
+            return '-'
         return s
 
     def setDeadline(self, deadline):
         """ Store deadline as datetime object
         """
-        self.deadline = datetime.datetime.strptime(deadline, self.fmt_date)
+        if deadline is not None:
+            self.deadline = datetime.datetime.strptime(deadline, self.fmt_date)
+        else:
+            self.deadline = None
 
 class Task_local(Task):
     desc_schedularState = ['ready to start', 'suspended', 'running', 'unknown']
@@ -155,7 +168,7 @@ class Task_local(Task):
                    'abort pending', 'aborted', 'unable to start', # 5, 6, 7
                    'waiting to quit', 'suspended', 'waiting for copy', # 8, 9, 10
                    'unknown']   # -1
-    def __init__(self, schedularState, active, **kwargs):
+    def __init__(self, schedularState=-1, active=-1, **kwargs):
         self.setSchedularState(schedularState)
         self.setActive(active)
         Task.__init__(self, **kwargs)
@@ -194,7 +207,10 @@ class Task_local(Task):
         return self.remainingCPUtime_str == '0:00:00'
 
     def setDeadline(self, deadline):
-        self.deadline = datetime.datetime.fromtimestamp(float(deadline))
+        if deadline is not None:
+            self.deadline = datetime.datetime.fromtimestamp(float(deadline))
+        else:
+            self.deadline = None
 
     @Task.state_str.getter
     def state_str(self):
@@ -248,9 +264,6 @@ class Task_web(Task):
         value = value.replace('---', '0')
         return float(value)
 
-    def done(self):
-        return not(self.desc_state[self.state] == 'in progress')
-
     @property
     def grantedCredit_str(self):
         return str(self.grantedCredit)
@@ -281,9 +294,9 @@ class Task_web(Task):
         if 'error' in state.lower():
             state = 'error'
 
-        super(self.__class__, self).setState(state)
+        super(Task_web, self).setState(state)
 
-class Task_web_worlcommunitygrid(Task_web):
+class Task_web_worldcommunitygrid(Task_web):
     fmt_date = '%m/%d/%y %H:%M:%S'
 
 class Task_jobLog(Task):
@@ -299,7 +312,7 @@ class Task_jobLog(Task):
         super(__class__, self).__init__(name=name, fractionDone='100',
                                         elapsedCPUtime=ct, remainingCPUtime='0')
         self.setTime(time)
-        # Lets just keep it simple, float already has a sane str() version and matplotlib won't mind if these are strings
+        # Lets just keep it simple, float already has a sane str() version
         self.estimated_runtime_uncorrected = float(ue)
         self.rsc_fpops_est = float(fe)
         self.final_elapsed_time = float(et)

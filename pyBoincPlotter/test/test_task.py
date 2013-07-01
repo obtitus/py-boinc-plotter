@@ -5,7 +5,22 @@ import datetime
 # This project
 import task
 
-class TestTask_local(unittest.TestCase):   
+class TestTask(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def test_str(self):
+        print ''
+        t = task.Task(name='Task object')
+        print t
+        t = task.Task_local(name='Task local object')
+        print t
+        t = task.Task_web(name='Task web object')
+        print t
+        t = task.Task_web_worldcommunitygrid(name='Task web worldcommunitygrid object')
+        print t
+
+class TestTask_local(unittest.TestCase):
     def setUp(self, schedularState='0', active='0', name='foobar 123451234512345', device='this',
               state='0', fractionDone='0',
               elapsedCPUtime='60', remainingCPUtime='3600', deadline='1372752295.000000'):
@@ -136,6 +151,6 @@ class TestTask_web(TestTask_local):
         test('100 %', state='completed and validated')
 
 if __name__ == '__main__':
-    for t in [TestTask_local, TestTask_web]:
+    for t in [TestTask, TestTask_local, TestTask_web]:
         suite = unittest.TestLoader().loadTestsFromTestCase(t)
         unittest.TextTestRunner(verbosity=2).run(suite)
