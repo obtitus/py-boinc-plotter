@@ -34,7 +34,6 @@ class TestTask_local(unittest.TestCase):
         test('ready to run', state='2', schedularState='0', active='0')
         test('ready to run', state='4', schedularState='0', active='0')
         test('suspended', state='2', schedularState='1', active='9')
-        # TODO: add more
 
     def test_fractionDone(self):
         def test(wanted, **kwargs):
@@ -52,6 +51,55 @@ class TestTask_local(unittest.TestCase):
     
     def test_deadline(self):
         self.assertEqual(self.t.deadline, datetime.datetime(2013, 7, 2, 10, 4, 55))
+    
+    def test_xml(self):
+        self.t = task.Task_local.createFromXML("""<result> 
+<name>faah41856_ZINC09836600_xBr27_refmac2_A_PR_02_0</name>
+<wu_name>faah41856_ZINC09836600_xBr27_refmac2_A_PR_02</wu_name>
+<version_num>715</version_num> 
+<plan_class></plan_class>
+<project_url>http://www.worldcommunitygrid.org/</project_url>
+<final_cpu_time>0.000000</final_cpu_time>
+<final_elapsed_time>0.000000</final_elapsed_time>
+<exit_status>0</exit_status> 
+<state>2</state> 
+<report_deadline>1373310023.000000</report_deadline> 
+<received_time>1372446024.959453</received_time> 
+<estimated_cpu_time_remaining>28329.146516</estimated_cpu_time_remaining>""")
+        self.assertEqual(self.t.state_str, 'ready to run')
+
+    def test_xml2(self):
+        self.t = task.Task_local.createFromXML("""<result>
+<name>DSFL_00100-37_0000046_0555_1</name>
+<wu_name>DSFL_00100-37_0000046_0555</wu_name>
+<version_num>625</version_num>
+<plan_class></plan_class>
+<project_url>http://www.worldcommunitygrid.org/</project_url>
+<final_cpu_time>0.000000</final_cpu_time>
+<final_elapsed_time>0.000000</final_elapsed_time>
+<exit_status>0</exit_status>
+<state>2</state>
+<report_deadline>1373310023.000000</report_deadline>
+<received_time>1372446024.959453</received_time>
+<estimated_cpu_time_remaining>2060.234200</estimated_cpu_time_remaining>
+<active_task>
+<active_task_state>1</active_task_state>
+<app_version_num>625</app_version_num>
+<slot>5</slot>
+<pid>7130</pid>
+<scheduler_state>2</scheduler_state>
+<checkpoint_cpu_time>11916.430000</checkpoint_cpu_time>
+<fraction_done>0.883333</fraction_done>
+<current_cpu_time>12429.430000</current_cpu_time>
+<elapsed_time>12566.508714</elapsed_time>
+<swap_size>2591920128.000000</swap_size>
+<working_set_size>54267904.000000</working_set_size>
+<working_set_size_smoothed>54262111.801669</working_set_size_smoothed>
+<page_fault_rate>0.000000</page_fault_rate>
+<graphics_exec_path>/Library/Application Support/BOINC Data/projects/www.worldcommunitygrid.org/wcgrid_dsfl_gfx_prod_darwin_64.x86.6.25</graphics_exec_path>
+<slot_path>/Library/Application Support/BOINC Data/slots/5</slot_path>
+</active_task>""")
+        self.assertEqual(self.t.state_str, 'running')
 
 class TestTask_web(TestTask_local):
     def setUp(self, claimedCredit='0', grantedCredit='0',
@@ -63,6 +111,11 @@ class TestTask_web(TestTask_local):
                                 name=name, device=device,
                                 state=state, fractionDone=fractionDone,
                                 elapsedCPUtime=elapsedCPUtime, remainingCPUtime=remainingCPUtime, deadline=deadline)
+
+    def test_xml(self):         # overrride
+        pass
+    def test_xml2(self):         # overrride
+        pass
 
     def test_state(self):
         self.assertEqual(self.t.state, 9)

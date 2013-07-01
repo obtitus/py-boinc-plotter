@@ -171,10 +171,9 @@ class Task_local(Task):
         """
         try:
             soup = BeautifulSoup(xml, "xml")
-            print xml
             kwargs = dict(name = soup.wu_name,
                           state = soup.state or -1,
-                          fractionDone = soup.fraction_done or 1,
+                          fractionDone = soup.fraction_done or 0,
                           remainingCPUtime = soup.estimated_cpu_time_remaining or 0,
                           deadline = soup.report_deadline,
                           schedularState = soup.schedular_state or -1,
@@ -206,6 +205,8 @@ class Task_local(Task):
         if self.done(): # done
             #self.currentCPUtime = self.finalCPUtime
             state = 'ready to report'
+        elif self.schedularState == -1 and self.active == -1: # Very strange hack
+            state = 'ready to run'
         elif state == 'computation completed':
             state = 'completed'
         elif self.schedularState_str == 'suspended':
@@ -214,8 +215,8 @@ class Task_local(Task):
             state = 'ready to run'
         elif self.active_str in ('paused', 'running'):
             state = self.active_str
-        logger.debug('infered state %s, flags %s %s %s', state
-                      , self.state, self.schedularState, self.active)
+        logger.debug('infered state %s, flags %s %s %s', state, 
+                     self.state, self.schedularState, self.active)
         return state
 
     @property

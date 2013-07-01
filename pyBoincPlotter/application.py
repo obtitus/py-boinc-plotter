@@ -7,7 +7,7 @@ from task import Task_local
 
 class Application(object):
     def __init__(self, name='', badge='', statistics=''):
-        self.name = name                # Hopefully on the form Say No to Schistosoma (sn2s)
+        self.setName(name)                # Hopefully on the form Say No to Schistosoma (sn2s)
         self.tasks = list()
         self.badge = badge
         self.statistics = statistics
