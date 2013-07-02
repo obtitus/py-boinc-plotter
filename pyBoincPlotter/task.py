@@ -345,7 +345,8 @@ class Task_jobLog(Task):
 
 def adjustColumnSpacing(tasks):
     """
-    Not Thread safe, modifies the Task.columnSpacing for equal columns
+    Not Thread safe, modifies the Task.columnSpacing for equal columns.
+    Call this before printing list of tasks
     """
     for t in tasks:
         for ix, item in enumerate(t.toString()):

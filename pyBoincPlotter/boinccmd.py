@@ -58,7 +58,6 @@ def get_state():
         inBlock = False
         appNames = dict()       
         for line in s.request('get_state'):
-            print line
             if line.strip() in ('<project>', '<app>', '<workunit>', '<result>'):
                 inBlock = True
             reset = True
