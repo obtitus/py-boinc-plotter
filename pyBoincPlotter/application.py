@@ -7,7 +7,7 @@ from task import Task_local
 
 class Application(object):
     def __init__(self, name='', badge='', statistics=''):
-        self.setName(name)                # Hopefully on the form Say No to Schistosoma (sn2s)
+        self.setName_shortLong(name)                # Hopefully on the form Say No to Schistosoma (sn2s)
         self.tasks = list()
         self.badge = badge
         self.statistics = statistics
@@ -43,16 +43,39 @@ class Application(object):
     # def name(self):
     #     return self.name
 
-    def setName(self, name):
+    def setName_shortLong(self, name):
+        """
+        Sets self.name_long and self.name_short based on the following pattern
+        <long> (<short>)
+        """
         self.name = name
         reg = re.findall('([^(]+)\((\w+)\)', name)
         if reg != []:
             reg = reduce(lambda x,y: x+y, reg) # flatten list
-            self.name_long = "".join(reg[:-1]).strip()
-            self.name_short = reg[-1].strip()
+            name_long = "".join(reg[:-1]).strip()
+            name_short = reg[-1].strip()
         else:
-            self.name_long = self.name
-            self.name_short = ''
+            name_long = self.name
+            name_short = ''
+        
+        self.setName_long(name_long)
+        self.name_short = name_short
+
+    def setName_long(self, name_long=None):
+        """
+        Removes the version part of the application long name (if any)
+        """
+        if name_long is None: name_long = self.name_long
+        
+        reg = re.search('(v\d+.\d+)', name_long)
+        if reg:
+            s = reg.start()
+            e = reg.end()
+            self.version = reg.group()
+            name_long = name_long[:s] + name_long[e:]
+        else:
+            name_long = name_long
+        self.name_long = name_long.strip()
 
     def __str__(self):
         ret = [str(self.name)]
