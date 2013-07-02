@@ -11,14 +11,18 @@ class TestTask(unittest.TestCase):
 
     def test_str(self):
         print ''
-        t = task.Task(name='Task object')
-        print t
-        t = task.Task_local(name='Task local object')
-        print t
-        t = task.Task_web(name='Task web object')
-        print t
-        t = task.Task_web_worldcommunitygrid(name='Task web worldcommunitygrid object')
-        print t
+        t1 = task.Task(name='Task object')
+        print t1
+        t2 = task.Task_local(name='Task local object')
+        print t2
+        t3 = task.Task_web(name='Task web object')
+        print t3
+        t4 = task.Task_web_worldcommunitygrid(name='Task web worldcommunitygrid object')
+        print t4
+        l = [t1, t2, t3, t4]
+        task.adjustColumnSpacing(l)
+        for t in l:
+            print t
 
 class TestTask_local(unittest.TestCase):
     def setUp(self, schedularState='0', active='0', name='foobar 123451234512345', device='this',

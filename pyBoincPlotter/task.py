@@ -47,19 +47,26 @@ class Task(object):
         self.setRemainingCPUtime(remainingCPUtime) # stored as timedelta, see strToTimedelta and timedeltaToStr
         self.setDeadline(deadline)                 # stored as datetime, string is time until deadline
 
-    N = 7
+    N = 9
     fmt = []
     columnSpacing = dict()
-    for i in range(0, N):
-        columnSpacing['col'+str(i)] = 0
+    for i in range(N):
+        columnSpacing['col%d' % i] = 0
         fmt.append('{%d:<{col%d}}' % (i, i))
     fmt = " ".join(fmt)
 
+    def toString(self):
+        return [self.nameShort_str,
+                self.state_str, self.fractionDone_str,
+                self.elapsedCPUtime_str, self.remainingCPUtime_str, self.deadline_str, 
+                self.device_str]
+    
     def __str__(self):
-        return self.fmt.format(self.nameShort_str,
-                               self.state_str, self.fractionDone_str,
-                               self.elapsedCPUtime_str, self.remainingCPUtime_str, self.deadline_str, 
-                               self.device_str, **self.columnSpacing)
+        s = self.toString()
+        for i in range(Task.N - len(s)):
+            s.append('')
+
+        return Task.fmt.format(*s, **self.columnSpacing)
     
     def done(self):
         return not(self.desc_state[self.state] == 'in progress')
@@ -259,6 +266,11 @@ class Task_web(Task):
         self.setClaimedCredit(claimedCredit) # stored as float
         super(Task_web, self).__init__(**kwargs)
 
+    def toString(self):
+        s = super(Task_web, self).toString()
+        s.extend([self.claimedCredit_str, self.grantedCredit_str])
+        return s
+
     def toFloat(self, value):
         value = value.replace(',', '')
         value = value.replace('---', '0')
@@ -330,3 +342,11 @@ class Task_jobLog(Task):
     def setTime(self, value):
         t = int(s[0])
         self.time = datetime.datetime.fromtimestamp(t)
+
+def adjustColumnSpacing(tasks):
+    """
+    Not Thread safe, modifies the Task.columnSpacing for equal columns
+    """
+    for t in tasks:
+        for ix, item in enumerate(t.toString()):
+            Task.columnSpacing['col%d' % ix] = max(Task.columnSpacing['col%d' % ix], len(item))
