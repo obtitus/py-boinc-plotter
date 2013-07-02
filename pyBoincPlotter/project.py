@@ -58,7 +58,7 @@ class Project(object):
         try:
             app_name = self._appNames[t.name]
         except KeyError:
-            raise KeyError('Unknown app_name for task %s, known names %s', t.name, self._appNames)
+            raise KeyError('Unknown app_name for task %s, known names %s' % (t.name, self._appNames))
 
         #logger.debug('trying to find app_name %s', app_name)
         for key, app in self.applications.items():
@@ -66,7 +66,7 @@ class Project(object):
                 app.tasks.append(t)
                 break
         else:
-            raise KeyError('Could not find app_name %s in list of applications', app_name)
+            raise KeyError('Could not find app_name %s in list of applications' % app_name)
 
     @property
     def name(self):

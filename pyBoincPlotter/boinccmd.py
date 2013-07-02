@@ -51,13 +51,14 @@ class Boinccmd(socket):
                 yield data[line_ix][:ix]
                 self.previous_data += data[line_ix][:ix]
 
-def parse_get_state():
+def get_state():
     projects = list()
     with Boinccmd() as s:
         currentBlock = []
         inBlock = False
         appNames = dict()       
         for line in s.request('get_state'):
+            print line
             if line.strip() in ('<project>', '<app>', '<workunit>', '<result>'):
                 inBlock = True
             reset = True
@@ -90,7 +91,7 @@ def parse_get_state():
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
     loggerSetup(logging.DEBUG)
-    for p in parse_get_state():
+    for p in get_state():
         print str(p) + '\n'
     #print s.request('get_simple_gui_info')
     #print s.request('get_results')

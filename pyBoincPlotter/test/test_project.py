@@ -28,16 +28,30 @@ class TestApplication(unittest.TestCase):
         Avg credit, user: 1 770, host: 1 769, 100%""")
 
     def test_app(self):
-        p = self.proj.appendApplicationFromXML("""<app>
-    <name>hcc1</name>
-    <user_friendly_name>Help Conquer Cancer</user_friendly_name>
-    <non_cpu_intensive>0</non_cpu_intensive>
-    </app>""")
+        p = self.proj.appendApplicationFromXML(parse_input.application)
         print p
-    
-    # def test_task(self):
-    #     p = parse.boinccmd.task(parse_input.task_active)
-    #     print p
+
+    def test_workunit(self):
+        w = self.proj.appendWorkunitFromXML(parse_input.workunit)
+        self.assertEqual(str(w), 'name faah42091_ZINC58026222_xBr27_refmac2_A_PR_01, app_name faah')
+
+    def test_result(self):
+        with self.assertRaises(KeyError): # shouldn't work
+            w = self.proj.appendResultFromXML(parse_input.task_active)
+
+        self.proj.appendWorkunitFromXML("""<workunit>
+        <name>faah41423_ZINC08270033_xBr27_refmac2_A_PR_03</name>
+        <app_name>faah</app_name>
+        """)
+        with self.assertRaises(KeyError): # should still not work
+            w = self.proj.appendResultFromXML(parse_input.task_active)
+
+        # should work!
+        self.proj.appendApplicationFromXML(parse_input.application)
+        w = self.proj.appendResultFromXML(parse_input.task_active)
+        s = str(self.proj).split('\n')
+        self.assertTrue(len(s), 3)
+
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(TestApplication)
     unittest.TextTestRunner(verbosity=2).run(suite)

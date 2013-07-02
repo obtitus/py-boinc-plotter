@@ -190,3 +190,47 @@ task_active = """<result>
 </active_task>
 </result>
 """
+
+workunit = """<workunit>
+    <name>faah42091_ZINC58026222_xBr27_refmac2_A_PR_01</name>
+    <app_name>faah</app_name>
+    <version_num>715</version_num>
+    <rsc_fpops_est>50657828504791.000000</rsc_fpops_est>
+    <rsc_fpops_bound>1013156570095820.000000</rsc_fpops_bound>
+    <rsc_memory_bound>125000000.000000</rsc_memory_bound>
+    <rsc_disk_bound>314572800.000000</rsc_disk_bound>
+    <command_line>
+-dpf faah42091_ZINC58026222_xBr27_refmac2_A_P_01.dpf -gpf ZINC58026222_xBr27_refmac2_A_P_01.gpf -seed 303113325
+    </command_line>
+    <file_ref>
+        <file_name>f5357a2639947fe9a1f6f5eed56b12e5.dpf.gzb</file_name>
+        <open_name>./faah42091_ZINC58026222_xBr27_refmac2_A_P_01.dpf</open_name>
+    </file_ref>
+    <file_ref>
+        <file_name>faah42091_ZINC58026222_xBr27_refmac2_A_PR_01_AD4.1_bound.dat.gzb</file_name>
+        <open_name>./AD4.1_bound.dat</open_name>
+    </file_ref>
+    <file_ref>
+        <file_name>faah42091_ZINC58026222_xBr27_refmac2_A_PR_01_ZINC58026222.pdbqt.gzb</file_name>
+        <open_name>./ZINC58026222.pdbqt</open_name>
+    </file_ref>
+    <file_ref>
+        <file_name>faah.xBr27_refmac2_A_PR.pdbqt.gzb</file_name>
+        <open_name>./xBr27_refmac2_A_PR.pdbqt</open_name>
+    </file_ref>
+    <file_ref>
+        <file_name>deee9691f8d8188cde3e25dce3d0e540.gpf.gzb</file_name>
+        <open_name>./ZINC58026222_xBr27_refmac2_A_P_01.gpf</open_name>
+    </file_ref>
+    <file_ref>
+        <file_name>faah.protease.dat.gzb</file_name>
+        <open_name>./protease.dat</open_name>
+    </file_ref>
+</workunit>
+"""
+
+application="""<app>
+    <name>faah</name>
+    <user_friendly_name>FightAIDS@Home</user_friendly_name>
+    <non_cpu_intensive>0</non_cpu_intensive>
+</app>"""
