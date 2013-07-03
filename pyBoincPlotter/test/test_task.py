@@ -27,11 +27,13 @@ class TestTask(unittest.TestCase):
 class TestTask_local(unittest.TestCase):
     def setUp(self, schedularState='0', active='0', name='foobar 123451234512345', device='this',
               state='0', fractionDone='0',
-              elapsedCPUtime='60', remainingCPUtime='3600', deadline='1372752295.000000'):
+              elapsedCPUtime='60', remainingCPUtime='3600', deadline='1372752295.000000',
+              memUsage='311340577.134'):
 
         self.t = task.Task_local(schedularState=schedularState, active=active, name=name, device=device,
-                                  state=state, fractionDone=fractionDone,
-                                  elapsedCPUtime=elapsedCPUtime, remainingCPUtime=remainingCPUtime, deadline=deadline)
+                                 state=state, fractionDone=fractionDone,
+                                 elapsedCPUtime=elapsedCPUtime, remainingCPUtime=remainingCPUtime, deadline=deadline,
+                                 memUsage=memUsage)
 
     def test_name(self):
         self.assertEqual(self.t.name, 'foobar 123451234512345')
@@ -70,6 +72,13 @@ class TestTask_local(unittest.TestCase):
     
     def test_deadline(self):
         self.assertEqual(self.t.deadline, datetime.datetime(2013, 7, 2, 10, 4, 55))
+    
+    def test_memUsage(self):
+        self.assertEqual(self.t.memUsage, 311340577.134)
+        self.assertEqual(self.t.memUsage_str, '311 MB')
+        
+        self.setUp(memUsage='3000000000')
+        self.assertEqual(self.t.memUsage_str, '3 GB')
     
     def test_xml(self):
         self.t = task.Task_local.createFromXML("""<result> 
@@ -134,6 +143,8 @@ class TestTask_web(TestTask_local):
     def test_xml(self):         # overrride
         pass
     def test_xml2(self):         # overrride
+        pass
+    def test_memUsage(self):
         pass
 
     def test_state(self):

@@ -47,7 +47,7 @@ class Task(object):
         self.setRemainingCPUtime(remainingCPUtime) # stored as timedelta, see strToTimedelta and timedeltaToStr
         self.setDeadline(deadline)                 # stored as datetime, string is time until deadline
 
-    N = 9
+    N = 10
     fmt = []
     columnSpacing = dict()
     for i in range(N):
@@ -175,9 +175,10 @@ class Task_local(Task):
                    'abort pending', 'aborted', 'unable to start', # 5, 6, 7
                    'waiting to quit', 'suspended', 'waiting for copy', # 8, 9, 10
                    'unknown']   # -1
-    def __init__(self, schedularState=-1, active=-1, **kwargs):
+    def __init__(self, schedularState=-1, active=-1, memUsage=0, **kwargs):
         self.setSchedularState(schedularState)
         self.setActive(active)
+        self.memUsage = float(memUsage)
         Task.__init__(self, **kwargs)
 
     @staticmethod
@@ -198,7 +199,8 @@ class Task_local(Task):
                           remainingCPUtime = soup.estimated_cpu_time_remaining or 0,
                           deadline = soup.report_deadline,
                           schedularState = soup.schedular_state or -1,
-                          active = soup.active_task_state or -1)
+                          active = soup.active_task_state or -1,
+                          memUsage = soup.working_set_size_smoothed or 0)
 
             for key in kwargs:
                 try:
@@ -213,6 +215,23 @@ class Task_local(Task):
 
     def done(self):
         return self.remainingCPUtime_str == '0:00:00'
+
+    def toString(self):
+        s = super(Task_local, self).toString()
+        s.extend([self.memUsage_str])
+        return s
+
+    @property
+    def memUsage_str(self):
+        if self.memUsage == 0:
+            return ''
+        else:
+            mem = self.memUsage/1e6
+            suffix = 'MB'
+            if mem > 1000:
+                mem /= 1e3
+                suffix = 'GB'
+            return '{:.3g} {}'.format(mem, suffix)
 
     def setDeadline(self, deadline):
         if deadline is not None:

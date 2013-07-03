@@ -94,7 +94,10 @@ if __name__ == '__main__':
     projects = get_state()
     for p in projects:
         for app in p.applications:
-            task.adjustColumnSpacing(p.applications[app].tasks)
+            tasks = p.applications[app].tasks
+            task.adjustColumnSpacing(tasks)
+            # for t in tasks:
+            #     print t.name, "{:.3g} MB".format(t.memUsage/1e6)
 
     for p in projects:
         if len(p) != 0:
