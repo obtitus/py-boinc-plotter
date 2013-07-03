@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Standard python
 from socket import socket
 import logging
