@@ -52,7 +52,7 @@ class Task(object):
     columnSpacing = dict()
     for i in range(N):
         columnSpacing['col%d' % i] = 0
-        fmt.append('{%d:<{col%d}}' % (i, i))
+        fmt.append('{%d:>{col%d}}' % (i, i))
     fmt = " ".join(fmt)
 
     def toString(self):
@@ -194,6 +194,7 @@ class Task_local(Task):
             kwargs = dict(name = soup.wu_name,
                           state = soup.state or -1,
                           fractionDone = soup.fraction_done or 0,
+                          elapsedCPUtime = soup.elapsed_time or soup.final_elapsed_time or 0,
                           remainingCPUtime = soup.estimated_cpu_time_remaining or 0,
                           deadline = soup.report_deadline,
                           schedularState = soup.schedular_state or -1,

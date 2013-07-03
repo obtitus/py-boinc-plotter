@@ -1,5 +1,6 @@
 # Standard python
 import re
+import collections
 import logging
 logger = logging.getLogger('boinc.project')
 # non standard
@@ -10,6 +11,26 @@ from task import Task_local
 from statistics import Statistics
 
 class Project(object):
+    class Settings(collections.namedtuple('Settings', ['resource_share', 'dont_request_more_work', 'sched_priority'])):
+        """
+        Some of the project settings
+        """
+        @staticmethod
+        def createFromSoup(soup):
+            resource_share = float(soup.resource_share.text)
+            dont_request_more_work = soup.dont_request_more_work != None
+            sched_priority = float(soup.sched_priority.text)
+            return Project.Settings(resource_share=resource_share,
+                                    dont_request_more_work=dont_request_more_work,
+                                    sched_priority=sched_priority)
+
+        def __str__(self):
+            ret = 'Resource share {:.3g}%, sched. priority {}'.format(self.resource_share,
+                                                                      self.sched_priority)
+            if self.dont_request_more_work:
+                ret += ", Don't request more work"
+            return ret
+            
     def __init__(self, url, user=None, statistics=None, settings=None):
         self.name = url
         self.user = user
@@ -29,10 +50,7 @@ class Project(object):
         from the boinc rpc
         """        
         soup = BeautifulSoup(xml, "xml")
-        # For now, settings is just a string
-        settings = 'Resource share {:.3g}%'.format(float(soup.resource_share.text))
-        if soup.dont_request_more_work is not None:
-            settings += ", Don't request more work"
+        settings = Project.Settings.createFromSoup(soup)
         # Get the statistics
         s = Statistics.createFromSoup(soup)
         return Project(soup.master_url.text, statistics=s, settings=settings)
@@ -53,7 +71,6 @@ class Project(object):
     
     def appendResultFromXML(self, xml):
         t = Task_local.createFromXML(xml)
-        logger.debug('result %s', t)
 
         try:
             app_name = self._appNames[t.name]
@@ -67,6 +84,8 @@ class Project(object):
                 break
         else:
             raise KeyError('Could not find app_name %s in list of applications' % app_name)
+
+        return t
 
     @property
     def name(self):
@@ -88,7 +107,17 @@ class Project(object):
             if prop != None:
                 ret.append(str(prop))
 
-        for key in self.applications:
-            ret.append(str(self.applications[key]))
+        for key in sorted(self.applications):
+            if len(self.applications[key]) != 0:
+                ret.append(str(self.applications[key]))
 
         return "\n".join(ret)
+
+    def __len__(self):
+        """
+        Number of tasks
+        """
+        n = 0
+        for key in self.applications:
+            n += len(self.applications[key])
+        return n

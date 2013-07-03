@@ -74,9 +74,9 @@ def get_state():
             elif '</result>' in line:
                 try:
                     t = project.appendResultFromXML("\n".join(currentBlock))
+                    logger.debug('result, %s', t)
                 except KeyError:
                     logging.exception('Could not append task to application:')
-                logger.debug('result, %s', t)
             else:
                 reset = False
             if reset:
@@ -89,8 +89,15 @@ def get_state():
 
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
-    loggerSetup(logging.DEBUG)
-    for p in get_state():
-        print str(p) + '\n'
+    import task
+    loggerSetup(logging.INFO)
+    projects = get_state()
+    for p in projects:
+        for app in p.applications:
+            task.adjustColumnSpacing(p.applications[app].tasks)
+
+    for p in projects:
+        if len(p) != 0:
+            print str(p) + '\n'
     #print s.request('get_simple_gui_info')
     #print s.request('get_results')

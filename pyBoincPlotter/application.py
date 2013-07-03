@@ -78,7 +78,13 @@ class Application(object):
         self.name_long = name_long.strip()
 
     def __str__(self):
-        ret = [str(self.name)]
+        ret = ["= {} =".format(self.name)]
         for task in self.tasks:
             ret.append(str(task))
         return "\n".join(ret)
+
+    def __len__(self):
+        """
+        Number of tasks
+        """
+        return len(self.tasks)
