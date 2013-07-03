@@ -45,8 +45,8 @@ join = os.path.join
 
 class Browser_file(object):
     # Cache aware browser
-    # Use self.update() (which is called on init) to read in content from the cache folder (in a lazy way)
-    # then use self.visitURL(...) which either returns your content or None if not found in cache.
+    # Use self.update() (which is called on init) to read in content from the cache folder
+    # then use self.visitURL(...) which returns the content on success or None on failure
     # Cache is invalidated and removed based on age
     # Using this class directly makes little sense, unless you have the entire updated internet in our cache folder
     # Beware, not thread safe to update
@@ -77,7 +77,9 @@ class Browser_file(object):
             age = self.fileAge(filename)
             oldAge = 1
             if 'workunit' in filename:
-                oldAge = 30*24 # Currently the workunit page is only used for project name, which will never change. Set to 30 days so that the file will eventually be cleaned
+                # Currently the workunit page is only used for project name, 
+                # which will never change. Set to 30 days so that the file will eventually be cleaned
+                oldAge = 30*24
                 
             if age < oldAge:
                 self.add(filename)
@@ -94,15 +96,13 @@ class Browser_file(object):
                     yield join(root, f)
 
     def visitURL(self, URL, extension='.html'):
-        try:
-            filename = join(self.cacheDir, sanitizeURL(URL)) + extension
-            content = self.cache[filename]
-            if content == None:         # Cached evaluation, if none then replace by content
-                self.cache[filename] = readFile(filename)
+        """Returns content if the site is in cache, None otherwise."""
+        filename = join(self.cacheDir, sanitizeURL(URL)) + extension
+        if filename in self.cache:
             logger.debug('Getting from cache %s, %s', URL, filename)
-        except KeyError:                # Not found in cache
-            content = None
-        return content
+            return readFile(filename)
+        else:
+            return None
 
 class BrowserSuper(object):
     # Browser for visiting the web, use subclass to actually connect somewhere
@@ -135,7 +135,8 @@ class BrowserSuper(object):
         filename = join(self.browser_cache.cacheDir, sanitizeURL(URL)) + extension
         with open(filename, 'w') as f:
             f.write(content)
-        
+        return filename
+
     def authenticate(self):
         try:
             r = self.client.post(self.loginPage, data=self.loginInfo)
@@ -157,11 +158,22 @@ class BrowserSuper(object):
     def visitPage(self, page):
         return self.visitURL('http://{name}/{page}'.format(name=self.name, page=page))
 
+    def redirected(self, request):
+        """ Returns whether a redirect has been done or not """
+        logger.info('%s, %s', r, request.history)
+        if len(request.history) != 0:
+            return True
+        
+        ix = request.content.find('\n')
+        firstLine = request.content[:ix]
+        logger.debug('First line "%s"', firstLine)
+        return 'Please log in' in firstLine
+
     def visitURL(self, URL, recursionCall=False, extension='.html'):
         # recursionCall is used to limit recursion to 1 step
         # Extension is used for the cache for ease of debugging        
         content = self.browser_cache.visitURL(URL, extension)
-        if content == None:
+        if filename == None:
             logger.info('Visiting %s', URL)
 
             try:
@@ -170,10 +182,7 @@ class BrowserSuper(object):
                 print('Could not connect to {0}'.format(URL))
                 return ''
 
-            logger.info('%s, %s', r, r.history)
-            firstLine = r.content.split('\n')[0].strip()
-            logger.debug('First line "%s"', firstLine)
-            if r.url != URL or firstLine == '<html><head><title>Please log in</title>' or '<td><h3 align="center" class="txtTitle">Please log in</h3>' in r.content: # redirected or hack for rosetta or hack for climateprediction
+            if self.redirected(r):
                 if not(recursionCall):
                     logger.info('Seem to have been redirected, trying to authenticate first. %s', r.url)
                     self.authenticate()
