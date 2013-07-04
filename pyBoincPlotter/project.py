@@ -40,6 +40,9 @@ class Project(object):
 
         self._appNames = dict() # key is name and value is application name
 
+    # 
+    # XML related
+    # 
     @staticmethod
     def createFromXML(xml):
         """
@@ -87,6 +90,10 @@ class Project(object):
 
         return t
 
+    # 
+    # HTML related
+    # 
+
     @property
     def name(self):
         return self._name
@@ -121,3 +128,4 @@ class Project(object):
         for key in self.applications:
             n += len(self.applications[key])
         return n
+

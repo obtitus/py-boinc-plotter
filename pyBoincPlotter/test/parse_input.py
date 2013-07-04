@@ -1,3 +1,8 @@
+import os
+thisFolder = os.path.abspath(os.path.dirname(__file__))
+
+html_worldcommunitygrid = os.path.join(thisFolder, 'httpwwwworldcommunitygridorgmsviewBoincResultsdofilterDevice0filterStatus1projectId1pageNum1sortBysentTime.html')
+
 project_rosetta = """<project>
     <master_url>http://boinc.bakerlab.org/rosetta/</master_url>
     <project_name>rosetta@home</project_name>

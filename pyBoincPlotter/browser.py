@@ -30,6 +30,9 @@ import logging
 logger = logging.getLogger('boinc.browser')
 # Non-standard python
 import requests
+from bs4 import BeautifulSoup
+# This project
+import project
 
 # Helper functions:
 def sanitizeURL(url):
@@ -44,25 +47,31 @@ def readFile(filename):
 join = os.path.join
 
 class Browser_file(object):
-    # Cache aware browser
-    # Use self.update() (which is called on init) to read in content from the cache folder
-    # then use self.visitURL(...) which returns the content on success or None on failure
-    # Cache is invalidated and removed based on age
-    # Using this class directly makes little sense, unless you have the entire updated internet in our cache folder
-    # Beware, not thread safe to update
-    def __init__(self, CACHE_DIR):
+    """Cache aware browser
+    Use self.update() (which is called on init) to read in content from the cache folder
+    then use self.visitURL(...) which returns the content on success or None on failure
+    Cache is invalidated and removed based on age
+    Using this class directly makes little sense, unless you have the entire updated internet in our cache folder
+    Beware, not thread safe to update
+    """
+    def __init__(self, CACHE_DIR, removeOld=True):
+        """removeOld should be set to False for testing"""
         self.cacheDir = CACHE_DIR
+        self.removeOld = removeOld
         self.update()
 
     def add(self, filename):
         logger.debug('Adding %s to valid cache', filename)
         self.cache[filename] = None
     def remove(self, filename):
-        logger.info('Removing old cache %s', filename)
-        try:
-            os.remove(filename)
-        except:
-            logger.exception('Unable to clean up old cach file %s', filename)
+        if self.removeOld is True:
+            logger.info('Not removing %s due to removeOld == %s', filename, self.removeOld)
+        else:
+            logger.info('Removing old cache %s', filename)
+            try:
+                os.remove(filename)
+            except:
+                logger.exception('Unable to clean up old cach file %s', filename)
 
     def fileAge(self, filename):
         fileChanged = os.path.getmtime(filename)
@@ -160,7 +169,7 @@ class BrowserSuper(object):
 
     def redirected(self, request):
         """ Returns whether a redirect has been done or not """
-        logger.info('%s, %s', r, request.history)
+        logger.info('%s, %s', request, request.history)
         if len(request.history) != 0:
             return True
         
@@ -173,7 +182,7 @@ class BrowserSuper(object):
         # recursionCall is used to limit recursion to 1 step
         # Extension is used for the cache for ease of debugging        
         content = self.browser_cache.visitURL(URL, extension)
-        if filename == None:
+        if content == None:
             logger.info('Visiting %s', URL)
 
             try:
@@ -207,9 +216,9 @@ class Browser_worldcommunitygrid(BrowserSuper):
         self.CONFIG = CONFIG
         self.name = 'worldcommunitygrid'
         BrowserSuper.__init__(self, browser_cache)
-        self.URL = 'http://www.worldcommunitygrid.org/ms/viewBoincResults.do'
-        self.URL += '?filterDevice=0&filterStatus=-1&projectId=-1&'
-        self.URL += 'pageNum={0}&sortBy=sentTime'
+        self.URL_BASE = 'http://www.worldcommunitygrid.org'
+        self.URL = self.URL_BASE +\
+                   '/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum={0}&sortBy=sentTime'
 
         self.loginInfo = {
             'settoken': 'on',
@@ -219,9 +228,36 @@ class Browser_worldcommunitygrid(BrowserSuper):
         self.loginPage = 'https://secure.worldcommunitygrid.org/j_security_check'
 
     def visitStatistics(self):
-        page = self.visitURL("http://www.worldcommunitygrid.org/verifyMember.do?name={0}&code={1}".format(self.CONFIG.get('worldcommunitygrid.org', 'username'),
-                                                                                                          self.CONFIG.get('worldcommunitygrid.org', 'code')), extension='.xml')
+        username = self.CONFIG.get('worldcommunitygrid.org', 'username')
+        code = self.CONFIG.get('worldcommunitygrid.org', 'code')
+        url = self.URL_BASE + "/verifyMember.do?name={0}&code={1}"
+        page = self.visitURL(url.format(username, code), extension='.xml')
         return page
+
+    def parse(self):
+        content = self.visit()
+        for row in self.getRows(content):
+            url = self.URL_BASE + row[0]
+            self.visitURL(url)
+
+    def getRows(self, html):
+        """Generator for each row in table, first element is the workunit status page, which we currently need to find
+        the application name"""
+        soup = BeautifulSoup(html)
+        reg_compiled = re.compile("javascript:addHostPopup\('(/ms/device/viewWorkunitStatus.do\?workunitId=\d+)")
+        for tr in soup.table.find_all('tr'):
+            row = list()
+            for td in tr.find_all('td'):
+                try:
+                    reg = re.match(reg_compiled, td.a['href'])
+                    if reg:
+                        row.append(reg.group(1))
+                except TypeError:
+                    pass
+                row.append(td.text.strip())
+
+            if len(row) == 8:
+                yield row
 
 class Browser(BrowserSuper):
     def __init__(self, browser_cache, webpageName, CONFIG):
