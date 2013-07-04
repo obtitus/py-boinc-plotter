@@ -1,7 +1,8 @@
 import os
 thisFolder = os.path.abspath(os.path.dirname(__file__))
+dataFolder = os.path.join(thisFolder, 'data')
 
-html_worldcommunitygrid = os.path.join(thisFolder, 'httpwwwworldcommunitygridorgmsviewBoincResultsdofilterDevice0filterStatus1projectId1pageNum1sortBysentTime.html')
+html_worldcommunitygrid = os.path.join(dataFolder, 'httpwwwworldcommunitygridorgmsviewBoincResultsdofilterDevice0filterStatus1projectId1pageNum1sortBysentTime.html')
 
 project_rosetta = """<project>
     <master_url>http://boinc.bakerlab.org/rosetta/</master_url>

@@ -330,6 +330,25 @@ class Task_web(Task):
 
 class Task_web_worldcommunitygrid(Task_web):
     fmt_date = '%m/%d/%y %H:%M:%S'
+    @staticmethod
+    def createFromHTML(data):
+        name = data[0]
+        device = data[1]
+        state = data[2]
+        sentTime = data[3]      # not used
+        deadline = data[4]
+        
+        time = data[5].encode('ascii', errors='ignore').split('/')
+        CPUtime = time[0]
+        clockTime = time[1]
+        
+        credit = data[6].encode('ascii', errors='ignore').split('/')
+        claimedCredit = credit[0]
+        grantedCredit = credit[1]
+        return Task_web_worldcommunitygrid(name=name, device=device,
+                                           state=state, 
+                                           elapsedCPUtime=CPUtime, deadline=deadline,
+                                           claimedCredit=claimedCredit, grantedCredit=grantedCredit)
 
 class Task_jobLog(Task):
     """

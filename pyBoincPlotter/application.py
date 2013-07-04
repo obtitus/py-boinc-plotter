@@ -3,7 +3,7 @@ import re
 # non standard
 from bs4 import BeautifulSoup
 # This project
-from task import Task_local
+import task
 
 class Application(object):
     def __init__(self, name='', badge='', statistics=''):
@@ -32,7 +32,19 @@ class Application(object):
 
 
     def appendTaskFromXML(self, xml):
-        t = Task_local.createFromXML(xml)
+        t = task.Task_local.createFromXML(xml)
+        self.tasks.append(t)
+        return t
+    
+    def appendTask(self, data, source=''):
+        if source == 'worldcommunitygrid':
+            t = task.Task_web_worldcommunitygrid.createFromHTML(data)
+        elif source == '':
+            pass
+        else:
+            logger.error('vops, source not recognized, %s', source)
+            return None
+
         self.tasks.append(t)
         return t
 
@@ -79,8 +91,8 @@ class Application(object):
 
     def __str__(self):
         ret = ["= {} =".format(self.name)]
-        for task in self.tasks:
-            ret.append(str(task))
+        for t in self.tasks:
+            ret.append(str(t))
         return "\n".join(ret)
 
     def __len__(self):

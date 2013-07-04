@@ -93,7 +93,12 @@ class Project(object):
     # 
     # HTML related
     # 
+    def appendApplication(self, name_long):
+        if not(name_long in self.applications):
+            a = Application(name=name_long)
+            self.applications[name_long] = a
 
+        return self.applications[name_long]
     @property
     def name(self):
         return self._name

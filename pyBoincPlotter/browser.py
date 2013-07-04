@@ -32,7 +32,7 @@ logger = logging.getLogger('boinc.browser')
 import requests
 from bs4 import BeautifulSoup
 # This project
-import project
+from project import Project
 
 # Helper functions:
 def sanitizeURL(url):
@@ -64,19 +64,16 @@ class Browser_file(object):
         logger.debug('Adding %s to valid cache', filename)
         self.cache[filename] = None
     def remove(self, filename):
-        if self.removeOld is True:
-            logger.info('Not removing %s due to removeOld == %s', filename, self.removeOld)
-        else:
-            logger.info('Removing old cache %s', filename)
-            try:
-                os.remove(filename)
-            except:
-                logger.exception('Unable to clean up old cach file %s', filename)
+        logger.info('Removing old cache %s', filename)
+        try:
+            os.remove(filename)
+        except:
+            logger.exception('Unable to clean up old cach file %s', filename)
 
     def fileAge(self, filename):
         fileChanged = os.path.getmtime(filename)
         age = (self.now - fileChanged)/(60*60) # age of file in hours
-        logger.debug('%s is %s h old', filename, age)
+        logger.debug('%s is %.3g h old', filename, age)
         return age
     
     def update(self):
@@ -90,7 +87,7 @@ class Browser_file(object):
                 # which will never change. Set to 30 days so that the file will eventually be cleaned
                 oldAge = 30*24
                 
-            if age < oldAge:
+            if not(self.removeOld) or age < oldAge:
                 self.add(filename)
             else:
                 self.remove(filename)
@@ -235,29 +232,63 @@ class Browser_worldcommunitygrid(BrowserSuper):
         return page
 
     def parse(self):
+        project = Project(self.URL_BASE)
         content = self.visit()
-        for row in self.getRows(content):
+        for row in self.getRows(content): # TODO: consider threading
             url = self.URL_BASE + row[0]
-            self.visitURL(url)
+            workunit = self.visitURL(url)
+            app_name = self.parseWorkunit(workunit)
+            application = project.appendApplication(app_name)
+            application.appendTask(row[1:], source='worldcommunitygrid')
+
+        return project
 
     def getRows(self, html):
         """Generator for each row in table, first element is the workunit status page, which we currently need to find
         the application name"""
         soup = BeautifulSoup(html)
+        for row in self.parseTable(soup):
+            yield row
+
+        for additionalPage in self.parseAdditionalPages(soup):
+            html = self.visit(additionalPage)
+            if html != '':
+                soup = BeautifulSoup(html)
+                for row in self.parseTable(soup):
+                    yield row
+
+    def parseAdditionalPages(self, soup):
+        reg_compiled = re.compile('pageNum=(\d+)')
+        for link in soup.table.find_all('a'):
+            try:
+                reg = re.search(reg_compiled, link['href'])
+                yield reg.group(1)
+            except (TypeError, AttributeError):
+                pass
+    
+    def parseTable(self, soup):
         reg_compiled = re.compile("javascript:addHostPopup\('(/ms/device/viewWorkunitStatus.do\?workunitId=\d+)")
         for tr in soup.table.find_all('tr'):
             row = list()
             for td in tr.find_all('td'):
                 try:
                     reg = re.match(reg_compiled, td.a['href'])
-                    if reg:
-                        row.append(reg.group(1))
-                except TypeError:
+                    row.append(reg.group(1))
+                except (TypeError, AttributeError):
                     pass
                 row.append(td.text.strip())
 
             if len(row) == 8:
                 yield row
+
+    def parseWorkunit(self, html):
+        soup = BeautifulSoup(html)
+        reg_compiled = re.compile('Project Name:\s*([^\n]+)\n')
+        for tr in soup.find_all('tr'):
+            for td in tr.find_all('td'):
+                reg = re.search(reg_compiled, td.text)
+                if reg:
+                    return reg.group(1).strip()
 
 class Browser(BrowserSuper):
     def __init__(self, browser_cache, webpageName, CONFIG):
