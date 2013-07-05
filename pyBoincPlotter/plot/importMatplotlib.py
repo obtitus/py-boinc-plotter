@@ -17,6 +17,8 @@
 # 
 # END LICENCE
 import datetime
+import logging
+logger = logging.getLogger('boinc.importMatplotlib')
 
 try:
     import numpy as np
@@ -37,3 +39,28 @@ try:
     formatter_timedelta = matplotlib.ticker.FuncFormatter(timeTicks)
 except ImportError as e:
     print e
+
+def dayFormat(ax, month=False):
+    if month:
+        ax.xaxis.set_major_locator(matplotlib.dates.MonthLocator(interval=1))
+    else:
+        ax.xaxis.set_major_locator(matplotlib.dates.DayLocator(interval=1))
+
+    # Avoid excessive numbers
+    try:
+        N = len(ax.get_xticks())
+    except RuntimeError as e:
+        logger.warning('day format error %s', e)
+        N = 10000
+    if N > 20:
+        ax.xaxis.set_major_locator(matplotlib.dates.DayLocator(interval=N//15))
+
+    if month:
+        fmt = '%Y-%m'
+    else:
+        fmt = '%Y-%m-%d'
+
+    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter(fmt))
+    for label in ax.get_xticklabels():
+        label.set_rotation(45)
+        label.set_ha('right')

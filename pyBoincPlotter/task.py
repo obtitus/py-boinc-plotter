@@ -360,11 +360,12 @@ class Task_jobLog(Task):
     """
     def __init__(self, time, name, 
                  ue, ct, fe, et):
-        super(__class__, self).__init__(name=name, fractionDone='100',
-                                        elapsedCPUtime=ct, remainingCPUtime='0')
+        super(Task_jobLog, self).__init__(name=name, fractionDone='100',
+                                          elapsedCPUtime=ct, remainingCPUtime='0')
         self.setTime(time)
         # Lets just keep it simple, float already has a sane str() version
         self.estimated_runtime_uncorrected = float(ue)
+        self.final_cpu_time = float(ct)
         self.rsc_fpops_est = float(fe)
         self.final_elapsed_time = float(et)
 
@@ -379,7 +380,7 @@ class Task_jobLog(Task):
                            ue=s[2], ct=s[4], fe=s[6], et=s[10])
 
     def setTime(self, value):
-        t = int(s[0])
+        t = int(value)
         self.time = datetime.datetime.fromtimestamp(t)
 
 def adjustColumnSpacing(tasks):

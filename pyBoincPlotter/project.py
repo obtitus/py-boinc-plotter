@@ -111,10 +111,11 @@ class Project(object):
         self.name_short = self.name_short.replace('.org', '')
         if self.name_short[-1] == '/':
             self.name_short = self.name_short[:-1]
-
+        self.name_short = self.name_short.capitalize()
+            
     def __str__(self):
         endl = '\n'
-        ret = ["== {} ==".format(self.name_short.capitalize())]
+        ret = ["== {} ==".format(self.name_short)]
         for prop in [self.settings, self.statistics]:
             if prop != None:
                 ret.append(str(prop))
