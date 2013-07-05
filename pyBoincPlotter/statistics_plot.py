@@ -286,38 +286,6 @@ def plotStream(inputStream, labels, color):
 #    for day in days:
 #        plt.num2date(time[ix])
         
-def parseDailyTransfer(page):
-    # Not sure about the unit
-    tree = xml.etree.ElementTree.parse(page)
-    data = defaultdict(list)
-    now = datetime.datetime.now()
-    for d in tree.iter('dx'):
-        for child in d:
-            if child.tag == 'when':
-                item = float(child.text)
-                item = datetime.datetime.fromtimestamp(item*60*60*24)
-                if limitDaysToPlot == None or now - item < limitDaysToPlot:
-                    data[child.tag].append(plt.date2num(item))
-                else:
-                    break
-            else:
-                item = float(child.text)
-                data[child.tag].append(float(item))
-    return data
-
-def plotDailyTransfer(fig, data):
-    day, up, down = data['when'], data['up'], data['down']
-
-    fig.suptitle('Total upload/download = {0}/{1}'.format(sum(up), sum(down)))
-    ax = fig.add_subplot(111)
-    kwargs = dict(align='center')
-    for ix in range(len(day)):
-        ax.bar(day[ix], up[ix], color='b', **kwargs)
-        ax.bar(day[ix], -down[ix], color='r', **kwargs)
-
-    ax.set_xlabel('Date')
-    ax.set_ylabel('upload/download')
-    dayFormat(ax)
 
 def shortenProjectName(name):
     name = name.replace('www.', '')
