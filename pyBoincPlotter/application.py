@@ -36,18 +36,6 @@ class Application(object):
         self.tasks.append(t)
         return t
     
-    def appendTask(self, data, source=''):
-        if source == 'worldcommunitygrid':
-            t = task.Task_web_worldcommunitygrid.createFromHTML(data)
-        elif source == '':
-            pass
-        else:
-            logger.error('vops, source not recognized, %s', source)
-            return None
-
-        self.tasks.append(t)
-        return t
-
     # Name
     """Name should be on the form <long> (<short>), do a regexp when the name is set.
     name_long returns <long> and name_short returns <short>"""

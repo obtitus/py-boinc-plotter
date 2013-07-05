@@ -33,6 +33,8 @@ import requests
 from bs4 import BeautifulSoup
 # This project
 from project import Project
+import task
+from async import Async
 
 # Helper functions:
 def sanitizeURL(url):
@@ -234,12 +236,18 @@ class Browser_worldcommunitygrid(BrowserSuper):
     def parse(self):
         project = Project(self.URL_BASE)
         content = self.visit()
-        for row in self.getRows(content): # TODO: consider threading
+        async_data = list()
+        for row in self.getRows(content):
             url = self.URL_BASE + row[0]
             workunit = self.visitURL(url)
-            app_name = self.parseWorkunit(workunit)
-            application = project.appendApplication(app_name)
-            application.appendTask(row[1:], source='worldcommunitygrid')
+
+            t = Async(task.Task_web_worldcommunitygrid.createFromHTML, row[1:])
+            app_name = Async(self.parseWorkunit, workunit)
+            async_data.append((t, app_name))
+
+        for t, app_name in async_data:
+            application = project.appendApplication(app_name.ret)
+            application.tasks.append(t.ret)
 
         return project
 
@@ -291,31 +299,63 @@ class Browser_worldcommunitygrid(BrowserSuper):
                     return reg.group(1).strip()
 
 class Browser(BrowserSuper):
-    def __init__(self, browser_cache, webpageName, CONFIG):
-        self.name = webpageName
+    def __init__(self, webpage_name, browser_cache, CONFIG):
+        self.name = webpage_name
         BrowserSuper.__init__(self, browser_cache)
-        self.webpageName = webpageName
+        self.webpage_name = webpage_name
         self.URL = 'http://{name}/results.php?userid={userid}'.format(
-            name = webpageName,
-            userid=CONFIG.get(webpageName, 'userid'))
+            name = webpage_name,
+            userid=CONFIG.get(webpage_name, 'userid'))
         self.URL += '&offset={0}&show_names=1&state=0&appid='
 
-        self.loginInfo = {'email_addr': CONFIG.get(webpageName, 'username'),
+        self.loginInfo = {'email_addr': CONFIG.get(webpage_name, 'username'),
                           'mode': 'Log in',
                           'next_url': 'home.php',
-                          'passwd': CONFIG.getpassword(webpageName, 'username'),
+                          'passwd': CONFIG.getpassword(webpage_name, 'username'),
                           'stay_logged_in': 'on', # used by mindmodeling and wuprop
                           'send_cookie': 'on'}    # used by rosetta and yoyo
-        self.loginPage = 'http://{0}/login_action.php'.format(webpageName)
+        self.loginPage = 'http://{0}/login_action.php'.format(webpage_name)
 
     def visitHome(self):
-        return self.visitURL('http://{0}/home.php'.format(self.webpageName))
+        return self.visitURL('http://{0}/home.php'.format(self.webpage_name))
 
     def visit(self, offset=0):
         return BrowserSuper.visit(self, offset)
 
 class Browser_yoyo(Browser):
     def __init__(self, browser_cache, CONFIG):
-        Browser.__init__(self, browser_cache, webpageName='www.rechenkraft.net/yoyo', CONFIG=CONFIG)
+        Browser.__init__(self, browser_cache, webpage_name='www.rechenkraft.net/yoyo', CONFIG=CONFIG)
         self.loginInfo['mode'] = 'Log in with email/password'
         self.loginInfo['next_url'] = '/yoyo/home.php'
+
+
+def getProjects(CONFIG, browser_cache):
+    projects = list()
+    for section in CONFIG.sections():
+        # Pick subclass
+        if section == 'worldcommunitygrid.org':
+            browser = Browser_worldcommunitygrid(browser_cache, CONFIG)
+        elif section == 'rechenkraft.net/yoyo':
+            browser = Browser_yoyo(browser_cache, CONFIG)
+        elif section == 'configuration': # Not a boinc project
+            continue
+        else:                   # Lets try the generic
+            continue
+            browser = Browser(webpage_name=section, 
+                              browser_cache=browser_cache, 
+                              CONFIG=CONFIG)
+
+        yield browser.parse()
+
+if __name__ == '__main__':
+    from loggerSetup import loggerSetup
+    loggerSetup(logging.INFO)
+    
+    import config
+    import util
+    
+    CONFIG, CACHE_DIR, _ = config.set_globals()
+    browser_cache = Browser_file(CACHE_DIR)
+    
+    for p in getProjects(CONFIG, browser_cache):
+        print p
