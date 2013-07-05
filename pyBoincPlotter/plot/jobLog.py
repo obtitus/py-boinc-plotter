@@ -4,7 +4,7 @@
 import calendar
 from collections import namedtuple
 import logging
-logger = logging.getLogger('boinc.jobLog')
+logger = logging.getLogger('boinc.plot.jobLog')
 # Non standard
 # Project imports
 from project import Project
@@ -266,7 +266,7 @@ if __name__ == '__main__':
         tasks = createFromFilename(JobLog, filename, label=project.name_short, limitMonths=1)
         tasks.plot(fig=fig1)
 
-        tasks = createFromFilename(JobLog_Months, filename, label=project.name_short, limitMonths=12)
+        tasks = createFromFilename(JobLog_Months, filename, label=project.name_short, limitMonths=120)
         tasks.plot(fig=fig2)
 
     raw_input('=== Press enter to exit ===\n')
