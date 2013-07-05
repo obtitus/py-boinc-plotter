@@ -135,3 +135,9 @@ class Project(object):
             n += len(self.applications[key])
         return n
 
+    def tasks(self):
+        """ Syntax sugar for generator for each task contained by project
+        """
+        for key in sorted(self.applications):
+            for task in self.applications[key].tasks:
+                yield task
