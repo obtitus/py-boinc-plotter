@@ -31,6 +31,10 @@ def parse(page, limitDays):
             else:
                 item = float(child.text)
                 data[child.tag].append(float(item))
+
+    for key in data:
+        data[key] = np.array(data[key])
+
     return data
 
 def plot(fig, data):

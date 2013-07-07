@@ -4,6 +4,7 @@ import datetime
 
 # This project
 import task
+import parse_input
 
 class TestTask(unittest.TestCase):
     def setUp(self):
@@ -81,53 +82,16 @@ class TestTask_local(unittest.TestCase):
         self.assertEqual(self.t.memUsage_str, '3 GB')
     
     def test_xml(self):
-        self.t = task.Task_local.createFromXML("""<result> 
-<name>faah41856_ZINC09836600_xBr27_refmac2_A_PR_02_0</name>
-<wu_name>faah41856_ZINC09836600_xBr27_refmac2_A_PR_02</wu_name>
-<version_num>715</version_num> 
-<plan_class></plan_class>
-<project_url>http://www.worldcommunitygrid.org/</project_url>
-<final_cpu_time>0.000000</final_cpu_time>
-<final_elapsed_time>0.000000</final_elapsed_time>
-<exit_status>0</exit_status> 
-<state>2</state> 
-<report_deadline>1373310023.000000</report_deadline> 
-<received_time>1372446024.959453</received_time> 
-<estimated_cpu_time_remaining>28329.146516</estimated_cpu_time_remaining>""")
+        self.t = task.Task_local.createFromXML(parse_input.workunit_ready_to_run)
         self.assertEqual(self.t.state_str, 'ready to run')
 
     def test_xml2(self):
-        self.t = task.Task_local.createFromXML("""<result>
-<name>DSFL_00100-37_0000046_0555_1</name>
-<wu_name>DSFL_00100-37_0000046_0555</wu_name>
-<version_num>625</version_num>
-<plan_class></plan_class>
-<project_url>http://www.worldcommunitygrid.org/</project_url>
-<final_cpu_time>0.000000</final_cpu_time>
-<final_elapsed_time>0.000000</final_elapsed_time>
-<exit_status>0</exit_status>
-<state>2</state>
-<report_deadline>1373310023.000000</report_deadline>
-<received_time>1372446024.959453</received_time>
-<estimated_cpu_time_remaining>2060.234200</estimated_cpu_time_remaining>
-<active_task>
-<active_task_state>1</active_task_state>
-<app_version_num>625</app_version_num>
-<slot>5</slot>
-<pid>7130</pid>
-<scheduler_state>2</scheduler_state>
-<checkpoint_cpu_time>11916.430000</checkpoint_cpu_time>
-<fraction_done>0.883333</fraction_done>
-<current_cpu_time>12429.430000</current_cpu_time>
-<elapsed_time>12566.508714</elapsed_time>
-<swap_size>2591920128.000000</swap_size>
-<working_set_size>54267904.000000</working_set_size>
-<working_set_size_smoothed>54262111.801669</working_set_size_smoothed>
-<page_fault_rate>0.000000</page_fault_rate>
-<graphics_exec_path>/Library/Application Support/BOINC Data/projects/www.worldcommunitygrid.org/wcgrid_dsfl_gfx_prod_darwin_64.x86.6.25</graphics_exec_path>
-<slot_path>/Library/Application Support/BOINC Data/slots/5</slot_path>
-</active_task>""")
+        self.t = task.Task_local.createFromXML(parse_input.workunit_running)
         self.assertEqual(self.t.state_str, 'running')
+
+    def test_xml3(self):
+        self.t = task.Task_local.createFromXML(parse_input.workunit_suspended)
+        self.assertEqual(self.t.state_str, 'suspended')
 
 class TestTask_web(TestTask_local):
     def setUp(self, claimedCredit='0', grantedCredit='0',
@@ -143,6 +107,8 @@ class TestTask_web(TestTask_local):
     def test_xml(self):         # overrride
         pass
     def test_xml2(self):         # overrride
+        pass
+    def test_xml3(self):         # overrride
         pass
     def test_memUsage(self):
         pass

@@ -31,8 +31,13 @@ class Project(object):
                 ret += ", Don't request more work"
             return ret
             
-    def __init__(self, url, user=None, statistics=None, settings=None):
-        self.name = url
+    def __init__(self, url, name=None, 
+                 user=None, statistics=None, settings=None):
+        self.name = name
+        if name == None:
+            self.setName(url)
+        self.url = url
+
         self.user = user
         self.applications = dict()
         self.statistics = statistics
@@ -56,7 +61,10 @@ class Project(object):
         settings = Project.Settings.createFromSoup(soup)
         # Get the statistics
         s = Statistics.createFromSoup(soup)
-        return Project(soup.master_url.text, statistics=s, settings=settings)
+        url = soup.master_url.text
+        name = soup.project_name.text
+        return Project(url=url, name=name,
+                       statistics=s, settings=settings)
 
     def appendApplicationFromXML(self, xml):
         a = Application()
@@ -99,23 +107,23 @@ class Project(object):
             self.applications[name_long] = a
 
         return self.applications[name_long]
-    @property
-    def name(self):
-        return self._name
-    @name.setter
-    def name(self, name):
-        self._name = name
-        self.name_short = name.replace('https://', '')
-        self.name_short = self.name_short.replace('http://', '')
-        self.name_short = self.name_short.replace('www.', '')
-        self.name_short = self.name_short.replace('.org', '')
-        if self.name_short[-1] == '/':
-            self.name_short = self.name_short[:-1]
-        self.name_short = self.name_short.capitalize()
+
+    # @property
+    # def name(self):
+    #     return self._name
+
+    def setName(self, name):
+        self.name = name.replace('https://', '')
+        self.name = self.name.replace('http://', '')
+        self.name = self.name.replace('www.', '')
+        self.name = self.name.replace('.org', '')
+        if self.name[-1] == '/':
+            self.name = self.name[:-1]
+        self.name = self.name.capitalize()
             
     def __str__(self):
         endl = '\n'
-        ret = ["== {} ==".format(self.name_short)]
+        ret = ["== {} ==".format(self.name)]
         for prop in [self.settings, self.statistics]:
             if prop != None:
                 ret.append(str(prop))

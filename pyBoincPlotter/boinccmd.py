@@ -52,15 +52,19 @@ class Boinccmd(socket):
                 yield data[line_ix][:ix]
                 self.previous_data += data[line_ix][:ix]
 
-def get_state():
+def get_state(printRaw=False):
     projects = list()
     with Boinccmd() as s:
         currentBlock = []
         inBlock = False
         appNames = dict()       
         for line in s.request('get_state'):
+            if printRaw:
+                print line
+
             if line.strip() in ('<project>', '<app>', '<workunit>', '<result>'):
                 inBlock = True
+
             reset = True
             if '</project>' in line:
                 project = Project.createFromXML("\n".join(currentBlock))
@@ -80,19 +84,28 @@ def get_state():
                     logging.exception('Could not append task to application:')
             else:
                 reset = False
+
             if reset:
                 inBlock = False
                 currentBlock = []                
 
             if inBlock:
                 currentBlock.append(line.strip())
+
     return projects
 
 if __name__ == '__main__':
+    import argparse
+
     from loggerSetup import loggerSetup
     import task
+
+    parser = argparse.ArgumentParser(description='Runs and parses get_state rpc reply')
+    parser.add_argument('-r', '--raw', action='store_true', help='Print out the raw xml')
+    args = parser.parse_args()
+
     loggerSetup(logging.INFO)
-    projects = get_state()
+    projects = get_state(args.raw)
     for p in projects:
         for app in p.applications:
             tasks = p.applications[app].tasks

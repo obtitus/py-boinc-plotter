@@ -14,12 +14,13 @@ class TestApplication(unittest.TestCase):
         self.assertEqual(self.app.name, 'foo (bar)')
     
     def test_name(self):
-        def test(name, wanted_long, wanted_short):
+        def test(name, wanted_long, wanted_short, wanted_name):
             self.app = application.Application(name)
             self.assertEqual(self.app.name_short, wanted_short)
             self.assertEqual(self.app.name_long , wanted_long)
-            self.assertEqual(self.app.name, name)
-        test('PPS (Sieve) v1.39 (cpuPPSsieve)', wanted_long='PPS Sieve', wanted_short='cpuPPSsieve')
+            self.assertEqual(self.app.name, wanted_name)
+        test('PPS (Sieve) v1.39 (cpuPPSsieve)', wanted_long='PPS Sieve', wanted_short='cpuPPSsieve',
+             wanted_name='PPS Sieve (cpuPPSsieve)')
 
     def test_badge(self):
         self.assertEqual(self.app.badge, '')

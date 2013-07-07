@@ -27,10 +27,6 @@ class Application(object):
         self.name_short = soup.find('name').text   # Vops: soup.name is 'reserved' so need to use find('name')
         self.name_long  = soup.find('user_friendly_name').text
 
-        self.name = "{} ({})".format(self.name_long, 
-                                      self.name_short)
-
-
     def appendTaskFromXML(self, xml):
         t = task.Task_local.createFromXML(xml)
         self.tasks.append(t)
@@ -39,23 +35,22 @@ class Application(object):
     # Name
     """Name should be on the form <long> (<short>), do a regexp when the name is set.
     name_long returns <long> and name_short returns <short>"""
-    # @property
-    # def name(self):
-    #     return self.name
+    @property
+    def name(self):
+        return "{} ({})".format(self.name_long, self.name_short)
 
     def setName_shortLong(self, name):
         """
         Sets self.name_long and self.name_short based on the following pattern
         <long> (<short>)
         """
-        self.name = name
         reg = re.findall('([^(]+)\((\w+)\)', name)
         if reg != []:
             reg = reduce(lambda x,y: x+y, reg) # flatten list
             name_long = "".join(reg[:-1]).strip()
             name_short = reg[-1].strip()
         else:
-            name_long = self.name
+            name_long = name
             name_short = ''
         
         self.setName_long(name_long)

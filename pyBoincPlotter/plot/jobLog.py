@@ -263,10 +263,10 @@ if __name__ == '__main__':
     fig2 = plt.figure()
     for url, filename in util.getLocalFiles(BOINC_DIR, 'job_log', '.txt'):
         project = Project(url)
-        tasks = createFromFilename(JobLog, filename, label=project.name_short, limitMonths=1)
+        tasks = createFromFilename(JobLog, filename, label=project.name, limitMonths=1)
         tasks.plot(fig=fig1)
 
-        tasks = createFromFilename(JobLog_Months, filename, label=project.name_short, limitMonths=120)
+        tasks = createFromFilename(JobLog_Months, filename, label=project.name, limitMonths=120)
         tasks.plot(fig=fig2)
 
     raw_input('=== Press enter to exit ===\n')

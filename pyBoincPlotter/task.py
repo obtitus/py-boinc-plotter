@@ -76,7 +76,7 @@ class Task(object):
     #
     # Applied to self.elapsedCPUtime and self.remainingCPUtime
     def strToTimedelta(self, sec):
-        timedelta = datetime.timedelta(seconds=float(sec))
+        timedelta = datetime.timedelta(seconds=self.toFloat(sec))
         return timedelta
 
     def timedeltaToStr(self, timedelta):
@@ -85,6 +85,12 @@ class Task(object):
         if ix != -1:
             timedelta = timedelta[:ix]
         return timedelta
+
+    def toFloat(self, value):
+        value = value.replace(',', '')
+        if value == '---':
+            value = '0'
+        return float(value)
 
     #
     # Setters and <>_str
@@ -135,6 +141,8 @@ class Task(object):
         return self.timedeltaToStr(self.elapsedCPUtime)
 
     def setElapsedCPUtime(self, elapsedCPUtime):
+        if elapsedCPUtime == '---':
+            elapsedCPUtime = '0'
         self.elapsedCPUtime = self.strToTimedelta(elapsedCPUtime)
 
     @property
@@ -163,6 +171,7 @@ class Task(object):
         """ Store deadline as datetime object
         """
         if deadline is not None:
+            deadline = deadline.replace('|', '')
             self.deadline = datetime.datetime.strptime(deadline, self.fmt_date)
         else:
             self.deadline = None
@@ -256,7 +265,7 @@ class Task_local(Task):
             state = self.schedularState_str
         elif self.schedularState_str == 'ready to start':
             state = 'ready to run'
-        elif self.active_str in ('paused', 'running'):
+        elif self.active in (2, 9):
             state = self.active_str
         logger.debug('infered state %s, flags %s %s %s', state, 
                      self.state, self.schedularState, self.active)
@@ -286,21 +295,35 @@ class Task_web(Task):
         self.setClaimedCredit(claimedCredit) # stored as float
         super(Task_web, self).__init__(**kwargs)
 
+    @staticmethod
+    def createFromHTML(data):
+        logger.debug('creating from %s', data)
+        assert len(data) == 9, 'vops, data not recognized %s, len = %s' % (data, len(data))
+        name = data[0]
+        workUnitId = data[1]    # not used
+        device = data[2]
+        sentTime = data[3]      # not used
+        deadline = data[4]
+        state = data[5]
+        clockTime = data[6]     # not used
+        CPUtime = data[7]
+        grantedCredit = data[8]
+        return Task_web(name=name, device=device,
+                        deadline=deadline, state=state,
+                        elapsedCPUtime=CPUtime, grantedCredit=grantedCredit)
+
     def toString(self):
         s = super(Task_web, self).toString()
         s.extend([self.claimedCredit_str, self.grantedCredit_str])
         return s
-
-    def toFloat(self, value):
-        value = value.replace(',', '')
-        value = value.replace('---', '0')
-        return float(value)
 
     @property
     def grantedCredit_str(self):
         return str(self.grantedCredit)
 
     def setGrantedCredit(self, grantedCredit):
+        if grantedCredit == 'pending':
+            grantedCredit = '0'
         self.grantedCredit = self.toFloat(grantedCredit)
 
     @property
@@ -332,6 +355,8 @@ class Task_web_worldcommunitygrid(Task_web):
     fmt_date = '%m/%d/%y %H:%M:%S'
     @staticmethod
     def createFromHTML(data):
+        assert len(data) == 7, 'vops, data not recognized %s' % data
+
         name = data[0]
         device = data[1]
         state = data[2]
@@ -340,7 +365,7 @@ class Task_web_worldcommunitygrid(Task_web):
         
         time = data[5].encode('ascii', errors='ignore').split('/')
         CPUtime = time[0]
-        clockTime = time[1]
+        clockTime = time[1]     # not used
         
         credit = data[6].encode('ascii', errors='ignore').split('/')
         claimedCredit = credit[0]

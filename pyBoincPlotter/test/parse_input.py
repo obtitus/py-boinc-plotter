@@ -2,7 +2,10 @@ import os
 thisFolder = os.path.abspath(os.path.dirname(__file__))
 dataFolder = os.path.join(thisFolder, 'data')
 
-html_worldcommunitygrid = os.path.join(dataFolder, 'httpwwwworldcommunitygridorgmsviewBoincResultsdofilterDevice0filterStatus1projectId1pageNum1sortBysentTime.html')
+html_worldcommunitygrid = os.path.join(dataFolder, 
+                                       'httpwwwworldcommunitygridorgmsviewBoincResultsdofilterDevice0filterStatus1projectId1pageNum1sortBysentTime.html')
+html_yoyo = os.path.join(dataFolder, 'httpwwwrechenkraftnetyoyoresultsphpuserid34278offset0show_names1state0appid.html')
+html_primegrid = os.path.join(dataFolder, 'httpwwwprimegridcomresultsphpuserid222267offset0show_names1state0appid.html')
 
 project_rosetta = """<project>
     <master_url>http://boinc.bakerlab.org/rosetta/</master_url>
@@ -234,6 +237,82 @@ workunit = """<workunit>
     </file_ref>
 </workunit>
 """
+
+workunit_suspended = """<result>
+    <name>pps_sr2sieve_62184531_0</name>
+    <wu_name>pps_sr2sieve_62184531</wu_name>
+    <version_num>139</version_num>
+    <plan_class>cpuPPSsieve</plan_class>
+    <project_url>http://www.primegrid.com/</project_url>
+    <final_cpu_time>34120.610000</final_cpu_time>
+    <final_elapsed_time>34173.498170</final_elapsed_time>
+    <exit_status>0</exit_status>
+    <state>2</state>
+    <report_deadline>1373525048.000000</report_deadline>
+    <received_time>1373006649.350320</received_time>
+    <estimated_cpu_time_remaining>339590.472511</estimated_cpu_time_remaining>
+<active_task>
+    <active_task_state>9</active_task_state>
+    <app_version_num>139</app_version_num>
+    <slot>16</slot>
+    <pid>8725</pid>
+    <scheduler_state>1</scheduler_state>
+    <checkpoint_cpu_time>44714.330000</checkpoint_cpu_time>
+    <fraction_done>0.307364</fraction_done>
+    <current_cpu_time>44714.430000</current_cpu_time>
+    <elapsed_time>44846.073217</elapsed_time>
+    <swap_size>2782945280.000000</swap_size>
+    <working_set_size>206282752.000000</working_set_size>
+    <working_set_size_smoothed>206282752.000122</working_set_size_smoothed>
+    <page_fault_rate>0.000000</page_fault_rate>
+</active_task>
+</result>
+"""
+
+workunit_running = """<result>
+<name>DSFL_00100-37_0000046_0555_1</name>
+<wu_name>DSFL_00100-37_0000046_0555</wu_name>
+<version_num>625</version_num>
+<plan_class></plan_class>
+<project_url>http://www.worldcommunitygrid.org/</project_url>
+<final_cpu_time>0.000000</final_cpu_time>
+<final_elapsed_time>0.000000</final_elapsed_time>
+<exit_status>0</exit_status>
+<state>2</state>
+<report_deadline>1373310023.000000</report_deadline>
+<received_time>1372446024.959453</received_time>
+<estimated_cpu_time_remaining>2060.234200</estimated_cpu_time_remaining>
+<active_task>
+<active_task_state>1</active_task_state>
+<app_version_num>625</app_version_num>
+<slot>5</slot>
+<pid>7130</pid>
+<scheduler_state>2</scheduler_state>
+<checkpoint_cpu_time>11916.430000</checkpoint_cpu_time>
+<fraction_done>0.883333</fraction_done>
+<current_cpu_time>12429.430000</current_cpu_time>
+<elapsed_time>12566.508714</elapsed_time>
+<swap_size>2591920128.000000</swap_size>
+<working_set_size>54267904.000000</working_set_size>
+<working_set_size_smoothed>54262111.801669</working_set_size_smoothed>
+<page_fault_rate>0.000000</page_fault_rate>
+<graphics_exec_path>/Library/Application Support/BOINC Data/projects/www.worldcommunitygrid.org/wcgrid_dsfl_gfx_prod_darwin_64.x86.6.25</graphics_exec_path>
+<slot_path>/Library/Application Support/BOINC Data/slots/5</slot_path>
+</active_task>"""
+
+workunit_ready_to_run = """<result> 
+<name>faah41856_ZINC09836600_xBr27_refmac2_A_PR_02_0</name>
+<wu_name>faah41856_ZINC09836600_xBr27_refmac2_A_PR_02</wu_name>
+<version_num>715</version_num> 
+<plan_class></plan_class>
+<project_url>http://www.worldcommunitygrid.org/</project_url>
+<final_cpu_time>0.000000</final_cpu_time>
+<final_elapsed_time>0.000000</final_elapsed_time>
+<exit_status>0</exit_status> 
+<state>2</state> 
+<report_deadline>1373310023.000000</report_deadline> 
+<received_time>1372446024.959453</received_time> 
+<estimated_cpu_time_remaining>28329.146516</estimated_cpu_time_remaining>"""
 
 application="""<app>
     <name>faah</name>

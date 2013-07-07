@@ -117,6 +117,7 @@ class BrowserSuper(object):
     # Subclass must define self.URL, self.loginInfo, self.loginPage and self.name
     # or use the visitURL function directly
     def __init__(self, browser_cache):
+        self.Task = task.Task_web
         self.visitedPages = list()
         self.browser_cache = browser_cache # address of cache class
         self.client = requests.session()
@@ -203,45 +204,15 @@ class BrowserSuper(object):
             self.writeFile(URL, content, extension=extension)
         return content
 
-#     def visitUnvisited(self, listOfPages, projectId=-1):
-#         if listOfPages == []:
-#             yield self.visit(1, projectId)             # visit first page
-            
-#         for page in listOfPages:
-#             yield self.visit(page, projectId)
-
-class Browser_worldcommunitygrid(BrowserSuper):
-    def __init__(self, browser_cache, CONFIG):
-        self.CONFIG = CONFIG
-        self.name = 'worldcommunitygrid'
-        BrowserSuper.__init__(self, browser_cache)
-        self.URL_BASE = 'http://www.worldcommunitygrid.org'
-        self.URL = self.URL_BASE +\
-                   '/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum={0}&sortBy=sentTime'
-
-        self.loginInfo = {
-            'settoken': 'on',
-            'j_username': CONFIG.get('worldcommunitygrid.org', 'username'),
-            'j_password': CONFIG.getpassword('worldcommunitygrid.org', 'username'),
-            }
-        self.loginPage = 'https://secure.worldcommunitygrid.org/j_security_check'
-
-    def visitStatistics(self):
-        username = self.CONFIG.get('worldcommunitygrid.org', 'username')
-        code = self.CONFIG.get('worldcommunitygrid.org', 'code')
-        url = self.URL_BASE + "/verifyMember.do?name={0}&code={1}"
-        page = self.visitURL(url.format(username, code), extension='.xml')
-        return page
-
     def parse(self):
-        project = Project(self.URL_BASE)
+        project = Project(self.name)
         content = self.visit()
         async_data = list()
         for row in self.getRows(content):
-            url = self.URL_BASE + row[0]
+            url = self.name + row[0]
             workunit = self.visitURL(url)
 
-            t = Async(task.Task_web_worldcommunitygrid.createFromHTML, row[1:])
+            t = Async(self.Task.createFromHTML, row[1:])
             app_name = Async(self.parseWorkunit, workunit)
             async_data.append((t, app_name))
 
@@ -250,6 +221,7 @@ class Browser_worldcommunitygrid(BrowserSuper):
             application.tasks.append(t.ret)
 
         return project
+
 
     def getRows(self, html):
         """Generator for each row in table, first element is the workunit status page, which we currently need to find
@@ -264,6 +236,30 @@ class Browser_worldcommunitygrid(BrowserSuper):
                 soup = BeautifulSoup(html)
                 for row in self.parseTable(soup):
                     yield row
+
+class Browser_worldcommunitygrid(BrowserSuper):
+    def __init__(self, browser_cache, CONFIG):
+        BrowserSuper.__init__(self, browser_cache)
+        self.Task = task.Task_web_worldcommunitygrid
+        self.CONFIG = CONFIG
+
+        self.name = 'http://www.worldcommunitygrid.org'
+        self.URL = self.name +\
+                   '/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum={0}&sortBy=sentTime'
+
+        self.loginInfo = {
+            'settoken': 'on',
+            'j_username': CONFIG.get('worldcommunitygrid.org', 'username'),
+            'j_password': CONFIG.getpassword('worldcommunitygrid.org', 'username'),
+            }
+        self.loginPage = 'https://secure.worldcommunitygrid.org/j_security_check'
+
+    def visitStatistics(self):
+        username = self.CONFIG.get('worldcommunitygrid.org', 'username')
+        code = self.CONFIG.get('worldcommunitygrid.org', 'code')
+        url = self.name + "/verifyMember.do?name={0}&code={1}"
+        page = self.visitURL(url.format(username, code), extension='.xml')
+        return page
 
     def parseAdditionalPages(self, soup):
         reg_compiled = re.compile('pageNum=(\d+)')
@@ -322,9 +318,63 @@ class Browser(BrowserSuper):
     def visit(self, offset=0):
         return BrowserSuper.visit(self, offset)
 
+    def parse(self):
+        project = Project(self.name)
+        content = self.visit()
+        for row in self.getRows(content):
+            t = self.Task.createFromHTML(row[:-1])
+            application = project.appendApplication(row[-1])
+            application.tasks.append(t)
+
+        return project
+        
+    def parseAdditionalPages(self, soup):
+        reg_compiled = re.compile('offset=(\d+)')
+        for link in soup.table.find_all('a'):
+            try:
+                reg = re.search(reg_compiled, link['href'])
+                if int(reg.group(1)) != 0:
+                    yield reg.group(1)
+            except (TypeError, AttributeError):
+                pass
+    
+    def parseTable(self, soup):
+        #print 'parseTable', soup.prettify()
+        for tr in soup.table.find_all('tr'):
+            try:
+                if tr['class'][0].startswith('row0'):
+                    yield [td.text for td in tr.find_all('td')]
+            except KeyError:
+                pass
+
+        # reg_compiled = re.compile("javascript:addHostPopup\('(/ms/device/viewWorkunitStatus.do\?workunitId=\d+)")
+        # for tr in soup.table.find_all('tr'):
+        #     row = list()
+        #     for td in tr.find_all('td'):
+        #         try:
+        #             reg = re.match(reg_compiled, td.a['href'])
+        #             row.append(reg.group(1))
+        #         except (TypeError, AttributeError):
+        #             pass
+        #         row.append(td.text.strip())
+
+        #     if len(row) == 8:
+        #         yield row
+
+    def parseWorkunit(self, html):
+        soup = BeautifulSoup(html)
+        print 'parseWorkunit', soup.prettify()
+        # reg_compiled = re.compile('Project Name:\s*([^\n]+)\n')
+        # for tr in soup.find_all('tr'):
+        #     for td in tr.find_all('td'):
+        #         reg = re.search(reg_compiled, td.text)
+        #         if reg:
+        #             return reg.group(1).strip()
+
 class Browser_yoyo(Browser):
     def __init__(self, browser_cache, CONFIG):
-        Browser.__init__(self, browser_cache, webpage_name='www.rechenkraft.net/yoyo', CONFIG=CONFIG)
+        Browser.__init__(self, webpage_name='www.rechenkraft.net/yoyo',
+                         browser_cache=browser_cache, CONFIG=CONFIG)
         self.loginInfo['mode'] = 'Log in with email/password'
         self.loginInfo['next_url'] = '/yoyo/home.php'
 
@@ -332,19 +382,18 @@ class Browser_yoyo(Browser):
 def getProjects(CONFIG, browser_cache):
     projects = list()
     for section in CONFIG.sections():
+        logger.debug('section %s', section)
         # Pick subclass
         if section == 'worldcommunitygrid.org':
             browser = Browser_worldcommunitygrid(browser_cache, CONFIG)
-        elif section == 'rechenkraft.net/yoyo':
+        elif section == 'www.rechenkraft.net/yoyo':
             browser = Browser_yoyo(browser_cache, CONFIG)
         elif section == 'configuration': # Not a boinc project
             continue
         else:                   # Lets try the generic
-            continue
             browser = Browser(webpage_name=section, 
                               browser_cache=browser_cache, 
                               CONFIG=CONFIG)
-
         yield browser.parse()
 
 if __name__ == '__main__':
