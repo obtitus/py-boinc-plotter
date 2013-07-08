@@ -30,11 +30,9 @@ import logging
 logger = logging.getLogger('boinc.browser')
 # Non-standard python
 import requests
-from bs4 import BeautifulSoup
 # This project
 from project import Project
-import task
-from async import Async
+from parse import HTMLParser
 
 # Helper functions:
 def sanitizeURL(url):
@@ -117,7 +115,6 @@ class BrowserSuper(object):
     # Subclass must define self.URL, self.loginInfo, self.loginPage and self.name
     # or use the visitURL function directly
     def __init__(self, browser_cache):
-        self.Task = task.Task_web
         self.visitedPages = list()
         self.browser_cache = browser_cache # address of cache class
         self.client = requests.session()
@@ -204,43 +201,19 @@ class BrowserSuper(object):
             self.writeFile(URL, content, extension=extension)
         return content
 
-    def parse(self):
-        project = Project(self.name)
+    def parse(self, project=None):
+        if project == None:
+            project = Project(self.name)
+        else:
+            project = list(project) # make sure we are working on copy (easier to debug)
+
         content = self.visit()
-        async_data = list()
-        for row in self.getRows(content):
-            url = self.name + row[0]
-            workunit = self.visitURL(url)
-
-            t = Async(self.Task.createFromHTML, row[1:])
-            app_name = Async(self.parseWorkunit, workunit)
-            async_data.append((t, app_name))
-
-        for t, app_name in async_data:
-            application = project.appendApplication(app_name.ret)
-            application.tasks.append(t.ret)
-
-        return project
-
-
-    def getRows(self, html):
-        """Generator for each row in table, first element is the workunit status page, which we currently need to find
-        the application name"""
-        soup = BeautifulSoup(html)
-        for row in self.parseTable(soup):
-            yield row
-
-        for additionalPage in self.parseAdditionalPages(soup):
-            html = self.visit(additionalPage)
-            if html != '':
-                soup = BeautifulSoup(html)
-                for row in self.parseTable(soup):
-                    yield row
+        parser = HTMLParser.getParser(self.name, self)
+        return parser.parse(content)
 
 class Browser_worldcommunitygrid(BrowserSuper):
     def __init__(self, browser_cache, CONFIG):
         BrowserSuper.__init__(self, browser_cache)
-        self.Task = task.Task_web_worldcommunitygrid
         self.CONFIG = CONFIG
 
         self.name = 'http://www.worldcommunitygrid.org'
@@ -260,39 +233,6 @@ class Browser_worldcommunitygrid(BrowserSuper):
         url = self.name + "/verifyMember.do?name={0}&code={1}"
         page = self.visitURL(url.format(username, code), extension='.xml')
         return page
-
-    def parseAdditionalPages(self, soup):
-        reg_compiled = re.compile('pageNum=(\d+)')
-        for link in soup.table.find_all('a'):
-            try:
-                reg = re.search(reg_compiled, link['href'])
-                yield reg.group(1)
-            except (TypeError, AttributeError):
-                pass
-    
-    def parseTable(self, soup):
-        reg_compiled = re.compile("javascript:addHostPopup\('(/ms/device/viewWorkunitStatus.do\?workunitId=\d+)")
-        for tr in soup.table.find_all('tr'):
-            row = list()
-            for td in tr.find_all('td'):
-                try:
-                    reg = re.match(reg_compiled, td.a['href'])
-                    row.append(reg.group(1))
-                except (TypeError, AttributeError):
-                    pass
-                row.append(td.text.strip())
-
-            if len(row) == 8:
-                yield row
-
-    def parseWorkunit(self, html):
-        soup = BeautifulSoup(html)
-        reg_compiled = re.compile('Project Name:\s*([^\n]+)\n')
-        for tr in soup.find_all('tr'):
-            for td in tr.find_all('td'):
-                reg = re.search(reg_compiled, td.text)
-                if reg:
-                    return reg.group(1).strip()
 
 class Browser(BrowserSuper):
     def __init__(self, webpage_name, browser_cache, CONFIG):
@@ -317,59 +257,6 @@ class Browser(BrowserSuper):
 
     def visit(self, offset=0):
         return BrowserSuper.visit(self, offset)
-
-    def parse(self):
-        project = Project(self.name)
-        content = self.visit()
-        for row in self.getRows(content):
-            t = self.Task.createFromHTML(row[:-1])
-            application = project.appendApplication(row[-1])
-            application.tasks.append(t)
-
-        return project
-        
-    def parseAdditionalPages(self, soup):
-        reg_compiled = re.compile('offset=(\d+)')
-        for link in soup.table.find_all('a'):
-            try:
-                reg = re.search(reg_compiled, link['href'])
-                if int(reg.group(1)) != 0:
-                    yield reg.group(1)
-            except (TypeError, AttributeError):
-                pass
-    
-    def parseTable(self, soup):
-        #print 'parseTable', soup.prettify()
-        for tr in soup.table.find_all('tr'):
-            try:
-                if tr['class'][0].startswith('row0'):
-                    yield [td.text for td in tr.find_all('td')]
-            except KeyError:
-                pass
-
-        # reg_compiled = re.compile("javascript:addHostPopup\('(/ms/device/viewWorkunitStatus.do\?workunitId=\d+)")
-        # for tr in soup.table.find_all('tr'):
-        #     row = list()
-        #     for td in tr.find_all('td'):
-        #         try:
-        #             reg = re.match(reg_compiled, td.a['href'])
-        #             row.append(reg.group(1))
-        #         except (TypeError, AttributeError):
-        #             pass
-        #         row.append(td.text.strip())
-
-        #     if len(row) == 8:
-        #         yield row
-
-    def parseWorkunit(self, html):
-        soup = BeautifulSoup(html)
-        print 'parseWorkunit', soup.prettify()
-        # reg_compiled = re.compile('Project Name:\s*([^\n]+)\n')
-        # for tr in soup.find_all('tr'):
-        #     for td in tr.find_all('td'):
-        #         reg = re.search(reg_compiled, td.text)
-        #         if reg:
-        #             return reg.group(1).strip()
 
 class Browser_yoyo(Browser):
     def __init__(self, browser_cache, CONFIG):
