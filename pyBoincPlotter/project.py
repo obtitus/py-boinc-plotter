@@ -119,7 +119,8 @@ class Project(object):
         self.name = self.name.replace('.org', '')
         if self.name[-1] == '/':
             self.name = self.name[:-1]
-        self.name = self.name.capitalize()
+        self.name = self.name.replace('/', '_')
+        self.name = self.name#.capitalize()
             
     def __str__(self):
         endl = '\n'

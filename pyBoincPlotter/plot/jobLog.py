@@ -7,10 +7,11 @@ import logging
 logger = logging.getLogger('boinc.plot.jobLog')
 # Non standard
 # Project imports
+import projectColors
+import task
 from project import Project
 from importMatplotlib import *
 from util import diffMonths
-import task
 
 def createFromFilename(cls, filename, limitMonths=None, label=''):
     """ Returns a JobLog instance from a given filename
@@ -64,6 +65,9 @@ class JobLog(list):
     def plot(self, fig):
         """ Plots the job_log to the given figure instance
         """
+        if len(self.time) == 0:
+            return
+
         N = 4                               # Number of subplots
         axes = list()
         ax1 = fig.add_subplot(N, 1, 1)
@@ -76,10 +80,15 @@ class JobLog(list):
             axes.append(barPlotter)
 
         # Plot datapoints and bars, make sure the same colors are used.
-        color = self.plot_datapoints(axes)
-        if color != []:
-            self.plot_hist_day(color, axes)
-
+        try:
+            color = projectColors.colors[self.label]
+        except KeyError:
+            logger.debug('Vops, no color found for %s', self.label)
+            color = ax1._get_lines.color_cycle.next()
+            projectColors.colors[self.label] = color
+        self.plot_datapoints(color, axes)
+        self.plot_hist_day(color, axes)
+        
         self.formatAxis(axes)
 
     def formatXAxis(self, ax):
@@ -102,31 +111,23 @@ class JobLog(list):
 
             ax.set_ylabel(ylabels[ix])
 
-    def plot_datapoints(self, axes):
+    def plot_datapoints(self, color, axes):
         """
         Let each datapoint be a single dot
         """
         time = self.time
-        if len(time) == 0:
-            return []
 
         kwargs = dict(ls='none', marker='o')
         for ix, data in enumerate([self.ue, self.ct, self.et, self.fe]):
             if ix == 3:
                 data = np.array(data)/1e12
-            line = axes[ix].plot(time, data, **kwargs)
-
-        color = line[0].get_color()
-
-        return color
+            axes[ix].plot(time, data, **kwargs)
 
     def plot_hist_day(self, color, axes):
         """
         Create a single bar for each day
         """
         time, ue, ct, fe, name, et = self.time, self.ue, self.ct, self.fe, self.names, self.et
-
-        if len(time) == 0: return ;         # make sure we actually have data to work with
 
         currentDay = time[0]#plt.num2date(time[0])
         cumulative = np.zeros(4) # [ue, ct, et, fe]
@@ -137,7 +138,7 @@ class JobLog(list):
             x = plt.date2num(d)
             # Plot bars
             kwargs['width'] = 1
-            kwargs['alpha'] = 0.5
+            kwargs['alpha'] = 0.75
             kwargs['color'] = color
             axes[0].bar(x, cumulative[0], **kwargs)
             axes[1].bar(x, cumulative[1], **kwargs)
@@ -165,8 +166,7 @@ class JobLog_Months(JobLog):
     """ JobLog focus is on single events summed up to one day, 
     this class focuses on days being summed to months
     """
-    def plot_datapoints(self, axes):
-        color = axes[0]._get_lines.color_cycle.next()
+    def plot_datapoints(self, color, axes):
         JobLog.plot_hist_day(self, color, axes)
         return color
 
@@ -253,20 +253,34 @@ class BarPlotter(object):
 
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
-    loggerSetup(logging.INFO)
+    loggerSetup(logging.DEBUG)
     
     import config
     import util
+    import boinccmd
     
     _, _, BOINC_DIR = config.set_globals()
+    projects = dict()
+    for p in boinccmd.get_state(command='get_project_status'):
+        url = Project(url=p.url)
+        projects[url.name] = p.name
+
     fig1 = plt.figure()
     fig2 = plt.figure()
     for url, filename in util.getLocalFiles(BOINC_DIR, 'job_log', '.txt'):
-        project = Project(url)
-        tasks = createFromFilename(JobLog, filename, label=project.name, limitMonths=1)
+        try:
+            p = Project(url=url)
+            label = projects[p.name]
+        except KeyError:
+            logging.warning('Could not find url %s in %s', url, projects)
+            label = url
+
+        tasks = createFromFilename(JobLog, filename, 
+                                   label=label, limitMonths=1)
         tasks.plot(fig=fig1)
 
-        tasks = createFromFilename(JobLog_Months, filename, label=project.name, limitMonths=120)
+        tasks = createFromFilename(JobLog_Months, filename, 
+                                   label=label, limitMonths=120)
         tasks.plot(fig=fig2)
 
     raw_input('=== Press enter to exit ===\n')

@@ -52,13 +52,13 @@ class Boinccmd(socket):
                 yield data[line_ix][:ix]
                 self.previous_data += data[line_ix][:ix]
 
-def get_state(printRaw=False):
+def get_state(command='get_state', printRaw=False):
     projects = list()
     with Boinccmd() as s:
         currentBlock = []
         inBlock = False
         appNames = dict()       
-        for line in s.request('get_state'):
+        for line in s.request(command):
             if printRaw:
                 print line
 
@@ -101,11 +101,15 @@ if __name__ == '__main__':
     import task
 
     parser = argparse.ArgumentParser(description='Runs and parses get_state rpc reply')
+    parser.add_argument('command', default='get_state', choices=['get_state', 'get_project_status'], nargs='?')
     parser.add_argument('-r', '--raw', action='store_true', help='Print out the raw xml')
+    parser.add_argument('--show_empty', action='store_true', help='Show empty projects (no tasks)')
     args = parser.parse_args()
 
     loggerSetup(logging.INFO)
-    projects = get_state(args.raw)
+    projects = get_state(command=args.command,
+                         printRaw=args.raw)
+
     for p in projects:
         for app in p.applications:
             tasks = p.applications[app].tasks
@@ -114,7 +118,7 @@ if __name__ == '__main__':
             #     print t.name, "{:.3g} MB".format(t.memUsage/1e6)
 
     for p in projects:
-        if len(p) != 0:
+        if len(p) != 0 or args.show_empty:
             print str(p) + '\n'
     #print s.request('get_simple_gui_info')
     #print s.request('get_results')
