@@ -108,9 +108,20 @@ class Project(object):
 
         return self.applications[name_long]
 
-    # @property
-    # def name(self):
-    #     return self._name
+    def appendBadge(self, app_name, badge):
+        app = self.appendApplication(name_long=app_name)
+        logger.debug('Appending badge %s, to %s', badge, app_name)
+        app.badge = badge
+        return app
+
+    @property
+    def badge(self):
+        ret = list()
+        for key in sorted(self.applications):
+            b = self.applications[key].badge
+            if b != '':
+                ret.append(b)
+        return ret
 
     def setName(self, name):
         self.name = name.replace('https://', '')

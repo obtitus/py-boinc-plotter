@@ -189,3 +189,10 @@ class Badge_primegrid(Badge):
     @property
     def current_credit(self):
         return self._getFloat(4)
+
+    @property
+    def app_name(self):
+        if self.reg:
+            return self.reg.group(1)
+        else:
+            return 'Unknown'

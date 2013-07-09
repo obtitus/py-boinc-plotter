@@ -50,8 +50,8 @@ class TestPrimegrid(unittest.TestCase):
     def test_badge(self):
         p = self.browser.parse()
         self.assertEqual(len(p.badge), 2)
-        self.assertEqual(str(p.badge[0]), 'Woodall LLR Bronze: More than 10,000 credits (17,517)')
-        self.assertEqual(str(p.badge[1]), 'PPS Sieve Bronze: More than 20,000 credits (30,339)')
+        self.assertEqual(str(p.badge[1]), 'Woodall LLR Bronze: More than 10,000 credits (17,517)')
+        self.assertEqual(str(p.badge[0]), 'PPS Sieve Bronze: More than 20,000 credits (30,339)')
     
 if __name__ == '__main__':
     import logging
