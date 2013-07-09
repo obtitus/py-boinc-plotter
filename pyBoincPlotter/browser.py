@@ -25,7 +25,6 @@ import time
 import os
 import sys
 import re
-# Logger
 import logging
 logger = logging.getLogger('boinc.browser')
 # Non-standard python
@@ -61,7 +60,7 @@ class Browser_file(object):
         self.update()
 
     def add(self, filename):
-        logger.debug('Adding %s to valid cache', filename)
+        #logger.debug('Adding %s to valid cache', filename)
         self.cache[filename] = None
     def remove(self, filename):
         logger.info('Removing old cache %s', filename)
@@ -73,7 +72,7 @@ class Browser_file(object):
     def fileAge(self, filename):
         fileChanged = os.path.getmtime(filename)
         age = (self.now - fileChanged)/(60*60) # age of file in hours
-        logger.debug('%s is %.3g h old', filename, age)
+        #logger.debug('%s is %.3g h old', filename, age)
         return age
     
     def update(self):
@@ -112,7 +111,7 @@ class Browser_file(object):
 
 class BrowserSuper(object):
     # Browser for visiting the web, use subclass to actually connect somewhere
-    # Subclass must define self.URL, self.loginInfo, self.loginPage and self.name
+    # Subclass must define self.URL, self.loginInfo, self.loginPage and self.section
     # or use the visitURL function directly
     def __init__(self, browser_cache):
         self.visitedPages = list()
@@ -203,20 +202,23 @@ class BrowserSuper(object):
 
     def parse(self, project=None):
         if project == None:
-            project = Project(self.name)
+            project = Project(url=self.name)
         else:
             project = list(project) # make sure we are working on copy (easier to debug)
 
         content = self.visit()
-        parser = HTMLParser.getParser(self.name, self)
-        return parser.parse(content)
+        parser = HTMLParser.getParser(self.section, self)
+        return parser.parse(content, project)
+
+    @property
+    def name(self):
+        return 'http://www.' + self.section
 
 class Browser_worldcommunitygrid(BrowserSuper):
     def __init__(self, browser_cache, CONFIG):
         BrowserSuper.__init__(self, browser_cache)
         self.CONFIG = CONFIG
-
-        self.name = 'http://www.worldcommunitygrid.org'
+        self.section = 'worldcommunitygrid.org'
         self.URL = self.name +\
                    '/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum={0}&sortBy=sentTime'
 
@@ -236,7 +238,7 @@ class Browser_worldcommunitygrid(BrowserSuper):
 
 class Browser(BrowserSuper):
     def __init__(self, webpage_name, browser_cache, CONFIG):
-        self.name = webpage_name
+        self.section = webpage_name
         BrowserSuper.__init__(self, browser_cache)
         self.webpage_name = webpage_name
         self.URL = 'http://{name}/results.php?userid={userid}'.format(

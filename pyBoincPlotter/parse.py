@@ -1,3 +1,8 @@
+# Standard
+import re
+import logging
+logger = logging.getLogger('boinc.browser')
+
 # Non-standard python
 from bs4 import BeautifulSoup
 # This project
@@ -5,36 +10,28 @@ import task
 import async
 
 class HTMLParser(object):
-    def __init__(self, name, browser):
+    def __init__(self, browser):
         self.Task = task.Task_web
         self.browser = browser
-        self.name = name
+        self.name = browser.name
 
     @staticmethod
     def getParser(section, browser):
-        kwargs = dict(name=section, browser=browser)
+        kwargs = dict(browser=browser)
         if section == 'worldcommunitygrid.org':
+            logger.debug('getting worldcommunitygrid.org parser')
             parser = HTMLParser_worldcommunitygrid(**kwargs)
+        elif section == 'www.rechenkraft.net/yoyo':
+            logger.debug('getting yoyo parser')
+            parser = HTMLParser_yoyo(**kwargs)
+        elif section == 'wuprop.boinc-af.org':
+            logger.debug('getting wuprop parser')
+            parser = HTMLParser_wuprop(**kwargs)
         else:                   # Lets try the generic
+            logger.debug('getting generic parser, name = %s', section)
             parser = HTMLParser(**kwargs)
 
         return parser
-
-    def parse(self, content, project):
-        async_data = list()
-        for row in self.getRows(content):
-            url = self.name + row[0]
-            workunit = self.browser.visitURL(url)
-
-            t = async.Async(self.Task.createFromHTML, row[1:])
-            app_name = async.Async(self.parseWorkunit, workunit)
-            async_data.append((t, app_name))
-
-        for t, app_name in async_data:
-            application = project.appendApplication(app_name.ret)
-            application.tasks.append(t.ret)
-
-        return project
 
     def getRows(self, html):
         """Generator for each row in result table"""
@@ -49,9 +46,7 @@ class HTMLParser(object):
                 for row in self.parseTable(soup):
                     yield row
 
-    def parse(self):
-        project = Project(self.name)
-        content = self.visit()
+    def parse(self, content, project):
         for row in self.getRows(content):
             t = self.Task.createFromHTML(row[:-1])
             application = project.appendApplication(row[-1])
@@ -103,6 +98,26 @@ class HTMLParser(object):
         #             return reg.group(1).strip()
 
 class HTMLParser_worldcommunitygrid(HTMLParser):
+    def __init__(self, *args, **kwargs):
+        super(HTMLParser_worldcommunitygrid, self).__init__(*args, **kwargs)
+        self.Task = task.Task_web_worldcommunitygrid
+
+    def parse(self, content, project):
+        async_data = list()
+        for row in self.getRows(content):
+            url = self.name + row[0]
+            workunit = self.browser.visitURL(url)
+
+            t = async.Async(self.Task.createFromHTML, row[1:])
+            app_name = async.Async(self.parseWorkunit, workunit)
+            async_data.append((t, app_name))
+
+        for t, app_name in async_data:
+            application = project.appendApplication(app_name.ret)
+            application.tasks.append(t.ret)
+
+        return project
+
     def parseAdditionalPages(self, soup):
         reg_compiled = re.compile('pageNum=(\d+)')
         for link in soup.table.find_all('a'):
