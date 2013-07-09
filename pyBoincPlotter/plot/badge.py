@@ -47,7 +47,7 @@ class Badge(object):
     def __str__(self):
         return self.name
     def __repr__(self):
-        return self.__class__ + self.name
+        return str(self.__class__) + self.name
 
     def getImageArtist(self, browser, *args, **kwargs):
         # Uses badge url to create a matplotlib artist where the
@@ -160,3 +160,32 @@ class Badge_yoyo(Badge):
         else:
             return 0
     
+class Badge_primegrid(Badge):
+    @Badge.name.setter
+    def name(self, name):
+        self._name = name
+        self.reg = re.search('(\w+ \w+) (\w+): More than ([\d,]+) credits \([\d,]+\)', name)
+
+    @property
+    def color(self):
+        reg = self.reg
+        if reg:
+            return self.badgeToColor(reg.group(2))
+        else:
+            return 'k'
+    
+    def _getFloat(self, groupId):
+        reg = self.reg
+        if reg:
+            c = reg.group(groupId).replace(',', '')
+            return float(c)
+        else:
+            return 0
+
+    @property
+    def value(self):
+        return self._getFloat(3)
+
+    @property
+    def current_credit(self):
+        return self._getFloat(4)

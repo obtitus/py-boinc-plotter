@@ -144,10 +144,15 @@ class BrowserSuper(object):
 
     def authenticate(self):
         try:
-            r = self.client.post(self.loginPage, data=self.loginInfo)
+            r = self.client.post(self.loginPage, data=self.loginInfo, timeout=5)
             logger.info('%s', r)            
-        except requests.ConnectionError:
-            print('Could not connect to login page')
+        except requests.ConnectionError as e:
+            print('Could not connect to login page. {}'.format(e))
+        except requests.Timeout as e:
+            print('Connection to login page timed out. {}'.format(e))
+        except Exception as e:
+            print('Uncaught exception for login page. {}'.format(e))
+
         sessionCache = pk.dumps(self.client.cookies)
         self.writeFile(self.name, sessionCache, '.pickle')
 
@@ -161,7 +166,7 @@ class BrowserSuper(object):
         return self.visitURL(URL)
 
     def visitPage(self, page):
-        return self.visitURL('http://{name}/{page}'.format(name=self.name, page=page))
+        return self.visitURL('{name}/{page}'.format(name=self.name, page=page))
 
     def redirected(self, request):
         """ Returns whether a redirect has been done or not """
@@ -182,9 +187,18 @@ class BrowserSuper(object):
             logger.info('Visiting %s', URL)
 
             try:
-                r = self.client.get(URL)
+                r = self.client.get(URL, timeout=5)
             except requests.ConnectionError:
                 print('Could not connect to {0}'.format(URL))
+                return ''
+            except requests.ConnectionError as e:
+                print('Could not connect to {0}. {1}'.format(URL, e))
+                return ''
+            except requests.Timeout as e:
+                print('Connection to {0}, timed out. {1}'.format(URL, e))
+                return ''
+            except Exception as e:
+                print('Uncaught exception for {}. {}'.format(URL, e))
                 return ''
 
             if self.redirected(r):
@@ -206,9 +220,16 @@ class BrowserSuper(object):
         else:
             project = list(project) # make sure we are working on copy (easier to debug)
 
-        content = self.visit()
+        taskPage = self.visit()
+
         parser = HTMLParser.getParser(self.section, self)
-        return parser.parse(content, project)
+        project = parser.parse(taskPage, project)
+        try:
+            project.badge = list(parser.getBadges())
+        except AttributeError as e:  # Parser does not implement getBadges
+            logging.debug('no badge for %s, %s', self.section, e)
+            pass
+        return project
 
     @property
     def name(self):
@@ -237,32 +258,33 @@ class Browser_worldcommunitygrid(BrowserSuper):
         return page
 
 class Browser(BrowserSuper):
-    def __init__(self, webpage_name, browser_cache, CONFIG):
-        self.section = webpage_name
+    def __init__(self, section, browser_cache, CONFIG):
+        self.section = section
         BrowserSuper.__init__(self, browser_cache)
-        self.webpage_name = webpage_name
+        
+        self.userid = CONFIG.get(section, 'userid')
         self.URL = 'http://{name}/results.php?userid={userid}'.format(
-            name = webpage_name,
-            userid=CONFIG.get(webpage_name, 'userid'))
+            name = section,
+            userid=self.userid)
         self.URL += '&offset={0}&show_names=1&state=0&appid='
 
-        self.loginInfo = {'email_addr': CONFIG.get(webpage_name, 'username'),
+        self.loginInfo = {'email_addr': CONFIG.get(section, 'username'),
                           'mode': 'Log in',
                           'next_url': 'home.php',
-                          'passwd': CONFIG.getpassword(webpage_name, 'username'),
+                          'passwd': CONFIG.getpassword(section, 'username'),
                           'stay_logged_in': 'on', # used by mindmodeling and wuprop
                           'send_cookie': 'on'}    # used by rosetta and yoyo
-        self.loginPage = 'http://{0}/login_action.php'.format(webpage_name)
+        self.loginPage = 'http://{0}/login_action.php'.format(section)
 
     def visitHome(self):
-        return self.visitURL('http://{0}/home.php'.format(self.webpage_name))
+        return self.visitURL('http://{0}/home.php'.format(self.section))
 
     def visit(self, offset=0):
         return BrowserSuper.visit(self, offset)
 
 class Browser_yoyo(Browser):
     def __init__(self, browser_cache, CONFIG):
-        Browser.__init__(self, webpage_name='www.rechenkraft.net/yoyo',
+        Browser.__init__(self, section='www.rechenkraft.net/yoyo',
                          browser_cache=browser_cache, CONFIG=CONFIG)
         self.loginInfo['mode'] = 'Log in with email/password'
         self.loginInfo['next_url'] = '/yoyo/home.php'
@@ -280,7 +302,7 @@ def getProjects(CONFIG, browser_cache):
         elif section == 'configuration': # Not a boinc project
             continue
         else:                   # Lets try the generic
-            browser = Browser(webpage_name=section, 
+            browser = Browser(section=section, 
                               browser_cache=browser_cache, 
                               CONFIG=CONFIG)
         yield browser.parse()

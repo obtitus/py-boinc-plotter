@@ -7,6 +7,7 @@ logger = logging.getLogger('boinc.browser')
 from bs4 import BeautifulSoup
 # This project
 import task
+import plot.badge as badge
 import async
 
 class HTMLParser(object):
@@ -27,11 +28,22 @@ class HTMLParser(object):
         elif section == 'wuprop.boinc-af.org':
             logger.debug('getting wuprop parser')
             parser = HTMLParser_wuprop(**kwargs)
+        elif section == 'www.primegrid.com':
+            logger.debug('getting primegrid parser')
+            parser = HTMLParser_primegrid(**kwargs)
         else:                   # Lets try the generic
             logger.debug('getting generic parser, name = %s', section)
             parser = HTMLParser(**kwargs)
 
         return parser
+
+    def parse(self, content, project):
+        for row in self.getRows(content):
+            t = self.Task.createFromHTML(row[:-1])
+            application = project.appendApplication(row[-1])
+            application.tasks.append(t)
+
+        return project
 
     def getRows(self, html):
         """Generator for each row in result table"""
@@ -46,13 +58,14 @@ class HTMLParser(object):
                 for row in self.parseTable(soup):
                     yield row
 
-    def parse(self, content, project):
-        for row in self.getRows(content):
-            t = self.Task.createFromHTML(row[:-1])
-            application = project.appendApplication(row[-1])
-            application.tasks.append(t)
-
-        return project
+    def parseTable(self, soup):
+        #print 'parseTable', soup.prettify()
+        for tr in soup.table.find_all('tr'):
+            try:
+                if tr['class'][0].startswith('row0'):
+                    yield [td.text for td in tr.find_all('td')]
+            except KeyError:
+                pass
         
     def parseAdditionalPages(self, soup):
         reg_compiled = re.compile('offset=(\d+)')
@@ -63,39 +76,6 @@ class HTMLParser(object):
                     yield reg.group(1)
             except (TypeError, AttributeError):
                 pass
-    
-    def parseTable(self, soup):
-        #print 'parseTable', soup.prettify()
-        for tr in soup.table.find_all('tr'):
-            try:
-                if tr['class'][0].startswith('row0'):
-                    yield [td.text for td in tr.find_all('td')]
-            except KeyError:
-                pass
-
-        # reg_compiled = re.compile("javascript:addHostPopup\('(/ms/device/viewWorkunitStatus.do\?workunitId=\d+)")
-        # for tr in soup.table.find_all('tr'):
-        #     row = list()
-        #     for td in tr.find_all('td'):
-        #         try:
-        #             reg = re.match(reg_compiled, td.a['href'])
-        #             row.append(reg.group(1))
-        #         except (TypeError, AttributeError):
-        #             pass
-        #         row.append(td.text.strip())
-
-        #     if len(row) == 8:
-        #         yield row
-
-    def parseWorkunit(self, html):
-        soup = BeautifulSoup(html)
-        print 'parseWorkunit', soup.prettify()
-        # reg_compiled = re.compile('Project Name:\s*([^\n]+)\n')
-        # for tr in soup.find_all('tr'):
-        #     for td in tr.find_all('td'):
-        #         reg = re.search(reg_compiled, td.text)
-        #         if reg:
-        #             return reg.group(1).strip()
 
 class HTMLParser_worldcommunitygrid(HTMLParser):
     def __init__(self, *args, **kwargs):
@@ -189,6 +169,34 @@ class HTMLParser_wuprop(HTMLParser):
                 pending = float(data[3].text)*60*60
                 self.projects[application] = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
 
+class HTMLParser_primegrid(HTMLParser):
+    def getBadges(self):
+        html = self.browser.visitPage('home.php')
+        soup = BeautifulSoup(html)
+        for row in soup.find_all('tr'):
+            first_td = row.td
+            try:
+                if first_td['class'][0] == 'fieldname' and first_td.text == 'Badges':
+                    for badge in first_td.find_next_sibling('td').find_all('a'):
+                        yield self.parseBadge(badge)
+            except (KeyError, TypeError):
+                pass
+
+    def parseBadge(self, soup):
+        """
+        Expects something like this:
+        <a href="/show_badges.php?userid=222267">
+        <img alt="PPS Sieve Bronze: More than 20,000 credits (30,339)" class="badge" 
+        src="/img/badges/sr2sieve_pps_bronze.png" title="PPS Sieve Bronze: More than 20,000 credits (30,339)"/>
+        </a>
+        """
+        url = soup.get('href')
+        name = soup.img.get('title')
+        b = badge.Badge_primegrid(name=name,
+                                     url=url)
+        logger.debug('Badge %s', b)
+        return b
+        
 def parse_worldcommunitygrid_xml(page):
     # TODO: convert to beautiful-soup?
     tree = xml.etree.ElementTree.fromstring(page)

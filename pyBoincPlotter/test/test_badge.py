@@ -77,6 +77,19 @@ class TestBadge(unittest.TestCase):
         self.browser = browser.BrowserSuper(self.browser_cache)
         artist = b.getImageArtist(self.browser, (1, 42), frameon=False, box_alignment=(0, 0.5))
 
+    def primegrid(self, name, color, value, url=''):
+        self.badge = badge.Badge_primegrid(name, '')
+        self.assertEqual(self.badge.name, name)
+        self.assertEqual(self.badge.url, url)
+        self.assertEqual(self.badge.color, color)
+        self.assertEqual(self.badge.value, value)
+    
+    def test_primegrid(self):
+        self.primegrid('Woodall LLR Bronze: More than 10,000 credits (17,517)',
+                       '#8C7853', 10000)
+        self.primegrid('PPS Sieve Bronze: More than 20,000 credits (30,339)',
+                       '#8C7853', 20000)
+        
 if __name__ == '__main__':
     loggerSetup.loggerSetup(logging.INFO)
     

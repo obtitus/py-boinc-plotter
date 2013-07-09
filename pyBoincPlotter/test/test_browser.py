@@ -29,7 +29,6 @@ class TestYoyo(unittest.TestCase):
 
     # def test_parse(self):
     #     p = self.browser.parse()
-        
     # def test_parse(self):
     #     project = self.browser.parse()
     #     self.assertEqual(len(project), 90)
@@ -47,11 +46,17 @@ class TestPrimegrid(unittest.TestCase):
     def test_parse(self):
         project = self.browser.parse()
         self.assertEqual(len(project), 18)
+
+    def test_badge(self):
+        p = self.browser.parse()
+        self.assertEqual(len(p.badge), 2)
+        self.assertEqual(str(p.badge[0]), 'Woodall LLR Bronze: More than 10,000 credits (17,517)')
+        self.assertEqual(str(p.badge[1]), 'PPS Sieve Bronze: More than 20,000 credits (30,339)')
     
 if __name__ == '__main__':
     import logging
     from loggerSetup import loggerSetup
-    loggerSetup(logging.INFO)
+    loggerSetup(logging.DEBUG)
 
     for t in [TestPrimegrid]:#[TestYoyo, TestWorldcommunitygrid]:
         suite = unittest.TestLoader().loadTestsFromTestCase(t)
