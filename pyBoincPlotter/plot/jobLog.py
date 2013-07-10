@@ -117,7 +117,7 @@ class JobLog(list):
         """
         time = self.time
 
-        kwargs = dict(ls='none', marker='o')
+        kwargs = dict(ls='none', marker='o', color=color)
         for ix, data in enumerate([self.ue, self.ct, self.et, self.fe]):
             if ix == 3:
                 data = np.array(data)/1e12
