@@ -174,13 +174,14 @@ class HTMLParser_primegrid(HTMLParser):
         html = self.browser.visitPage('home.php')
         soup = BeautifulSoup(html)
         for row in soup.find_all('tr'):
+            if row.td is None:
+                continue
+                
             first_td = row.td
-            try:
-                if first_td['class'][0] == 'fieldname' and first_td.text == 'Badges':
-                    for badge in first_td.find_next_sibling('td').find_all('a'):
-                        yield self.parseBadge(badge)
-            except (KeyError, TypeError):
-                pass
+                
+            if first_td.get('class') == ['fieldname'] and first_td.text == 'Badges':
+                for badge in first_td.find_next_sibling('td').find_all('a'):
+                    yield self.parseBadge(badge)
 
     def parseBadge(self, soup):
         """
@@ -190,10 +191,11 @@ class HTMLParser_primegrid(HTMLParser):
         src="/img/badges/sr2sieve_pps_bronze.png" title="PPS Sieve Bronze: More than 20,000 credits (30,339)"/>
         </a>
         """
-        url = soup.get('href')
+        url = str(self.browser.name)
+        url += soup.img.get('src')
         name = soup.img.get('title')
         b = badge.Badge_primegrid(name=name,
-                                     url=url)
+                                  url=url)
         logger.debug('Badge %s', b)
         return b
         

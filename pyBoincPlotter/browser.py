@@ -221,6 +221,8 @@ class BrowserSuper(object):
             project = list(project) # make sure we are working on copy (easier to debug)
 
         taskPage = self.visit()
+        if taskPage == '':
+            return project
 
         parser = HTMLParser.getParser(self.section, self)
         project = parser.parse(taskPage, project)
@@ -234,7 +236,10 @@ class BrowserSuper(object):
 
     @property
     def name(self):
-        return 'http://www.' + self.section
+        ret = self.section
+        if not(self.section.startswith('www.')):
+            ret = 'www.' + ret
+        return 'http://' + ret
 
 class Browser_worldcommunitygrid(BrowserSuper):
     def __init__(self, browser_cache, CONFIG):
