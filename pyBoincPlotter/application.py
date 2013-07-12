@@ -11,6 +11,16 @@ class Application(object):
         self.tasks = list()
         self.badge = badge
         self.statistics = statistics
+    
+    @property
+    def credit(self):
+        try:
+            return self.statistics.credit
+        except:
+            try:
+                return self.badge.credit
+            except:
+                return 0
 
     def setNameFromXML(self, xml):
         """

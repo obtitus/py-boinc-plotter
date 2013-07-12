@@ -375,6 +375,24 @@ class Task_web_worldcommunitygrid(Task_web):
                                            elapsedCPUtime=CPUtime, deadline=deadline,
                                            claimedCredit=claimedCredit, grantedCredit=grantedCredit)
 
+class Task_web_yoyo(Task_web):
+    @staticmethod
+    def createFromHTML(data):
+        assert len(data) == 9, 'vops, data not recognized %s' % data
+
+        name = data[0]
+        sentTime = data[1]      # Not used
+        deadline = data[2]
+        state = ",".join(data[3:6])
+        CPUtime = data[6]
+        
+        claimedCredit = data[7]
+        grantedCredit = data[8]
+        return Task_web_yoyo(name=name, device='',
+                             state=state, 
+                             elapsedCPUtime=CPUtime, deadline=deadline,
+                             claimedCredit=claimedCredit, grantedCredit=grantedCredit)
+
 class Task_jobLog(Task):
     """
     Represents a task from the job_log, with the following fields:

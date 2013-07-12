@@ -15,6 +15,7 @@ class HTMLParser(object):
         self.Task = task.Task_web
         self.browser = browser
         self.name = browser.name
+        self.logger = logging.getLogger('boinc.browser.{}'.format(self.__class__.__name__))
 
     @staticmethod
     def getParser(section, browser):
@@ -37,50 +38,36 @@ class HTMLParser(object):
 
         return parser
 
-    def parse(self, content, project):
-        for row in self.getRows(content):
-            t = self.Task.createFromHTML(row[:-1])
-            application = project.appendApplication(row[-1])
-            application.tasks.append(t)
-
-        return project
 
     def getRows(self, html):
         """Generator for each row in result table"""
         soup = BeautifulSoup(html)
         for row in self.parseTable(soup):
+            self.logger.debug('yielding %s', row)
             yield row
 
-        for additionalPage in self.parseAdditionalPages(soup):
+        for additionalPage in self.findNextPage(soup):
             html = self.browser.visit(additionalPage)
             if html != '':
-                soup = BeautifulSoup(html)
-                for row in self.parseTable(soup):
+                for row in self.getRows(html): # Recursion!
                     yield row
 
-    def parseTable(self, soup):
-        #print 'parseTable', soup.prettify()
-        for tr in soup.table.find_all('tr'):
-            try:
-                if tr['class'][0].startswith('row0'):
-                    yield [td.text for td in tr.find_all('td')]
-            except KeyError:
-                pass
-        
-    def parseAdditionalPages(self, soup):
+    def findNextPage(self, soup):
         reg_compiled = re.compile('offset=(\d+)')
-        for link in soup.table.find_all('a'):
-            try:
-                reg = re.search(reg_compiled, link['href'])
-                if int(reg.group(1)) != 0:
-                    yield reg.group(1)
-            except (TypeError, AttributeError):
-                pass
+        offset = soup.find('a', href=reg_compiled)
+        if offset is not None:
+            offset_str = re.search(reg_compiled, offset['href']).group(1)
+            offset_int = int(offset_str)
+            if offset_int != 0:
+                yield offset_int
 
-class HTMLParser_worldcommunitygrid(HTMLParser):
-    def __init__(self, *args, **kwargs):
-        super(HTMLParser_worldcommunitygrid, self).__init__(*args, **kwargs)
-        self.Task = task.Task_web_worldcommunitygrid
+        # for link in soup.table.find_all('a'):
+        #     try:
+        #         reg = re.search(reg_compiled, link['href'])
+        #         if int(reg.group(1)) != 0:
+        #             yield reg.group(1)
+        #     except (TypeError, AttributeError):
+        #         pass
 
     def parse(self, content, project):
         async_data = list()
@@ -98,12 +85,26 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
 
         return project
 
-    def parseAdditionalPages(self, soup):
+    def parseWorkunit(self, html):
+        soup = BeautifulSoup(html)
+        for first_td in soup.find_all('td', class_='fieldname'):
+            if first_td.text == 'application':
+                app_name = first_td.find_next_sibling('td', class_='fieldvalue')
+                return app_name.text
+
+class HTMLParser_worldcommunitygrid(HTMLParser):
+    def __init__(self, *args, **kwargs):
+        super(HTMLParser_worldcommunitygrid, self).__init__(*args, **kwargs)
+        self.Task = task.Task_web_worldcommunitygrid
+
+    def findNextPage(self, soup):
         reg_compiled = re.compile('pageNum=(\d+)')
         for link in soup.table.find_all('a'):
             try:
                 reg = re.search(reg_compiled, link['href'])
-                yield reg.group(1)
+                page_num = int(reg.group(1))
+                if page_num != 1:
+                    yield page_num
             except (TypeError, AttributeError):
                 pass
     
@@ -132,6 +133,30 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
                     return reg.group(1).strip()
 
 class HTMLParser_yoyo(HTMLParser):
+    def __init__(self, *args, **kwargs):
+        super(HTMLParser_yoyo, self).__init__(*args, **kwargs)
+        self.Task = task.Task_web_yoyo
+
+    def parseTable(self, soup):
+        for table in soup.find_all('table'):
+            for tr in table.find_all('tr'):
+                row = list()
+                for td in tr.find_all('td'):
+                    if td.find('a') != None:
+                        name = td.a.get('title')
+                        if name is not None:
+                            row.append(name.replace('Name: ', ''))
+
+                        url = td.a.get('href', '')
+                        if 'workunit' in url:
+                            row.append('/'+url)
+                    else:
+                        row.append(td.text)
+
+                if len(row) == 10:
+                    row[0], row[1] = row[1], row[0]
+                    yield row
+
     def badgeTabel(self, soup):
         """ Extracts projects table from www.rechenkraft.net/yoyo"""
         for t in soup.find_all('table'):
@@ -170,6 +195,21 @@ class HTMLParser_wuprop(HTMLParser):
                 self.projects[application] = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
 
 class HTMLParser_primegrid(HTMLParser):
+    # Primegrid is particularly kind, since application is the last column
+    def parse(self, content, project):
+        for row in self.getRows(content):
+            t = self.Task.createFromHTML(row[:-1])
+            application = project.appendApplication(row[-1])
+            application.tasks.append(t)
+
+        return project
+
+    def parseTable(self, soup):
+        for tr in soup.table.find_all('tr'):
+            ret = [td.text for td in tr.find_all('td')]
+            if len(ret) == 10:
+                yield ret
+
     def getBadges(self):
         html = self.browser.visitPage('home.php')
         soup = BeautifulSoup(html)
@@ -178,8 +218,9 @@ class HTMLParser_primegrid(HTMLParser):
                 continue
                 
             first_td = row.td
-                
-            if first_td.get('class') == ['fieldname'] and first_td.text == 'Badges':
+            _class = first_td.get('class', [''])
+
+            if _class == ['fieldname'] and first_td.text == 'Badges':
                 for badge in first_td.find_next_sibling('td').find_all('a'):
                     yield self.parseBadge(badge)
 
@@ -196,7 +237,7 @@ class HTMLParser_primegrid(HTMLParser):
         name = soup.img.get('title')
         b = badge.Badge_primegrid(name=name,
                                   url=url)
-        logger.debug('Badge %s', b)
+        self.logger.debug('Badge %s', b)
         return b
         
 def parse_worldcommunitygrid_xml(page):

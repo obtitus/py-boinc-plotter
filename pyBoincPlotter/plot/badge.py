@@ -164,7 +164,7 @@ class Badge_primegrid(Badge):
     @Badge.name.setter
     def name(self, name):
         self._name = name
-        self.reg = re.search('(\w+ \w+) (\w+): More than ([\d,]+) credits \([\d,]+\)', name)
+        self.reg = re.search('(\w+ \w+) (\w+): More than ([\d,]+) credits \(([\d,]+)\)', name)
 
     @property
     def color(self):
@@ -187,7 +187,7 @@ class Badge_primegrid(Badge):
         return self._getFloat(3)
 
     @property
-    def current_credit(self):
+    def credit(self):
         return self._getFloat(4)
 
     @property
