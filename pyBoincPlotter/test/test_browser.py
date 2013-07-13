@@ -5,27 +5,32 @@ import browser
 import config
 import parse_input
 
+def _setUp(Browser, **kwargs):
+    CONFIG = config.setupConfigFile() # TODO: remove this requirement, write browser so that this can be None
+    dir = parse_input.dataFolder
+    #dir = tempfile.mkdtemp()
+    cache = browser.Browser_file(dir, removeOld=False)
+    return Browser(browser_cache=cache, 
+                   CONFIG=CONFIG, 
+                   **kwargs)
+
+
 class TestWorldcommunitygrid(unittest.TestCase):
     def setUp(self):
-        CONFIG = config.setupConfigFile() # TODO: remove this requirement, write browser so that this can be None
-        dir = parse_input.dataFolder
-        #dir = tempfile.mkdtemp()
-        self.cache = browser.Browser_file(dir, removeOld=False)
-        self.browser = browser.Browser_worldcommunitygrid(self.cache, CONFIG)
+        self.browser = _setUp(browser.Browser_worldcommunitygrid)
 
     def test_parse(self):
         project = self.browser.parse()
         print project
         self.assertEqual(len(project), 90)
 
+    def test_badge(self):
+        xml = self.browser.visitStatistics()
+        
 
 class TestYoyo(unittest.TestCase):
     def setUp(self):
-        CONFIG = config.setupConfigFile() # TODO: remove this requirement, write browser so that this can be None
-        dir = parse_input.dataFolder
-        #dir = tempfile.mkdtemp()
-        self.cache = browser.Browser_file(dir, removeOld=False)
-        self.browser = browser.Browser_yoyo(self.cache, CONFIG)
+        self.browser = _setUp(browser.Browser_yoyo)
 
     def test_parse(self):
         project = self.browser.parse()
@@ -33,12 +38,7 @@ class TestYoyo(unittest.TestCase):
 
 class TestPrimegrid(unittest.TestCase):
     def setUp(self):
-        CONFIG = config.setupConfigFile() # TODO: remove this requirement, write browser so that this can be None
-        dir = parse_input.dataFolder
-        #dir = tempfile.mkdtemp()
-        self.cache = browser.Browser_file(dir, removeOld=False)
-        self.browser = browser.Browser('www.primegrid.com', 
-                                       self.cache, CONFIG)
+        self.browser = _setUp(browser.Browser, section='www.primegrid.com')
     
     def test_parse(self):
         project = self.browser.parse()
