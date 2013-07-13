@@ -43,7 +43,12 @@ class HTMLParser(object):
         """Fills up the self.project with applications and tasks
         Assumes the application name is the last column"""
         for row in self.getRows(content):
-            t = self.Task.createFromHTML(row[:-1])
+            try:
+                t = self.Task.createFromHTML(row[:-1])
+            except Exception as e:
+                self.logger.warning('Unable to parse %s as task', row)
+                continue
+
             application = self.project.appendApplication(row[-1])
             application.tasks.append(t)
 

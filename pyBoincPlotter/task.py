@@ -88,9 +88,12 @@ class Task(object):
 
     def toFloat(self, value):
         value = value.replace(',', '')
-        if value == '---':
-            value = '0'
-        return float(value)
+        # if value == '---':
+        #     value = '0'
+        try:
+            return float(value)
+        except ValueError:
+            return 0
 
     #
     # Setters and <>_str
