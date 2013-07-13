@@ -59,8 +59,11 @@ if __name__ == '__main__':
     loggerSetup(logging.INFO)
 
     import boinccmd
+    import project
+
     projects = boinccmd.get_state()
-    
+    project.pretty_print(projects)
+
     fig1 = plt.figure()
     plot(fig1, projects)
 

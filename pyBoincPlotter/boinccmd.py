@@ -4,7 +4,7 @@ from socket import socket
 import logging
 logger = logging.getLogger('boinc.boinccmd')
 # This project
-from project import Project
+from project import Project, pretty_print
 
 class Boinccmd(socket):
     def __init__(self, addr='', portNr=31416, **kwargs):
@@ -98,7 +98,6 @@ if __name__ == '__main__':
     import argparse
 
     from loggerSetup import loggerSetup
-    import task
 
     parser = argparse.ArgumentParser(description='Runs and parses get_state rpc reply')
     parser.add_argument('command', default='get_state', choices=['get_state', 'get_project_status'], nargs='?')
@@ -110,15 +109,5 @@ if __name__ == '__main__':
     projects = get_state(command=args.command,
                          printRaw=args.raw)
 
-    for p in projects:
-        for app in p.applications:
-            tasks = p.applications[app].tasks
-            task.adjustColumnSpacing(tasks)
-            # for t in tasks:
-            #     print t.name, "{:.3g} MB".format(t.memUsage/1e6)
-
-    for p in projects:
-        if len(p) != 0 or args.show_empty:
-            print str(p) + '\n'
-    #print s.request('get_simple_gui_info')
-    #print s.request('get_results')
+    pretty_print(projects, 
+                 show_empty=args.show_empty)

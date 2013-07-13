@@ -7,7 +7,7 @@ logger = logging.getLogger('boinc.project')
 from bs4 import BeautifulSoup
 # This project:
 from application import Application
-from task import Task_local
+from task import Task_local, adjustColumnSpacing
 from statistics import Statistics
 
 class Project(object):
@@ -161,3 +161,13 @@ class Project(object):
         for key in sorted(self.applications):
             for task in self.applications[key].tasks:
                 yield task
+
+def pretty_print(projects, show_empty=False):
+    for p in projects:
+        for app in p.applications:
+            tasks = p.applications[app].tasks
+            adjustColumnSpacing(tasks)
+
+    for p in projects:
+        if len(p) != 0 or show_empty:
+            print str(p) + '\n'
