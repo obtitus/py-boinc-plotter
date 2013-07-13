@@ -34,7 +34,7 @@ class TestYoyo(unittest.TestCase):
 
     def test_parse(self):
         project = self.browser.parse()
-        self.assertEqual(21, len(project))
+        self.assertEqual(len(project), 21)
 
 class TestPrimegrid(unittest.TestCase):
     def setUp(self):
@@ -51,7 +51,15 @@ class TestPrimegrid(unittest.TestCase):
         self.assertEqual(str(p.badge[0]), 'PPS Sieve Bronze: More than 20,000 credits (30,339)')
         self.assertEqual(p.badge[1].url, 'http://www.primegrid.com/img/badges/woo_bronze.png')
         self.assertEqual(p.badge[0].url, 'http://www.primegrid.com/img/badges/sr2sieve_pps_bronze.png')
-    
+
+class TestMindmodeling(unittest.TestCase):
+    def setUp(self):
+        self.browser = _setUp(browser.Browser, 
+                              section='mindmodeling.org')
+    def test_parse(self):
+        project = self.browser.parse()
+        self.assertEqual(len(project), 7)
+
 if __name__ == '__main__':
     import logging
     from loggerSetup import loggerSetup
