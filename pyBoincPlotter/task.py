@@ -172,6 +172,7 @@ class Task(object):
         """
         if deadline is not None:
             deadline = deadline.replace('|', '')
+            deadline = deadline.replace(',', '')
             self.deadline = datetime.datetime.strptime(deadline, self.fmt_date)
         else:
             self.deadline = None

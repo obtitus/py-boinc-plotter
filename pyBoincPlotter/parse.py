@@ -48,8 +48,12 @@ class HTMLParser(object):
             application.tasks.append(t)
 
     def parseTable(self, soup):
-        for tr in soup.table.find_all('tr'):
+        for tr in soup.find_all('tr'):
             ret = [td.text for td in tr.find_all('td')]
+
+            if len(ret) != 0:
+                self.logger.debug('in parseTable, got %s, len = %s', ret, len(ret))
+
             if len(ret) == 10:
                 yield ret
 
