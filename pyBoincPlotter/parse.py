@@ -11,15 +11,16 @@ import plot.badge as badge
 import async
 
 class HTMLParser(object):
-    def __init__(self, browser):
+    def __init__(self, browser, project):
         self.Task = task.Task_web
         self.browser = browser
+        self.project = project
         self.name = browser.name
         self.logger = logging.getLogger('boinc.browser.{}'.format(self.__class__.__name__))
 
     @staticmethod
-    def getParser(section, browser):
-        kwargs = dict(browser=browser)
+    def getParser(section, **kwargs):
+        """Factory for returning the correct subclass based on section name"""
         if section == 'worldcommunitygrid.org':
             logger.debug('getting worldcommunitygrid.org parser')
             parser = HTMLParser_worldcommunitygrid(**kwargs)
@@ -38,6 +39,20 @@ class HTMLParser(object):
 
         return parser
 
+    def parse(self, content):
+        """Fills up the self.project with applications and tasks"""
+        async_data = list()
+        for row in self.getRows(content):
+            url = self.name + row[0]
+            workunit = self.browser.visitURL(url)
+
+            t = async.Async(self.Task.createFromHTML, row[1:])
+            app_name = async.Async(self.parseWorkunit, workunit)
+            async_data.append((t, app_name))
+
+        for t, app_name in async_data:
+            application = self.project.appendApplication(app_name.ret)
+            application.tasks.append(t.ret)
 
     def getRows(self, html):
         """Generator for each row in result table"""
@@ -53,6 +68,7 @@ class HTMLParser(object):
                     yield row
 
     def findNextPage(self, soup):
+        """Finds links to additional pages of tasks"""
         reg_compiled = re.compile('offset=(\d+)')
         offset = soup.find('a', href=reg_compiled)
         if offset is not None:
@@ -61,31 +77,8 @@ class HTMLParser(object):
             if offset_int != 0:
                 yield offset_int
 
-        # for link in soup.table.find_all('a'):
-        #     try:
-        #         reg = re.search(reg_compiled, link['href'])
-        #         if int(reg.group(1)) != 0:
-        #             yield reg.group(1)
-        #     except (TypeError, AttributeError):
-        #         pass
-
-    def parse(self, content, project):
-        async_data = list()
-        for row in self.getRows(content):
-            url = self.name + row[0]
-            workunit = self.browser.visitURL(url)
-
-            t = async.Async(self.Task.createFromHTML, row[1:])
-            app_name = async.Async(self.parseWorkunit, workunit)
-            async_data.append((t, app_name))
-
-        for t, app_name in async_data:
-            application = project.appendApplication(app_name.ret)
-            application.tasks.append(t.ret)
-
-        return project
-
     def parseWorkunit(self, html):
+        """Parses the workunit page, currently returns the application name"""
         soup = BeautifulSoup(html)
         for first_td in soup.find_all('td', class_='fieldname'):
             if first_td.text == 'application':
@@ -196,13 +189,11 @@ class HTMLParser_wuprop(HTMLParser):
 
 class HTMLParser_primegrid(HTMLParser):
     # Primegrid is particularly kind, since application is the last column
-    def parse(self, content, project):
+    def parse(self, content):
         for row in self.getRows(content):
             t = self.Task.createFromHTML(row[:-1])
-            application = project.appendApplication(row[-1])
+            application = self.project.appendApplication(row[-1])
             application.tasks.append(t)
-
-        return project
 
     def parseTable(self, soup):
         for tr in soup.table.find_all('tr'):
@@ -211,6 +202,7 @@ class HTMLParser_primegrid(HTMLParser):
                 yield ret
 
     def getBadges(self):
+        """Generator for project badges, returns app name and Badge object"""
         html = self.browser.visitPage('home.php')
         soup = BeautifulSoup(html)
         for row in soup.find_all('tr'):
@@ -238,7 +230,7 @@ class HTMLParser_primegrid(HTMLParser):
         b = badge.Badge_primegrid(name=name,
                                   url=url)
         self.logger.debug('Badge %s', b)
-        return b
+        return b.app_name, b
         
 def parse_worldcommunitygrid_xml(page):
     # TODO: convert to beautiful-soup?

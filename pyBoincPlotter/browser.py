@@ -217,18 +217,16 @@ class BrowserSuper(object):
     def parse(self, project=None):
         if project == None:
             project = Project(url=self.name)
-        else:
-            project = list(project) # make sure we are working on copy (easier to debug)
 
         taskPage = self.visit()
         if taskPage == '':
             return project
 
-        parser = HTMLParser.getParser(self.section, self)
-        project = parser.parse(taskPage, project)
+        parser = HTMLParser.getParser(self.section, browser=self, project=project)
+        parser.parse(taskPage)
         try:
-            for badge in parser.getBadges():
-                project.appendBadge(badge.app_name, badge)
+            for app_name, badge in parser.getBadges():
+                project.appendBadge(app_name, badge)
         except AttributeError as e:  # Parser does not implement getBadges
             logging.debug('no badge for %s, %s', self.section, e)
             pass

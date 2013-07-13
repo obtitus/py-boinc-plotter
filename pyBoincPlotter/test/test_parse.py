@@ -3,6 +3,7 @@ import tempfile
 import unittest
 # This project
 import parse
+import project
 import browser
 import config
 import parse_input
@@ -14,7 +15,8 @@ class TestWorldcommunitygrid(unittest.TestCase):
         #dir = tempfile.mkdtemp()
         cache = browser.Browser_file(dir, removeOld=False)
         b = browser.Browser_worldcommunitygrid(cache, CONFIG)
-        self.parser = parse.HTMLParser_worldcommunitygrid(b)
+        p = project.Project('worldcommunitygrid.org')
+        self.parser = parse.HTMLParser_worldcommunitygrid(browser=b, project=p)
 
     def test_rows(self):
         with open(parse_input.html_worldcommunitygrid, 'r') as content:
@@ -37,7 +39,8 @@ class TestYoyo(unittest.TestCase):
         #dir = tempfile.mkdtemp()
         cache = browser.Browser_file(dir, removeOld=False)
         b = browser.Browser_yoyo(cache, CONFIG)
-        self.parser = parse.HTMLParser_yoyo(b)
+        p = project.Project('www.rechenkraft.net/yoyo')
+        self.parser = parse.HTMLParser_yoyo(browser=b, project=p)
 
     def test_rows(self):
         with open(parse_input.html_yoyo, 'r') as content:
@@ -62,7 +65,8 @@ class TestPrimegrid(unittest.TestCase):
         cache = browser.Browser_file(dir, removeOld=False)
         b = browser.Browser('www.primegrid.com', 
                             cache, CONFIG)
-        self.parser = parse.HTMLParser_primegrid(b)
+        p = project.Project('www.primegrid.com')
+        self.parser = parse.HTMLParser_primegrid(browser=b, project=p)
     
     def test_rows(self):
         with open(parse_input.html_primegrid, 'r') as content:
