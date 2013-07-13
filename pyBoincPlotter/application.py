@@ -1,5 +1,8 @@
 # Standard import
 import re
+import logging
+logger = logging.getLogger('boinc.application')
+
 # non standard
 from bs4 import BeautifulSoup
 # This project
@@ -54,7 +57,12 @@ class Application(object):
         Sets self.name_long and self.name_short based on the following pattern
         <long> (<short>)
         """
-        reg = re.findall('([^(]+)\((\w+)\)', name)
+        try:
+            reg = re.findall('([^(]+)\((\w+)\)', name)
+        except TypeError as e:
+            logging.exception('Expected string, got type = %s, "%s"', type(name), name)
+            reg = []
+
         if reg != []:
             reg = reduce(lambda x,y: x+y, reg) # flatten list
             name_long = "".join(reg[:-1]).strip()

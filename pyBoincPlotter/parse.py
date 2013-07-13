@@ -40,19 +40,18 @@ class HTMLParser(object):
         return parser
 
     def parse(self, content):
-        """Fills up the self.project with applications and tasks"""
-        async_data = list()
+        """Fills up the self.project with applications and tasks
+        Assumes the application name is the last column"""
         for row in self.getRows(content):
-            url = self.name + row[0]
-            workunit = self.browser.visitURL(url)
+            t = self.Task.createFromHTML(row[:-1])
+            application = self.project.appendApplication(row[-1])
+            application.tasks.append(t)
 
-            t = async.Async(self.Task.createFromHTML, row[1:])
-            app_name = async.Async(self.parseWorkunit, workunit)
-            async_data.append((t, app_name))
-
-        for t, app_name in async_data:
-            application = self.project.appendApplication(app_name.ret)
-            application.tasks.append(t.ret)
+    def parseTable(self, soup):
+        for tr in soup.table.find_all('tr'):
+            ret = [td.text for td in tr.find_all('td')]
+            if len(ret) == 10:
+                yield ret
 
     def getRows(self, html):
         """Generator for each row in result table"""
@@ -90,6 +89,20 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
         super(HTMLParser_worldcommunitygrid, self).__init__(*args, **kwargs)
         self.Task = task.Task_web_worldcommunitygrid
 
+    def parse(self, content):
+        async_data = list()
+        for row in self.getRows(content):
+            url = self.name + row[0]
+            workunit = self.browser.visitURL(url)
+
+            t = async.Async(self.Task.createFromHTML, row[1:])
+            app_name = async.Async(self.parseWorkunit, workunit)
+            async_data.append((t, app_name))
+
+        for t, app_name in async_data:
+            application = self.project.appendApplication(app_name.ret)
+            application.tasks.append(t.ret)
+
     def findNextPage(self, soup):
         reg_compiled = re.compile('pageNum=(\d+)')
         for link in soup.table.find_all('a'):
@@ -125,7 +138,7 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
                 if reg:
                     return reg.group(1).strip()
 
-class HTMLParser_yoyo(HTMLParser):
+class HTMLParser_yoyo(HTMLParser_worldcommunitygrid):
     def __init__(self, *args, **kwargs):
         super(HTMLParser_yoyo, self).__init__(*args, **kwargs)
         self.Task = task.Task_web_yoyo
@@ -149,6 +162,14 @@ class HTMLParser_yoyo(HTMLParser):
                 if len(row) == 10:
                     row[0], row[1] = row[1], row[0]
                     yield row
+
+    def findNextPage(self, soup):
+        # This is ugly, but we need to bypass the superclass
+        return HTMLParser.findNextPage(self, soup)
+
+    def parseWorkunit(self, html):
+        # This is ugly, but we need to bypass the superclass
+        return HTMLParser.parseWorkunit(self, html)
 
     def badgeTabel(self, soup):
         """ Extracts projects table from www.rechenkraft.net/yoyo"""
@@ -174,33 +195,8 @@ class HTMLParser_yoyo(HTMLParser):
                         self.projects[name] = Project(name=name, points=totalCredits, results=workunits, 
                                                       badge=badge, badgeURL=badgeURL)
 
-class HTMLParser_wuprop(HTMLParser):
-    def badgeTabel(self, soup):
-        """ Extracts projects table from wuprop.boinc-af.org/home.php"""
-        t = soup.find_all('table')
-        for row in t[-1].find_all('tr'):
-            data = row.find_all('td')
-            if len(data) == 4:
-                projects = data[0].text
-                application = data[1].text
-                runningTime = float(data[2].text)*60*60
-                pending = float(data[3].text)*60*60
-                self.projects[application] = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
 
 class HTMLParser_primegrid(HTMLParser):
-    # Primegrid is particularly kind, since application is the last column
-    def parse(self, content):
-        for row in self.getRows(content):
-            t = self.Task.createFromHTML(row[:-1])
-            application = self.project.appendApplication(row[-1])
-            application.tasks.append(t)
-
-    def parseTable(self, soup):
-        for tr in soup.table.find_all('tr'):
-            ret = [td.text for td in tr.find_all('td')]
-            if len(ret) == 10:
-                yield ret
-
     def getBadges(self):
         """Generator for project badges, returns app name and Badge object"""
         html = self.browser.visitPage('home.php')
@@ -231,7 +227,21 @@ class HTMLParser_primegrid(HTMLParser):
                                   url=url)
         self.logger.debug('Badge %s', b)
         return b.app_name, b
-        
+
+class HTMLParser_wuprop(HTMLParser):
+    def badgeTabel(self, soup):
+        """ Extracts projects table from wuprop.boinc-af.org/home.php"""
+        t = soup.find_all('table')
+        for row in t[-1].find_all('tr'):
+            data = row.find_all('td')
+            if len(data) == 4:
+                projects = data[0].text
+                application = data[1].text
+                runningTime = float(data[2].text)*60*60
+                pending = float(data[3].text)*60*60
+                self.projects[application] = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
+
+
 def parse_worldcommunitygrid_xml(page):
     # TODO: convert to beautiful-soup?
     tree = xml.etree.ElementTree.fromstring(page)
