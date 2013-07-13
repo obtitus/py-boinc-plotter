@@ -30,7 +30,7 @@ logger = logging.getLogger('boinc.browser')
 # Non-standard python
 import requests
 # This project
-from project import Project
+from project import Project, pretty_print
 from parse import HTMLParser
 
 # Helper functions:
@@ -321,5 +321,6 @@ if __name__ == '__main__':
     CONFIG, CACHE_DIR, _ = config.set_globals()
     browser_cache = Browser_file(CACHE_DIR)
     
-    for p in getProjects(CONFIG, browser_cache):
-        print p
+    projects = list(getProjects(CONFIG, browser_cache))
+
+    pretty_print(projects)
