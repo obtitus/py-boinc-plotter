@@ -294,22 +294,22 @@ class Browser_yoyo(Browser):
         self.loginInfo['next_url'] = '/yoyo/home.php'
 
 
-def getProjects(CONFIG, browser_cache):
-    projects = list()
-    for section in CONFIG.sections():
-        logger.debug('section %s', section)
-        # Pick subclass
-        if section == 'worldcommunitygrid.org':
-            browser = Browser_worldcommunitygrid(browser_cache, CONFIG)
-        elif section == 'www.rechenkraft.net/yoyo':
-            browser = Browser_yoyo(browser_cache, CONFIG)
-        elif section == 'configuration': # Not a boinc project
-            continue
-        else:                   # Lets try the generic
-            browser = Browser(section=section, 
-                              browser_cache=browser_cache, 
-                              CONFIG=CONFIG)
-        yield browser.parse()
+def getProject(section, CONFIG, browser_cache):
+    # projects = list()
+    # for section in CONFIG.sections():
+    logger.debug('section %s', section)
+    # Pick subclass
+    if section == 'worldcommunitygrid.org':
+        browser = Browser_worldcommunitygrid(browser_cache, CONFIG)
+    elif section == 'www.rechenkraft.net/yoyo':
+        browser = Browser_yoyo(browser_cache, CONFIG)
+    elif section == 'configuration': # Not a boinc project
+        return None
+    else:                   # Lets try the generic
+        browser = Browser(section=section, 
+                          browser_cache=browser_cache, 
+                          CONFIG=CONFIG)
+    return browser.parse()
 
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
@@ -317,10 +317,17 @@ if __name__ == '__main__':
     
     import config
     import util
+    import async
     
     CONFIG, CACHE_DIR, _ = config.set_globals()
     browser_cache = Browser_file(CACHE_DIR)
     
-    projects = list(getProjects(CONFIG, browser_cache))
+    sections = list()
+    for section in CONFIG.sections():
+        if section != 'configuration':
+            sections.append(section)
 
-    pretty_print(projects)
+    projects = async.Pool(getProject, *sections, 
+                          CONFIG=CONFIG, browser_cache=browser_cache)
+
+    pretty_print(projects.ret)
