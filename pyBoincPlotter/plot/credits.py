@@ -61,12 +61,18 @@ if __name__ == '__main__':
     import config
     import browser
     import project
+    import async
 
     fig = plt.figure()
 
-    CONFIG, CACHE_DIR, BOINC_DIR = config.set_globals()
+    CONFIG, CACHE_DIR, _ = config.set_globals()
     cache = browser.Browser_file(CACHE_DIR)
     b = browser.BrowserSuper(cache)
-    projects = browser.getProjects(CONFIG, cache)
-    plot(fig, projects, b)
+
+    sections = CONFIG.projects()
+    projects = async.Pool(browser.getProject, *sections, 
+                          CONFIG=CONFIG, browser_cache=cache)
+    project.pretty_print(projects.ret)
+
+    plot(fig, projects.ret, b)
     raw_input('=== Press enter to exit ===\n')

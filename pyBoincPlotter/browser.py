@@ -321,12 +321,8 @@ if __name__ == '__main__':
     
     CONFIG, CACHE_DIR, _ = config.set_globals()
     browser_cache = Browser_file(CACHE_DIR)
+    sections = CONFIG.projects()
     
-    sections = list()
-    for section in CONFIG.sections():
-        if section != 'configuration':
-            sections.append(section)
-
     projects = async.Pool(getProject, *sections, 
                           CONFIG=CONFIG, browser_cache=browser_cache)
 

@@ -70,6 +70,13 @@ class MyConfigParser(ConfigParser.ConfigParser):
             name = username
         keyring.set_password(section, name, password)
 
+    def projects(self):
+        sections = list()
+        for section in self.sections():
+            if section != 'configuration':
+                sections.append(section)
+        return sections
+
 from version import appName, appAuthor
 from appdirs import AppDirs
 appDirs = AppDirs(appName, appAuthor)
