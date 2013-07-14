@@ -20,6 +20,9 @@ from threading import Thread
 from multiprocessing.pool import ThreadPool
 POOL_SIZE = 10
 
+import datetime
+datetime.datetime.strptime("", "") # avoids threading bug, see http://bugs.python.org/issue7980 
+
 class Async(Thread):
     """
     Thread class with the ability to return a value, example usage:

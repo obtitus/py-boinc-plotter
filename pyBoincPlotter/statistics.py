@@ -76,19 +76,14 @@ class ProjectStatistics_worldcommunitygrid(object):
         s += '{:>10}\n{:>10}\n{:>10}'.format(run, p, res)
         return s
 
-class ApplicationStatistics_worldcommunitygrid(object):
-    def __init__(self, runtime, points, results):
-        self.runtime = util.strToTimedelta(runtime)
-        self.points  = int(points)
-        self.results = int(results)
+class ApplicationStatistics(object):
+    def __init__(self, credit, results):
+        self.credit  = float(credit)
+        self.results = float(results)
     
     @property
-    def runtime_str(self):
-        return util.timedeltaToStr(self.runtime)
-
-    @property
-    def points_str(self):
-        return util.fmtNumber(self.points)
+    def credit_str(self):
+        return util.fmtNumber(self.credit)
 
     @property
     def results_str(self):
@@ -96,8 +91,21 @@ class ApplicationStatistics_worldcommunitygrid(object):
 
     def __str__(self):
         return ("{s.results_str} results returned, "
-                "{s.points_str} points, "
-                "runtime of {s.runtime_str}.").format(s=self)
+                "{s.credit_str} credit.").format(s=self)
+
+class ApplicationStatistics_worldcommunitygrid(ApplicationStatistics):
+    def __init__(self, runtime, credit, results):
+        ApplicationStatistics.__init__(self, credit, results)
+        self.runtime = util.strToTimedelta(runtime)
+    
+    @property
+    def runtime_str(self):
+        return util.timedeltaToStr(self.runtime)
+
+    def __str__(self):
+        sup = ApplicationStatistics.__str__(self)
+        return "{sup}, runtime of {s.runtime_str}.".format(sup=sup[:-1],
+                                                           s=self)
 
 class ProjectStatistics_primegrid(dict):
     def __str__(self):
@@ -115,7 +123,7 @@ class ProjectStatistics_primegrid(dict):
         # Only one of these will actually do something:
         append('Completed tests', '{} results returned')
         append('Completed tasks', '{} results returned')
-        append('Credit', '{points}')
+        append('Credit', '{} credits')
         
         # Remaining:
         for key in sorted(out):

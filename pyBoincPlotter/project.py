@@ -106,6 +106,7 @@ class Project(object):
 
     def appendStatistics(self, statistics):
         # TODO: consider keeping a reference to the object
+        logger.debug('Appending statistics "%s"', statistics)
         if self.statistics is None:
             self.statistics = str(statistics)
         else:

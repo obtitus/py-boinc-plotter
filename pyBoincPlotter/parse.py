@@ -188,9 +188,7 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
             
             app = self.project.appendApplication(name)
             Stat = statistics.ApplicationStatistics_worldcommunitygrid
-            app.appendStatistics(Stat(runtime=runtime,
-                                      points=points,
-                                      results=results))
+            app.appendStatistics(Stat(runtime, points, results))
 
         for b in tree.iter('Badge'):
             name = b.find('ProjectName').text
@@ -233,8 +231,14 @@ class HTMLParser_yoyo(HTMLParser_worldcommunitygrid):
         # This is ugly, but we need to bypass the superclass
         return HTMLParser.parseWorkunit(self, html)
 
+    def getBadges(self):
+        """Fills out project badges"""
+        html = self.browser.visitPage('home.php')
+        soup = BeautifulSoup(html)
+        self.badgeTabel(soup)
+
     def badgeTabel(self, soup):
-        """ Extracts projects table from www.rechenkraft.net/yoyo"""
+        """ Extracts projects table from www.rechenkraft.net/yoyo/home.php"""
         for t in soup.find_all('table'):
             badgeTable = t.table            # The table within a table
             if badgeTable != None:
@@ -248,14 +252,14 @@ class HTMLParser_yoyo(HTMLParser_worldcommunitygrid):
                             # Hack to avoid the "Projects in which you are participating" table.
                             continue
 
-                        badge = ''
-                        badgeURL = None
+                        app = self.project.appendApplication(name)
+                        app.appendStatistics(statistics.ApplicationStatistics(totalCredits,
+                                                                              workunits))
                         if data[3].a:
-                            badge = data[3].a.img['alt']
-                            badgeURL = data[3].a.img['src']
+                            b = data[3].a.img['alt']
+                            url = data[3].a.img['src']
 
-                        self.projects[name] = Project(name=name, points=totalCredits, results=workunits, 
-                                                      badge=badge, badgeURL=badgeURL)
+                            self.project.appendBadge(name, badge.Badge_yoyo(b, url))
 
 
 class HTMLParser_primegrid(HTMLParser):

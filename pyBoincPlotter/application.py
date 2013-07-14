@@ -47,7 +47,9 @@ class Application(object):
     
     def appendStatistics(self, statistics):
         # TODO: consider keeping a reference to the object
-        self.statistics += str(statistics)
+        #self.statistics += str(statistics)
+        assert self.statistics == ''
+        self.statistics = statistics
         
     # Name
     """Name should be on the form <long> (<short>), do a regexp when the name is set.
