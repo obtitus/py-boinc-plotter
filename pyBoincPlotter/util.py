@@ -1,5 +1,6 @@
 import os
 import re
+import datetime
 import logging
 logger = logging.getLogger('boinc.util')
 

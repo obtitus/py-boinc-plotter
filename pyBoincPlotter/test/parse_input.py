@@ -4,6 +4,9 @@ dataFolder = os.path.join(thisFolder, 'data')
 
 html_worldcommunitygrid = os.path.join(dataFolder, 
                                        'httpwwwworldcommunitygridorgmsviewBoincResultsdofilterDevice0filterStatus1projectId1pageNum1sortBysentTime.html')
+xml_worldcommunitygrid = os.path.join(dataFolder, 
+                                      'httpwwwworldcommunitygridorgverifyMemberdonametulluscode5bff34a7261500fd219a28a85bf8fa84.xml')
+
 html_yoyo = os.path.join(dataFolder, 'httpwwwrechenkraftnetyoyoresultsphpuserid34278offset0show_names1state0appid.html')
 html_primegrid = os.path.join(dataFolder, 'httpwwwprimegridcomresultsphpuserid222267offset0show_names1state0appid.html')
 

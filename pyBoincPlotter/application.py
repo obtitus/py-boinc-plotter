@@ -45,6 +45,10 @@ class Application(object):
         self.tasks.append(t)
         return t
     
+    def appendStatistics(self, statistics):
+        # TODO: consider keeping a reference to the object
+        self.statistics += str(statistics)
+        
     # Name
     """Name should be on the form <long> (<short>), do a regexp when the name is set.
     name_long returns <long> and name_short returns <short>"""

@@ -225,8 +225,7 @@ class BrowserSuper(object):
         parser = HTMLParser.getParser(self.section, browser=self, project=project)
         parser.parse(taskPage)
         try:
-            for app_name, badge in parser.getBadges():
-                project.appendBadge(app_name, badge)
+            parser.getBadges()
         except AttributeError as e:  # Parser does not implement getBadges
             logging.debug('no badge for %s, %s', self.section, e)
             pass

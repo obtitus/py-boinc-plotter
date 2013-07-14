@@ -2,6 +2,7 @@
 import re
 import logging
 logger = logging.getLogger('boinc.browser')
+import xml.etree.ElementTree
 
 # Non-standard python
 from bs4 import BeautifulSoup
@@ -148,9 +149,12 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
                 if reg:
                     return reg.group(1).strip()
 
-    def getStatistics(self):
-        """Gets the xml statistics for worldcommunitygrid"""
+    def getBadges(self):
         page = self.browser.visitStatistics()
+        self.parseStatistics(page)
+
+    def parseStatistics(self, page):
+        """Gets the xml statistics for worldcommunitygrid"""
         tree = xml.etree.ElementTree.fromstring(page)
 
         e = tree.find('Error')
@@ -172,27 +176,28 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
                   'Results', 'ResultsRank', 'ResultsPerDay']:
             i = member.iter(s).next()
             stat.append(i.text)
-        stat = statistics.Statistics_worldcommunitygrid(lastResult, *stat)
+        stat = statistics.ProjectStatistics_worldcommunitygrid(lastResult, *stat)
 
-        for project in tree.iter('Project'):
-            short = project.find('ProjectShortName').text
-            name = project.find('ProjectName').text
-            runtime = project.find('RunTime').text
-            points = project.find('Points').text
-            results = project.find('Results').text
-            projects[name] = Project(short, name, runtime, points, results)
+        for application in tree.iter('Project'):
+            short = application.find('ProjectShortName').text
+            name = application.find('ProjectName').text
+            runtime = application.find('RunTime').text
+            points = application.find('Points').text
+            results = application.find('Results').text
+            
+            app = self.project.appendApplication(name)
+            Stat = statistics.ApplicationStatistics_worldcommunitygrid
+            app.appendStatistics(Stat(runtime=runtime,
+                                      points=points,
+                                      results=results))
 
-        for badge in tree.iter('Badge'):
-            name = badge.find('ProjectName').text
-            badgeURL = badge.iter('Url').next().text        
-            t = badge.iter('Description').next().text
-            projects[name].badge = t
-            projects[name].badgeURL = badgeURL
-    #         for key in projects:
-    #             if projects[key].name == name:
-    #                 projects[key].badge += badge
+        for b in tree.iter('Badge'):
+            name = b.find('ProjectName').text
+            url = b.iter('Url').next().text
+            t = b.iter('Description').next().text
+            Badge = badge.Badge_worldcommunitygrid
+            self.project.appendBadge(name, Badge(name=t, url=url))
 
-        return statistics, projects
 
 class HTMLParser_yoyo(HTMLParser_worldcommunitygrid):
     def __init__(self, *args, **kwargs):
@@ -254,8 +259,13 @@ class HTMLParser_yoyo(HTMLParser_worldcommunitygrid):
 
 class HTMLParser_primegrid(HTMLParser):
     def getBadges(self):
-        """Generator for project badges, returns app name and Badge object"""
+        """Fills out project badges"""
         html = self.browser.visitPage('home.php')
+        for app_name, badge in self.parseHome(html):
+            self.project.appendBadge(app_name, badge)
+
+    def parseHome(self, html):
+        """yields app name and Badge object"""
         soup = BeautifulSoup(html)
         for row in soup.find_all('tr'):
             if row.td is None:

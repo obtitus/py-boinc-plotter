@@ -24,9 +24,9 @@ class TestWorldcommunitygrid(unittest.TestCase):
         print project
         self.assertEqual(len(project), 90)
 
-    def test_badge(self):
-        xml = self.browser.visitStatistics()
-        
+    # def test_badge(self):
+    #     xml = self.browser.visitStatistics()
+    #     assert False
 
 class TestYoyo(unittest.TestCase):
     def setUp(self):

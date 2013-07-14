@@ -32,6 +32,12 @@ class TestWorldcommunitygrid(unittest.TestCase):
                               u'7/4/13 10:43:39',  u'7/14/13 10:43:39', 
                               u'0.00 / 0.00', u'0.0\xa0/\xa00.0'])
 
+    def test_badge(self):
+        with open(parse_input.xml_worldcommunitygrid, 'r') as page:
+            self.parser.parseStatistics(page.read())
+            print self.parser.project
+            assert False
+
 class TestYoyo(unittest.TestCase):
     def setUp(self):
         CONFIG = config.setupConfigFile() # TODO: remove this requirement, write browser so that this can be None

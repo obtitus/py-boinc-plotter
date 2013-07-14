@@ -6,7 +6,7 @@ logger = logging.getLogger('boinc.statistics')
 from bs4 import BeautifulSoup
 # this project
 from loggerSetup import loggerSetup
-from util import fmtNumber
+import util
 
 class ProjectStatistics(object):
     def __init__(self, user_total_credit, user_expavg_credit,
@@ -34,16 +34,16 @@ class ProjectStatistics(object):
                           soup.host_expavg_credit.text)
 
     def __str__(self):
-        length_user = len(fmtNumber(self.user[0], '.0f')) # user will always be longer than host
-        length_host = len(fmtNumber(self.host[0], '.0f')) # user will always be longer than host
+        length_user = len(util.fmtNumber(self.user[0], '.0f')) # user will always be longer than host
+        length_host = len(util.fmtNumber(self.host[0], '.0f')) # user will always be longer than host
         
         def line(name, ix):
             return '{} user: {:>{u}}, host: {:>{h}}, {:>3.0f}%'.format(name,
-                                                                     fmtNumber(self.user[ix], '.0f'),
-                                                                     fmtNumber(self.host[ix], '.0f'),
-                                                                     self.host[ix]/self.user[ix]*100,
-                                                                     u = length_user,
-                                                                     h = length_host)
+                                                                       util.fmtNumber(self.user[ix], '.0f'),
+                                                                       util.fmtNumber(self.host[ix], '.0f'),
+                                                                       self.host[ix]/self.user[ix]*100,
+                                                                       u = length_user,
+                                                                       h = length_host)
         return "{}\n{}".format(line('Total credit, ', 0), 
                                line('Avg credit,   ', 1))
 
@@ -74,3 +74,18 @@ class ProjectStatistics_worldcommunitygrid(object):
                                                                          fmtNumber(self.resultsRank))
         s += '{:>10}\n{:>10}\n{:>10}'.format(run, p, res)
         return s
+
+class ApplicationStatistics_worldcommunitygrid(object):
+    def __init__(self, runtime, points, results):
+        self.runtime = util.strToTimedelta(runtime)
+        self.points  = int(points)
+        self.results = int(results)
+    
+    @property
+    def runtime_str(self):
+        return util.timedeltaToStr(self.runtime)
+
+    def __str__(self):
+        return ("{s.results} results returned"
+                "{s.points} points,"
+                "runtime of {s.runtime_str}.").format(s=self)
