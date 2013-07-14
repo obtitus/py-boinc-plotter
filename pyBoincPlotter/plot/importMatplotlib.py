@@ -17,8 +17,6 @@
 # 
 # END LICENCE
 import datetime
-import logging
-logger = logging.getLogger('boinc.importMatplotlib')
 
 try:
     import numpy as np
@@ -41,6 +39,9 @@ except ImportError as e:
     print e
 
 def dayFormat(ax, month=False):
+    import logging
+    logger = logging.getLogger('boinc.importMatplotlib')
+
     if month:
         ax.xaxis.set_major_locator(matplotlib.dates.MonthLocator(interval=1))
     else:
