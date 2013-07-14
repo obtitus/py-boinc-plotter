@@ -116,7 +116,7 @@ class Project(object):
             
     def __str__(self):
         endl = '\n'
-        ret = ["== {} ==".format(self.name)]
+        ret = ["== {} ==".format(self.name.title())]
         for prop in [self.settings, self.statistics]:
             if prop != None:
                 ret.append(str(prop))
