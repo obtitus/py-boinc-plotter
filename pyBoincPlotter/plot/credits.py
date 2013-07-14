@@ -63,6 +63,9 @@ if __name__ == '__main__':
     import project
     import async
 
+    from loggerSetup import loggerSetup
+    loggerSetup(logging.INFO)
+
     fig = plt.figure()
 
     CONFIG, CACHE_DIR, _ = config.set_globals()

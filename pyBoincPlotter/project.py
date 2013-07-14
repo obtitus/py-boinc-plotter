@@ -81,15 +81,16 @@ class Project(object):
     # 
     # HTML related
     # 
-    def appendApplication(self, name_long):
+    def appendApplication(self, name):
+        app = Application(name=name)
+        name_long = app.name_long
         if not(name_long in self.applications):
-            a = Application(name=name_long)
-            self.applications[name_long] = a
+            self.applications[name_long] = app
 
         return self.applications[name_long]
 
     def appendBadge(self, app_name, badge):
-        app = self.appendApplication(name_long=app_name)
+        app = self.appendApplication(app_name)
         logger.debug('Appending badge %s, to %s', badge, app_name)
         app.badge = badge
         return app
