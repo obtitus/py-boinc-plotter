@@ -41,7 +41,7 @@ def plot(fig, projects, browser):
         for key in sorted(project.applications):
             app = project.applications[key]
             badge = app.badge
-            if badge == '':
+            if not(hasattr(badge, 'value')):
                 continue
 
             kwargs = dict(color=badge.color, 

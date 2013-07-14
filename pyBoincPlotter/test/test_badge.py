@@ -27,7 +27,7 @@ class TestBadge(unittest.TestCase):
         self.assertEqual(self.badge.name, name)
         self.assertEqual(self.badge.url, url)
         self.assertEqual(self.badge.color, color)
-        self.assertEqual(self.badge.value, value)
+        self.assertEqual(self.badge.runtime, value)
 
     def test_silver(self):
         self.worldcommunitygrid('Silver Level Badge (45 days) for The Clean Energy Project - Phase 2',

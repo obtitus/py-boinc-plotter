@@ -80,7 +80,7 @@ class Badge_worldcommunitygrid(Badge):
             return 'k'
         
     @property
-    def value(self):
+    def runtime(self):
         reg = self.reg
         if reg:
             if reg.group(3) == 'years':
