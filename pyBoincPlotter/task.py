@@ -387,7 +387,7 @@ class Task_web_yoyo(Task_web):
         name = data[0]
         sentTime = data[1]      # Not used
         deadline = data[2]
-        state = ",".join(data[3:6])
+        state = " ".join(data[3:6])
         CPUtime = data[6]
         
         claimedCredit = data[7]
