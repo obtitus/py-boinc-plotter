@@ -65,13 +65,13 @@ class ProjectStatistics_worldcommunitygrid(object):
         s = 'Worldcommunitygrid.org\nLast result returned: {0}\n'.format(self.lastResult)
         run = 'Run time {0:>20} total, {1:>10} per day (#{2})'.format(self.runtime, 
                                                                       self.runtimePerDay, 
-                                                                      fmtNumber(self.runtimeRank))
-        p   = 'Points   {0:>20} total, {1:>10.3g} per day (#{2})'.format(fmtNumber(self.points), 
+                                                                      util.fmtNumber(self.runtimeRank))
+        p   = 'Points   {0:>20} total, {1:>10.3g} per day (#{2})'.format(util.fmtNumber(self.points), 
                                                                          self.pointsPerDay, 
-                                                                         fmtNumber(self.pointsRank))
-        res = 'Results  {0:>20} total, {1:>10.3g} per day (#{2})'.format(fmtNumber(self.results), 
+                                                                         util.fmtNumber(self.pointsRank))
+        res = 'Results  {0:>20} total, {1:>10.3g} per day (#{2})'.format(util.fmtNumber(self.results), 
                                                                          self.resultsPerDay, 
-                                                                         fmtNumber(self.resultsRank))
+                                                                         util.fmtNumber(self.resultsRank))
         s += '{:>10}\n{:>10}\n{:>10}'.format(run, p, res)
         return s
 
@@ -85,7 +85,15 @@ class ApplicationStatistics_worldcommunitygrid(object):
     def runtime_str(self):
         return util.timedeltaToStr(self.runtime)
 
+    @property
+    def points_str(self):
+        return util.fmtNumber(self.points)
+
+    @property
+    def results_str(self):
+        return util.fmtNumber(self.results)
+
     def __str__(self):
-        return ("{s.results} results returned"
-                "{s.points} points,"
+        return ("{s.results_str} results returned "
+                "{s.points_str} points, "
                 "runtime of {s.runtime_str}.").format(s=self)

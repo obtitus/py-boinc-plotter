@@ -35,8 +35,14 @@ class TestWorldcommunitygrid(unittest.TestCase):
     def test_badge(self):
         with open(parse_input.xml_worldcommunitygrid, 'r') as page:
             self.parser.parseStatistics(page.read())
-            print self.parser.project
-            assert False
+            apps = self.parser.project.applications
+            for key in apps:
+                print key
+            
+            self.assertEqual('Silver Level Badge (45 days) for The Clean Energy Project - Phase 2',
+                             str(apps['The Clean Energy Project - Phase 2'].badge))
+            self.assertEqual('Gold Level Badge (90 days) for Human Proteome Folding - Phase 2',
+                             str(apps['Human Proteome Folding - Phase 2'].badge))
 
 class TestYoyo(unittest.TestCase):
     def setUp(self):
