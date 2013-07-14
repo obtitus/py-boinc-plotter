@@ -104,6 +104,13 @@ class Project(object):
                 ret.append(b)
         return ret
 
+    def appendStatistics(self, statistics):
+        # TODO: consider keeping a reference to the object
+        if self.statistics is None:
+            self.statistics = str(statistics)
+        else:
+            self.statistics += '\n' + str(statistics)
+        
     def setName(self, name):
         self.name = name.replace('https://', '')
         self.name = self.name.replace('http://', '')

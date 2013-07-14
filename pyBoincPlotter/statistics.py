@@ -1,5 +1,6 @@
 # Standard import
 import datetime
+import collections
 import logging
 logger = logging.getLogger('boinc.statistics')
 # non standard
@@ -94,6 +95,37 @@ class ApplicationStatistics_worldcommunitygrid(object):
         return util.fmtNumber(self.results)
 
     def __str__(self):
-        return ("{s.results_str} results returned "
+        return ("{s.results_str} results returned, "
                 "{s.points_str} points, "
                 "runtime of {s.runtime_str}.").format(s=self)
+
+class ProjectStatistics_primegrid(dict):
+    def __str__(self):
+        out = dict(self)
+        ret = []
+        def append(key, fmt='{}'):
+            try:
+                value = out[key]
+                ret.append(fmt.format(value))
+                del out[key]
+            except KeyError:
+                pass
+
+        append('name')
+        # Only one of these will actually do something:
+        append('Completed tests', '{} results returned')
+        append('Completed tasks', '{} results returned')
+        append('Credit', '{points}')
+        
+        # Remaining:
+        for key in sorted(out):
+            try:
+                if out[key] == '':
+                    continue
+                elif float(out[key]) == 0:
+                    continue
+            except:
+                pass
+
+            ret.append("{} {}".format(key, self[key]))
+        return ", ".join(ret)

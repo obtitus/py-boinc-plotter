@@ -261,12 +261,14 @@ class HTMLParser_primegrid(HTMLParser):
     def getBadges(self):
         """Fills out project badges"""
         html = self.browser.visitPage('home.php')
-        for app_name, badge in self.parseHome(html):
+        soup = BeautifulSoup(html)
+        for app_name, badge in self.parseHome(soup):
             self.project.appendBadge(app_name, badge)
 
-    def parseHome(self, html):
+        self.parseStatistics(soup)
+
+    def parseHome(self, soup):
         """yields app name and Badge object"""
-        soup = BeautifulSoup(html)
         for row in soup.find_all('tr'):
             if row.td is None:
                 continue
@@ -293,6 +295,33 @@ class HTMLParser_primegrid(HTMLParser):
                                   url=url)
         self.logger.debug('Badge %s', b)
         return b.app_name, b
+
+    def parseStatistics(self, soup):
+        """Tries to parse the application table at home.php"""
+        table = soup.find_all('table')[-2] # Hack
+        stat = None
+
+        for td in table.find_all('td'):
+            class_ = td.get('class')
+            if class_ == ['heading']:
+                if stat is not None:
+                    self.project.appendStatistics(stat) # Append previous
+
+                stat = statistics.ProjectStatistics_primegrid()
+                stat['name'] = td.text
+
+            elif class_ == ['fieldname']:
+                fieldname = td.text
+            elif class_ == ['fieldvalue']:
+                fieldvalue = td.text
+                stat[fieldname] = fieldvalue
+
+        if stat is not None:
+            self.project.appendStatistics(stat) # Append last
+
+        # for app in self.project.applications:
+        #     print self.project.applications[app]
+        # assert False
 
 class HTMLParser_wuprop(HTMLParser):
     def badgeTabel(self, soup):

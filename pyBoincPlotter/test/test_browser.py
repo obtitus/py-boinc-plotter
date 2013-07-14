@@ -24,9 +24,17 @@ class TestWorldcommunitygrid(unittest.TestCase):
         print project
         self.assertEqual(len(project), 90)
 
-    # def test_badge(self):
-    #     xml = self.browser.visitStatistics()
-    #     assert False
+    def test_stats(self):
+        project = self.browser.parse()
+        apps = project.applications
+        self.assertEqual(str(apps['Computing for Clean Water'].statistics),
+                         '51 results returned, 20 708 points, runtime of 5 days, 19:54:04.')
+        self.assertEqual(str(apps['Computing for Clean Water'].badge), '')
+
+        self.assertEqual(str(apps['GO Fight Against Malaria'].statistics),
+                         '317 results returned, 227 151 points, runtime of 54 days, 13:01:58.')
+        self.assertEqual(str(apps['GO Fight Against Malaria'].badge),
+                         'Silver Level Badge (45 days) for GO Fight Against Malaria')
 
 class TestYoyo(unittest.TestCase):
     def setUp(self):
@@ -51,6 +59,20 @@ class TestPrimegrid(unittest.TestCase):
         self.assertEqual(str(p.badge[0]), 'PPS Sieve Bronze: More than 20,000 credits (30,339)')
         self.assertEqual(p.badge[1].url, 'http://www.primegrid.com/img/badges/woo_bronze.png')
         self.assertEqual(p.badge[0].url, 'http://www.primegrid.com/img/badges/sr2sieve_pps_bronze.png')
+
+    def test_stats(self):
+        project = self.browser.parse()
+        self.assertEqual(str(project.statistics), """321 Prime Search tasks (LLR), 4 results returned, Credit 6,259.83
+LLR Woodall tests, 4 results returned, Credit 17,517.29
+Proth Prime Search (sieve) tasks, 9 results returned, Credit 30,339.00, Factors found 25 (avg. 2.7778/task)
+Proth Prime Search (PPS & PPSE) tasks, 23 results returned, Credit 1,120.97
+Sophie Germain Prime Search tasks, 18 results returned, Credit 718.44
+The Riesel Problem (Sieve) tasks, 4 results returned, Credit 2,293.62, Factors found 1 (avg. 0.25/task)""")
+
+        # self.assertEqual(str(apps['Woodall'].statistics),
+        #                  '4 results returned, 17 517.29 credits')
+        # self.assertEqual(str(apps['Woodall'].statistics),
+        #                  '4 results returned, 17 517.29 credits')
 
 class TestMindmodeling(unittest.TestCase):
     def setUp(self):
