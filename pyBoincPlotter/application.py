@@ -91,7 +91,7 @@ class Application(object):
         self.name_long = name_long.strip()
 
     def __str__(self):
-        ret = ["= {} =".format(self.name)]
+        ret = ["= {} = {}".format(self.name, self.statistics)]
         for t in self.tasks:
             ret.append(str(t))
         return "\n".join(ret)

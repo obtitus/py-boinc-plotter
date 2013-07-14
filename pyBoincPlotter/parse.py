@@ -9,6 +9,7 @@ from bs4 import BeautifulSoup
 import task
 import plot.badge as badge
 import async
+import statistics
 
 class HTMLParser(object):
     def __init__(self, browser, project):
@@ -147,6 +148,52 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
                 if reg:
                     return reg.group(1).strip()
 
+    def getStatistics(self):
+        """Gets the xml statistics for worldcommunitygrid"""
+        page = self.browser.visitStatistics()
+        tree = xml.etree.ElementTree.fromstring(page)
+
+        e = tree.find('Error')
+        if e:
+            print e.text
+            return None, None
+
+        try:
+            member = tree.iter('MemberStat').next()
+        except StopIteration:
+            print 'Something is wrong with xml statisics, correct username and code?'
+            return None, None
+        lastResult = member.find('LastResult').text
+        lastResult = lastResult.replace('T', ' ')
+
+        stat = list()
+        for s in ['RunTime', 'RunTimeRank', 'RunTimePerDay',
+                  'Points', 'PointsRank', 'PointsPerDay',
+                  'Results', 'ResultsRank', 'ResultsPerDay']:
+            i = member.iter(s).next()
+            stat.append(i.text)
+        stat = statistics.Statistics_worldcommunitygrid(lastResult, *stat)
+
+        for project in tree.iter('Project'):
+            short = project.find('ProjectShortName').text
+            name = project.find('ProjectName').text
+            runtime = project.find('RunTime').text
+            points = project.find('Points').text
+            results = project.find('Results').text
+            projects[name] = Project(short, name, runtime, points, results)
+
+        for badge in tree.iter('Badge'):
+            name = badge.find('ProjectName').text
+            badgeURL = badge.iter('Url').next().text        
+            t = badge.iter('Description').next().text
+            projects[name].badge = t
+            projects[name].badgeURL = badgeURL
+    #         for key in projects:
+    #             if projects[key].name == name:
+    #                 projects[key].badge += badge
+
+        return statistics, projects
+
 class HTMLParser_yoyo(HTMLParser_worldcommunitygrid):
     def __init__(self, *args, **kwargs):
         super(HTMLParser_yoyo, self).__init__(*args, **kwargs)
@@ -249,50 +296,3 @@ class HTMLParser_wuprop(HTMLParser):
                 runningTime = float(data[2].text)*60*60
                 pending = float(data[3].text)*60*60
                 self.projects[application] = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
-
-
-def parse_worldcommunitygrid_xml(page):
-    # TODO: convert to beautiful-soup?
-    tree = xml.etree.ElementTree.fromstring(page)
-
-    e = tree.find('Error')
-    if e:
-        print e.text
-        return None, None
-
-    try:
-        member = tree.iter('MemberStat').next()
-    except StopIteration:
-        print 'Something is wrong with xml statisics, correct username and code?'
-        return None, None
-    lastResult = member.find('LastResult').text
-    lastResult = lastResult.replace('T', ' ')
-
-    stat = list()
-    for s in ['RunTime', 'RunTimeRank', 'RunTimePerDay',
-              'Points', 'PointsRank', 'PointsPerDay',
-              'Results', 'ResultsRank', 'ResultsPerDay']:
-        i = member.iter(s).next()
-        stat.append(i.text)
-    statistics = Statistics_worldcommunitygrid(lastResult, *stat)
-    
-    projects = dict()
-    for project in tree.iter('Project'):
-        short = project.find('ProjectShortName').text
-        name = project.find('ProjectName').text
-        runtime = project.find('RunTime').text
-        points = project.find('Points').text
-        results = project.find('Results').text
-        projects[name] = Project(short, name, runtime, points, results)
-
-    for badge in tree.iter('Badge'):
-        name = badge.find('ProjectName').text
-        badgeURL = badge.iter('Url').next().text        
-        t = badge.iter('Description').next().text
-        projects[name].badge = t
-        projects[name].badgeURL = badgeURL
-#         for key in projects:
-#             if projects[key].name == name:
-#                 projects[key].badge += badge
-                
-    return statistics, projects

@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from loggerSetup import loggerSetup
 from util import fmtNumber
 
-class Statistics(object):
+class ProjectStatistics(object):
     def __init__(self, user_total_credit, user_expavg_credit,
                  host_total_credit, host_expavg_credit):
         self.user = (float(user_total_credit), float(user_expavg_credit))
@@ -24,10 +24,11 @@ class Statistics(object):
         from the boinc rpc
         """        
         soup = BeautifulSoup(xml, "xml")
-        return Statistics.createFromSoup(soup)
+        return ProjectStatistics.createFromSoup(soup)
+
     @staticmethod
     def createFromSoup(soup):
-        return Statistics(soup.user_total_credit.text,
+        return ProjectStatistics(soup.user_total_credit.text,
                           soup.user_expavg_credit.text,
                           soup.host_total_credit.text,
                           soup.host_expavg_credit.text)
@@ -46,7 +47,7 @@ class Statistics(object):
         return "{}\n{}".format(line('Total credit, ', 0), 
                                line('Avg credit,   ', 1))
 
-class Statistics_worldcommunitygrid(object):
+class ProjectStatistics_worldcommunitygrid(object):
     def __init__(self, lastResult, runtime, runtimeRank, runtimePerDay, points, 
                  pointsRank, pointsPerDay, results, resultsRank, resultsPerDay):
         self.runtime       = datetime.timedelta(seconds=float(runtime))

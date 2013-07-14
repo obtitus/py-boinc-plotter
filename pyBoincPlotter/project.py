@@ -1,6 +1,5 @@
 # Standard python
 import re
-import collections
 import logging
 logger = logging.getLogger('boinc.project')
 # non standard
@@ -8,29 +7,10 @@ from bs4 import BeautifulSoup
 # This project:
 from application import Application
 from task import Task_local, adjustColumnSpacing
-from statistics import Statistics
+from statistics import ProjectStatistics
+from settings import Settings
 
 class Project(object):
-    class Settings(collections.namedtuple('Settings', ['resource_share', 'dont_request_more_work', 'sched_priority'])):
-        """
-        Some of the project settings
-        """
-        @staticmethod
-        def createFromSoup(soup):
-            resource_share = float(soup.resource_share.text)
-            dont_request_more_work = soup.dont_request_more_work != None
-            sched_priority = float(soup.sched_priority.text)
-            return Project.Settings(resource_share=resource_share,
-                                    dont_request_more_work=dont_request_more_work,
-                                    sched_priority=sched_priority)
-
-        def __str__(self):
-            ret = 'Resource share {:.3g}%, sched. priority {}'.format(self.resource_share,
-                                                                      self.sched_priority)
-            if self.dont_request_more_work:
-                ret += ", Don't request more work"
-            return ret
-            
     def __init__(self, url, name=None, 
                  user=None, statistics=None, settings=None):
         self.name = name
@@ -43,7 +23,7 @@ class Project(object):
         self.statistics = statistics
         self.settings = settings
 
-        self._appNames = dict() # key is name and value is application name
+        self._appNames = dict() # key is task name and value is application name
 
     # 
     # XML related
@@ -58,9 +38,9 @@ class Project(object):
         from the boinc rpc
         """        
         soup = BeautifulSoup(xml, "xml")
-        settings = Project.Settings.createFromSoup(soup)
+        settings = Settings.createFromSoup(soup)
         # Get the statistics
-        s = Statistics.createFromSoup(soup)
+        s = ProjectStatistics.createFromSoup(soup)
         url = soup.master_url.text
         name = soup.project_name.text
         return Project(url=url, name=name,
