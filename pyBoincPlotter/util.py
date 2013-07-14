@@ -4,7 +4,7 @@ import datetime
 import logging
 logger = logging.getLogger('boinc.util')
 
-def fmtNumber(x, fmt=''):
+def fmtNumber(x, fmt='.0f'):
     """ Formats large numbers
     """
     #return locale.format(fmt, x)

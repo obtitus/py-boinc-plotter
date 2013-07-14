@@ -177,6 +177,7 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
             i = member.iter(s).next()
             stat.append(i.text)
         stat = statistics.ProjectStatistics_worldcommunitygrid(lastResult, *stat)
+        self.project.appendStatistics(stat)
 
         for application in tree.iter('Project'):
             short = application.find('ProjectShortName').text

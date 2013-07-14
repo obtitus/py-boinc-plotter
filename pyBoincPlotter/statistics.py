@@ -64,15 +64,15 @@ class ProjectStatistics_worldcommunitygrid(object):
 
     def __str__(self):
         s = 'Worldcommunitygrid.org\nLast result returned: {0}\n'.format(self.lastResult)
-        run = 'Run time {0:>20} total, {1:>10} per day (#{2})'.format(self.runtime, 
+        run = 'Run time {0:>20} total (#{2}), {1:>10} per day'.format(self.runtime, 
                                                                       self.runtimePerDay, 
                                                                       util.fmtNumber(self.runtimeRank))
-        p   = 'Points   {0:>20} total, {1:>10.3g} per day (#{2})'.format(util.fmtNumber(self.points), 
-                                                                         self.pointsPerDay, 
-                                                                         util.fmtNumber(self.pointsRank))
-        res = 'Results  {0:>20} total, {1:>10.3g} per day (#{2})'.format(util.fmtNumber(self.results), 
-                                                                         self.resultsPerDay, 
-                                                                         util.fmtNumber(self.resultsRank))
+        p   = 'Points   {0:>20} total (#{2}), {1:>10} per day'.format(util.fmtNumber(self.points), 
+                                                                      util.fmtNumber(self.pointsPerDay, '.1f'), 
+                                                                      util.fmtNumber(self.pointsRank))
+        res = 'Results  {0:>20} total (#{2}), {1:>10} per day'.format(util.fmtNumber(self.results), 
+                                                                      util.fmtNumber(self.resultsPerDay, '.1f'), 
+                                                                      util.fmtNumber(self.resultsRank))
         s += '{:>10}\n{:>10}\n{:>10}'.format(run, p, res)
         return s
 
