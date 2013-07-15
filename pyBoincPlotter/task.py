@@ -106,7 +106,7 @@ class Task(object):
             return self.name
     
     def setName(self, value):
-        self.name = value
+        self.name = value.replace(' ', '')
 
     @property
     def device_str(self):

@@ -26,16 +26,19 @@ def plot(fig, project, browser):
         logger.debug('runtime %s, type(app.runtime) %s', app.runtime, type(app.runtime))
         ax.bar(ix, app.runtime.total_seconds(), **kwargs)
 
+        labels.append(str(app.name))
+        ix += 1
+
+        if badge == '':
+            continue
+
         try:
-            showImage(ax, browser, ix,
+            showImage(ax, browser, ix-1,
                       value=badge.runtime, color=badge.color, url=badge.url,
                       frameon=False)
         except Exception as e:
             logger.error('Badge image failed with "%s"', e)
         
-        labels.append(str(app.name))
-        ix += 1
-
     pos = np.arange(ix)
     plt.xticks(pos+width/2, labels, rotation=17, horizontalalignment='right')
     ax.set_xlabel('Application')
@@ -45,7 +48,7 @@ def plot(fig, project, browser):
 
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
-    loggerSetup(logging.INFO)
+    loggerSetup(logging.DEBUG)
     
     import config
     import browser
@@ -54,17 +57,23 @@ if __name__ == '__main__':
 
     fig = plt.figure()
 
-    projects = boinccmd.get_state()
-    for p in projects:
-        print 'URL', p.url
+    local_projects = boinccmd.get_state()
+    print 'LOCAL'
+    project.pretty_print(local_projects)
 
     CONFIG, CACHE_DIR, _ = config.set_globals()
     cache = browser.Browser_file(CACHE_DIR)
     b = browser.BrowserSuper(cache)
 
-    p = browser.getProject('worldcommunitygrid.org', CONFIG, cache)
-    print 'URL', p.url
-    project.pretty_print([p])
+    web_p = browser.getProject('worldcommunitygrid.org', CONFIG, cache)
     
-    plot(fig, p, b)
+    web_projects = dict()
+    web_projects[web_p.url] = web_p
+    
+    project.merge(local_projects, web_projects)
+    print 'MERGED'
+    print web_projects
+    project.pretty_print(web_projects)
+    
+    plot(fig, web_p, b)
     raw_input('=== Press enter to exit ===\n')

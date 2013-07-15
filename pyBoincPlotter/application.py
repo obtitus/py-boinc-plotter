@@ -118,3 +118,24 @@ class Application(object):
         Number of tasks
         """
         return len(self.tasks)
+
+def mergeApplications(local_app, web_app):
+    """Tries to merge local and web information by adding information from local to the web application"""
+    local_tasks = list(local_app.tasks)
+    web_tasks = web_app.tasks
+    ix = 0
+    while ix < len(local_tasks):
+        logger.debug('looking for %s', local_tasks[ix].name)
+        #if local_task[ix] in web_app.tasks:
+        for jx in range(len(web_tasks)):
+            logger.debug('is it %s', web_tasks[jx].name)
+            if web_tasks[jx].name.startswith(local_tasks[ix].name):
+                logger.debug('Found it, replacing %s', web_tasks[ix])
+                web_tasks[jx] = local_tasks[ix] # Local has more info then web
+                del local_tasks[ix]
+                break
+        else:
+            ix += 1
+
+    for remaining_task in local_tasks:
+        web_app.tasks.append(remaining_task)

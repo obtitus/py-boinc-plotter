@@ -5,7 +5,7 @@ logger = logging.getLogger('boinc.project')
 # non standard
 from bs4 import BeautifulSoup
 # This project:
-from application import Application
+from application import Application, mergeApplications
 from task import Task_local, adjustColumnSpacing
 from statistics import ProjectStatistics
 from settings import Settings
@@ -157,6 +157,31 @@ class Project(object):
             for task in self.applications[key].tasks:
                 yield task
 
+def merge(local_projects, 
+          web_projects):
+    """Tries to merge local and web information by adding information from local to the web dictionary"""
+    local_projects = dict(local_projects)
+    mergeDicts(local_projects, web_projects, mergeProject)
+
+def mergeProject(local_project, web_project):
+    local_apps = dict(local_project.applications)
+    web_apps = web_project.applications
+    mergeDicts(local_apps, web_apps, mergeApplications)
+
+def mergeDicts(local_dict, web_dict, merge):
+    """Helper function for above merge rutines"""
+    logging.debug('merging with %s, ("%s", "%s")', merge, 
+                  local_dict, web_dict)
+    for key in local_dict.keys():
+        if key in web_dict:
+            merge(local_dict[key],
+                  web_dict[key])
+            del local_dict[key]
+
+    for remaining_key in local_dict:
+        web_dict[remaining_key] = local_dict[remaining_key]
+
+    
 def pretty_print(projects, show_empty=False):
     for p in projects.values():
         for app in p.applications:
