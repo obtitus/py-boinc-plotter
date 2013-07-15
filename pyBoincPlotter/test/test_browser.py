@@ -21,8 +21,20 @@ class TestWorldcommunitygrid(unittest.TestCase):
 
     def test_parse(self):
         project = self.browser.parse()
-        print project
         self.assertEqual(len(project), 90)
+
+        apps = project.applications
+        for key, app in apps.items():
+            print 'KEY', key
+            for t in app.tasks:
+                print t, t.done()
+            print 'TIME', app.pendingTime()
+
+        # These are from the web and therefore should give 0
+        self.assertEqual(apps['Computing for Clean Water'].pendingTime(),
+                         (0, 0, 0))
+        self.assertEqual(apps['The Clean Energy Project - Phase 2'].pendingTime(),
+                         (0, 0, 0))
 
     def test_stats(self):
         project = self.browser.parse()

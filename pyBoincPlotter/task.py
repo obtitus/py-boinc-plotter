@@ -291,6 +291,26 @@ class Task_local(Task):
     def setActive(self, state):
         self.active = int(state)
 
+    def pendingTime(self):
+        """Returns seconds for pending, started
+        and task waiting for validation.
+        """
+        def getSeconds(task):
+            ret = task.remainingCPUtime + task.elapsedCPUtime
+            return ret.total_seconds()
+
+        logger.debug('pendingTime, task = %s', self)
+        if self.done():
+            logger.debug('adding to validation')
+            return (0, 0, getSeconds(self))
+        elif self.elapsedCPUtime != datetime.timedelta(0):
+            logger.debug('adding to running')
+            return (0, getSeconds(self), 0)
+        else:
+            logger.debug('adding to pending')
+            return (getSeconds(self), 0, 0)
+
+
 class Task_web(Task):
     fmt_date = '%d %b %Y %H:%M:%S UTC'
 

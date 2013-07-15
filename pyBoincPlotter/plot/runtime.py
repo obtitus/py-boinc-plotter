@@ -6,7 +6,8 @@ import logging
 logger = logging.getLogger('boinc.plot.runtime')
 # This project
 from importMatplotlib import *
-
+                
+        
 def plot(fig, project, browser):
     ax = fig.add_subplot(111)
     width = 0.75
@@ -23,22 +24,28 @@ def plot(fig, project, browser):
         except:
             pass
 
-        logger.debug('runtime %s, type(app.runtime) %s', app.runtime, type(app.runtime))
-        ax.bar(ix, app.runtime.total_seconds(), **kwargs)
+        height = app.runtime.total_seconds()
+        ax.bar(ix, height, **kwargs)
+
+        if badge != '':
+            try:
+                showImage(ax, browser, ix,
+                          value=badge.runtime, color=badge.color, url=badge.url,
+                          frameon=False)
+            except Exception as e:
+                logger.error('Badge image failed with "%s"', e)
+
+        pending, running, validation = app.pendingTime()
+        logger.debug('app %s, pending, running, validation = %s, %s, %s', 
+                     app.name, pending, running, validation)
+
+        for t, alpha in ((pending, 0.5), (running, 0.25), (validation, 0.125)):
+            ax.bar(ix, t, bottom=height, alpha=alpha, **kwargs)
+            height += t
 
         labels.append(str(app.name))
         ix += 1
 
-        if badge == '':
-            continue
-
-        try:
-            showImage(ax, browser, ix-1,
-                      value=badge.runtime, color=badge.color, url=badge.url,
-                      frameon=False)
-        except Exception as e:
-            logger.error('Badge image failed with "%s"', e)
-        
     pos = np.arange(ix)
     plt.xticks(pos+width/2, labels, rotation=17, horizontalalignment='right')
     ax.set_xlabel('Application')
@@ -48,7 +55,7 @@ def plot(fig, project, browser):
 
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
-    loggerSetup(logging.DEBUG)
+    loggerSetup(logging.INFO)
     
     import config
     import browser

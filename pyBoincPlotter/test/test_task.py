@@ -37,8 +37,8 @@ class TestTask_local(unittest.TestCase):
                                  memUsage=memUsage)
 
     def test_name(self):
-        self.assertEqual(self.t.name, 'foobar 123451234512345')
-        self.assertEqual(self.t.nameShort_str, 'foobar 12345123...')
+        self.assertEqual(self.t.name, 'foobar123451234512345')
+        self.assertEqual(self.t.nameShort_str, 'foobar123451234...')
 
     def test_device(self):
         self.assertEqual(self.t.device_str, 'this')
@@ -84,14 +84,17 @@ class TestTask_local(unittest.TestCase):
     def test_xml(self):
         self.t = task.Task_local.createFromXML(parse_input.workunit_ready_to_run)
         self.assertEqual(self.t.state_str, 'ready to run')
+        self.assertEqual(self.t.pendingTime(), (28329.146516, 0, 0))
 
     def test_xml2(self):
         self.t = task.Task_local.createFromXML(parse_input.workunit_running)
         self.assertEqual(self.t.state_str, 'running')
+        self.assertEqual(self.t.pendingTime(), (0, 14626.742914, 0))
 
     def test_xml3(self):
         self.t = task.Task_local.createFromXML(parse_input.workunit_suspended)
         self.assertEqual(self.t.state_str, 'suspended')
+        self.assertEqual(self.t.pendingTime(), (0, 384436.545728, 0))
 
 class TestTask_web(TestTask_local):
     def setUp(self, claimedCredit='0', grantedCredit='0',

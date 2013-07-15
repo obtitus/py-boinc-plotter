@@ -1,5 +1,6 @@
 # Standard import
 import re
+import datetime
 import logging
 logger = logging.getLogger('boinc.application')
 
@@ -118,6 +119,27 @@ class Application(object):
         Number of tasks
         """
         return len(self.tasks)
+
+    def pendingTime(self):
+        """Returns total seconds for
+        pending,
+        started
+        and tasks waiting for validation.
+        """
+        pending = 0
+        running = 0
+        validation = 0
+        for task in self.tasks:
+            try:
+                (p, r, v) = task.pendingTime()
+                pending    += p
+                running    += r
+                validation += v 
+            except AttributeError:
+                pass
+
+        return pending, running, validation
+
 
 def mergeApplications(local_app, web_app):
     """Tries to merge local and web information by adding information from local to the web application"""
