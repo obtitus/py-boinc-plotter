@@ -16,7 +16,7 @@ def plot(fig, projects):
     names = list()
     ix = 0
     totalRemaining = datetime.timedelta(0)
-    for p in projects:
+    for key, p in sorted(projects.items()):
         for task in p.tasks():
             r = task.remainingCPUtime.total_seconds()
             d = (task.deadline - now).total_seconds()

@@ -158,11 +158,11 @@ class Project(object):
                 yield task
 
 def pretty_print(projects, show_empty=False):
-    for p in projects:
+    for p in projects.values():
         for app in p.applications:
             tasks = p.applications[app].tasks
             adjustColumnSpacing(tasks)
 
-    for p in projects:
+    for key, p in sorted(projects.items()):
         if len(p) != 0 or show_empty:
             print str(p) + '\n'

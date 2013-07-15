@@ -53,7 +53,7 @@ class Boinccmd(socket):
                 self.previous_data += data[line_ix][:ix]
 
 def get_state(command='get_state', printRaw=False):
-    projects = list()
+    projects = dict()
     with Boinccmd() as s:
         currentBlock = []
         inBlock = False
@@ -68,7 +68,7 @@ def get_state(command='get_state', printRaw=False):
             reset = True
             if '</project>' in line:
                 project = Project.createFromXML("\n".join(currentBlock))
-                projects.append(project)
+                projects[project.url] = project
                 logger.debug('project %s', project)
             elif '</app>' in line:
                 application = project.appendApplicationFromXML("\n".join(currentBlock))

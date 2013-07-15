@@ -13,10 +13,9 @@ def plot(fig, projects, browser):
     width = 0.75
     labels = list()
     ix = 0
-    for project in projects:
+    for key, project in sorted(projects.items()):
         frameon = project.name == 'rechenkraft.net_yoyo'
-        for key in sorted(project.applications):
-            app = project.applications[key]
+        for key, app in sorted(project.applications.items()):
             badge = app.badge
             if not(hasattr(badge, 'value')):
                 continue
@@ -43,7 +42,6 @@ if __name__ == '__main__':
     import config
     import browser
     import project
-    import async
 
     from loggerSetup import loggerSetup
     loggerSetup(logging.INFO)
@@ -54,10 +52,8 @@ if __name__ == '__main__':
     cache = browser.Browser_file(CACHE_DIR)
     b = browser.BrowserSuper(cache)
 
-    sections = CONFIG.projects()
-    projects = async.Pool(browser.getProject, *sections, 
-                          CONFIG=CONFIG, browser_cache=cache)
-    project.pretty_print(projects.ret)
+    projects = browser.getProjectsDict(CONFIG, cache)
+    project.pretty_print(projects)
 
-    plot(fig, projects.ret, b)
+    plot(fig, projects, b)
     raw_input('=== Press enter to exit ===\n')

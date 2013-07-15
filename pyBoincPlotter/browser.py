@@ -32,6 +32,7 @@ import requests
 # This project
 from project import Project, pretty_print
 from parse import HTMLParser
+import async
 
 # Helper functions:
 def sanitizeURL(url):
@@ -310,19 +311,24 @@ def getProject(section, CONFIG, browser_cache):
                           CONFIG=CONFIG)
     return browser.parse()
 
+def getProjectsDict(CONFIG, browser_cache):
+    sections = CONFIG.projects()
+    projects_list = async.Pool(getProject, *sections, 
+                               CONFIG=CONFIG, browser_cache=browser_cache)
+    projects = dict()
+    for p in projects_list.ret:
+        projects[p.url] = p    
+    return projects
+
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
     loggerSetup(logging.INFO)
     
     import config
-    import util
-    import async
     
     CONFIG, CACHE_DIR, _ = config.set_globals()
     browser_cache = Browser_file(CACHE_DIR)
-    sections = CONFIG.projects()
     
-    projects = async.Pool(getProject, *sections, 
-                          CONFIG=CONFIG, browser_cache=browser_cache)
+    projects = getProjectsDict(CONFIG, browser_cache)
 
-    pretty_print(projects.ret)
+    pretty_print(projects)

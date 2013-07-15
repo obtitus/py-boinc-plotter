@@ -261,7 +261,7 @@ if __name__ == '__main__':
     
     _, _, BOINC_DIR = config.set_globals()
     projects = dict()
-    for p in boinccmd.get_state(command='get_project_status'):
+    for p in boinccmd.get_state(command='get_project_status').values():
         url = Project(url=p.url)
         projects[url.name] = p.name
 
