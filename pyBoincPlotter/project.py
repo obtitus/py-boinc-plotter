@@ -16,7 +16,7 @@ class Project(object):
         self.name = name
         if name == None:
             self.setName(url)
-        self.url = url
+        self.setUrl(url)
 
         self.user = user
         self.applications = dict()
@@ -121,7 +121,13 @@ class Project(object):
             self.name = self.name[:-1]
         self.name = self.name.replace('/', '_')
         self.name = self.name#.capitalize()
-            
+
+    def setUrl(self, url):
+        if url.endswith('/'):
+            self.url = url[:-1]
+        else:
+            self.url = url
+
     def __str__(self):
         endl = '\n'
         ret = ["== {} ==".format(self.name.title())]

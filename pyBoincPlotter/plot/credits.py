@@ -1,35 +1,11 @@
 #!/usr/bin/env python
 
 # Standard python
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
 import logging
 logger = logging.getLogger('boinc.badge')
 
 # This project
-from importMatplotlib import *
-
-def showImage(ax, ix, badge, browser):
-    try:
-        value = badge.value
-        color = badge.color
-        url = badge.url
-        extension = url[-4:]
-
-        ax.axhline(value, color=color)
-        png = browser.visitURL(url, extension=extension)
-        png = StringIO(png)
-        img = mpimg.imread(png, format=extension)
-        # Add image:
-        of = matplotlib.offsetbox.OffsetImage(img)
-        ab = matplotlib.offsetbox.AnnotationBbox(of, (ix, value), 
-                                                 frameon=False, box_alignment=(0, 0.5))
-        ax.add_artist(ab)
-    except Exception as e:
-        logger.error('Badge image failed with "%s"', e)
-    
+from importMatplotlib import *    
 
 def plot(fig, projects, browser):
     ax = fig.add_subplot(111)
@@ -38,6 +14,7 @@ def plot(fig, projects, browser):
     labels = list()
     ix = 0
     for project in projects:
+        frameon = project.name == 'rechenkraft.net_yoyo'
         for key in sorted(project.applications):
             app = project.applications[key]
             badge = app.badge
@@ -47,14 +24,19 @@ def plot(fig, projects, browser):
             kwargs = dict(color=badge.color, 
                           width=width)
             ax.bar(ix, app.credit, **kwargs)
-            showImage(ax, ix, badge, browser)
+            try:
+                showImage(ax, browser, ix,
+                          value=badge.value, color=badge.color, url=badge.url,
+                          frameon=frameon)
+            except Exception as e:
+                logger.error('Badge image failed with "%s"', e)
 
             labels.append(str(app.name))
             ix += 1
     
     pos = np.arange(ix)
     plt.xticks(pos+width/2, labels, rotation=17, horizontalalignment='right')
-    #ax.set_xlabel('Project')
+    ax.set_xlabel('Application')
     ax.set_ylabel('Credits')
 
 if __name__ == '__main__':

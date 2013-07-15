@@ -25,6 +25,16 @@ class Application(object):
             except:
                 return 0
 
+    @property
+    def runtime(self):
+        try:
+            return self.statistics.runtime
+        except:
+            try:
+                return self.badge.runtime
+            except:
+                return 0
+
     def setNameFromXML(self, xml):
         """
         Expects the application block:

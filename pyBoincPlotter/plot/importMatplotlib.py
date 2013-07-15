@@ -17,6 +17,10 @@
 # 
 # END LICENCE
 import datetime
+try:
+    from cStringIO import StringIO
+except:
+    from StringIO import StringIO
 
 try:
     import numpy as np
@@ -65,3 +69,18 @@ def dayFormat(ax, month=False):
     for label in ax.get_xticklabels():
         label.set_rotation(45)
         label.set_ha('right')
+
+def showImage(ax, browser, ix,
+              value, color, url, 
+              frameon=True):
+    extension = url[-4:]
+
+    ax.axhline(value, color=color)
+    png = browser.visitURL(url, extension=extension)
+    png = StringIO(png)
+    img = mpimg.imread(png, format=extension)
+    # Add image:
+    of = matplotlib.offsetbox.OffsetImage(img)
+    ab = matplotlib.offsetbox.AnnotationBbox(of, (ix, value), 
+                                             frameon=frameon, box_alignment=(0, 0.5))
+    ax.add_artist(ab)
