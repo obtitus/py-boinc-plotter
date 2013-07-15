@@ -35,6 +35,9 @@ def plot(fig, projects):
     x = np.arange(len(states))
 
     for ix_app, app in enumerate(apps):
+        if len(app.tasks) == 0:
+            continue
+
         height = np.zeros(len(states))
         for task in app.tasks:
             ix = states.index(task.state_str)

@@ -15,7 +15,7 @@ class TestApplication(unittest.TestCase):
         p = Project.createFromXML(parse_input.project_rosetta)
         print p
         self.ignoreSpaces(p.name, 'rosetta@home')
-        self.ignoreSpaces(p.url, 'http://boinc.bakerlab.org/rosetta')
+        self.ignoreSpaces(p.url, 'http://www.boinc.bakerlab.org/rosetta')
         self.ignoreSpaces(str(p.statistics), """Total credit,  user: 2 543, host: 2 543, 100%
         Avg credit, user: 227, host: 227, 100%""")
 

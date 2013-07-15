@@ -49,7 +49,9 @@ class Application(object):
 
     def setNameFromSoup(self, soup):
         self.name_short = soup.find('name').text   # Vops: soup.name is 'reserved' so need to use find('name')
-        self.name_long  = soup.find('user_friendly_name').text
+        user_friendly_name = soup.find('user_friendly_name').text
+        #self.setName_shortLong(user_friendly_name)
+        self.name_long  = user_friendly_name
 
     def appendTaskFromXML(self, xml):
         t = task.Task_local.createFromXML(xml)

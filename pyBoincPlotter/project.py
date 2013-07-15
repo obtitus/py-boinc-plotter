@@ -128,6 +128,14 @@ class Project(object):
         else:
             self.url = url
 
+        http = 'http://'
+        ix = self.url.find(http)
+        if ix != -1:
+            name = self.url[ix+len(http):]
+            if not(name.startswith('www.')):
+                name = 'www.' + name
+                self.url = http + name
+
     def __str__(self):
         endl = '\n'
         ret = ["== {} ==".format(self.name.title())]
@@ -136,8 +144,8 @@ class Project(object):
                 ret.append(str(prop))
 
         for key in sorted(self.applications):
-            if len(self.applications[key]) != 0:
-                ret.append(str(self.applications[key]))
+            #if len(self.applications[key]) != 0:
+            ret.append(str(self.applications[key]))
 
         return "\n".join(ret)
 
@@ -161,14 +169,14 @@ def merge(local_projects,
           web_projects):
     """Tries to merge local and web information by adding information from local to the web dictionary"""
     local_projects = dict(local_projects)
-    mergeDicts(local_projects, web_projects, mergeProject)
+    mergeDicts(local_projects, web_projects, mergeProject, 'url')
 
 def mergeProject(local_project, web_project):
     local_apps = dict(local_project.applications)
     web_apps = web_project.applications
-    mergeDicts(local_apps, web_apps, mergeApplications)
+    mergeDicts(local_apps, web_apps, mergeApplications, 'name_long')
 
-def mergeDicts(local_dict, web_dict, merge):
+def mergeDicts(local_dict, web_dict, merge, name):
     """Helper function for above merge rutines"""
     logging.debug('merging with %s, ("%s", "%s")', merge, 
                   local_dict, web_dict)
@@ -178,8 +186,26 @@ def mergeDicts(local_dict, web_dict, merge):
                   web_dict[key])
             del local_dict[key]
 
-    for remaining_key in local_dict:
-        web_dict[remaining_key] = local_dict[remaining_key]
+    def fuzzyMatch(name1, name2):
+        if name1.startswith(name2):
+            return True
+        if name2.startswith(name1):
+            return True
+        # This last one catches the following condition:
+        # 'PPS (Sieve)' == 'PPS Sieve'
+        name1 = name1.replace('(', '').replace(')', '')
+        name2 = name2.replace('(', '').replace(')', '')
+        return name1 == name2
+            
+    for remaining_key, remaining in local_dict.items():
+        for web in web_dict.values():
+            if fuzzyMatch(getattr(remaining, name),
+                          getattr(web, name)):
+                merge(remaining, web)
+                break
+        else:
+            logger.warning('merge with %s, remaining local %s, web keys, %s', merge, remaining_key, web_dict.keys())
+            web_dict[remaining_key] = local_dict[remaining_key]
 
     
 def pretty_print(projects, show_empty=False):
