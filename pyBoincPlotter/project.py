@@ -144,8 +144,8 @@ class Project(object):
                 ret.append(str(prop))
 
         for key in sorted(self.applications):
-            #if len(self.applications[key]) != 0:
-            ret.append(str(self.applications[key]))
+            if len(self.applications[key]) != 0:
+                ret.append(str(self.applications[key]))
 
         return "\n".join(ret)
 
