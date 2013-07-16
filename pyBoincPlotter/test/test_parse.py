@@ -102,6 +102,21 @@ class TestYoyo(unittest.TestCase):
             for r in rows:
                 print r
 
+    def test_parse(self):
+        project = self.browser.parse()
+        self.assertEqual(len(project), 21)
+
+    def test_badge(self):
+        project = self.browser.parse()
+        # for key, app in project.applications.items():
+        #     print app
+
+        apps = project.applications
+        self.assertEqual(str(apps['ecm'].statistics),
+                         '19 results returned, 13 754 credit.')
+        self.assertEqual(str(apps['ecm'].badge),
+                         'bronze badge')
+
 class TestPrimegrid(unittest.TestCase):
     def setUp(self):
         self.browser, self.parser = _setUp(browser.Browser,
@@ -127,12 +142,49 @@ class TestPrimegrid(unittest.TestCase):
                               u'---', u'---', u'---', 
                               u'PPS (Sieve) v1.39 (cpuPPSsieve)'])
 
+    def test_parse(self):
+        project = self.browser.parse()
+        self.assertEqual(35, len(project))
+
+    def test_badge(self):
+        p = self.browser.parse()
+        self.assertEqual(len(p.badge), 2)
+        self.assertEqual(str(p.badge[1]), 'Woodall LLR Bronze: More than 10,000 credits (17,517)')
+        self.assertEqual(str(p.badge[0]), 'PPS Sieve Bronze: More than 20,000 credits (30,339)')
+        self.assertEqual(p.badge[1].url, 'http://www.primegrid.com/img/badges/woo_bronze.png')
+        self.assertEqual(p.badge[0].url, 'http://www.primegrid.com/img/badges/sr2sieve_pps_bronze.png')
+
+    def test_stats(self):
+        project = self.browser.parse()
+        self.assertEqual(str(project.statistics), """321 Prime Search tasks (LLR), 4 results returned, 6,259.83 credits
+LLR Woodall tests, 4 results returned, 17,517.29 credits
+Proth Prime Search (sieve) tasks, 9 results returned, 30,339.00 credits, Factors found 25 (avg. 2.7778/task)
+Proth Prime Search (PPS & PPSE) tasks, 23 results returned, 1,120.97 credits
+Sophie Germain Prime Search tasks, 18 results returned, 718.44 credits
+The Riesel Problem (Sieve) tasks, 4 results returned, 2,293.62 credits, Factors found 1 (avg. 0.25/task)""")
+
+        # self.assertEqual(str(apps['Woodall'].statistics),
+        #                  '4 results returned, 17 517.29 credits')
+        # self.assertEqual(str(apps['Woodall'].statistics),
+        #                  '4 results returned, 17 517.29 credits')
+
 class TestWuprop(unittest.TestCase):
     def setUp(self):
         self.browser, self.parser = _setUp(browser.Browser,
                                            parse.HTMLParser_wuprop,
                                            url='wuprop.boinc-af.org',
                                            section='wuprop.boinc-af.org')
+
+class TestMindmodeling(unittest.TestCase):
+    def setUp(self):
+        self.browser, self.parser = _setUp(browser.Browser,
+                                           parse.HTMLParser,
+                                           url='mindmodeling.org',
+                                           section='mindmodeling.org')
+
+    def test_parse(self):
+        project = self.browser.parse()
+        self.assertEqual(len(project), 7)
 
 if __name__ == '__main__':
     import logging

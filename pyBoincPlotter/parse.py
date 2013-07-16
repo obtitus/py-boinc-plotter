@@ -329,14 +329,21 @@ class HTMLParser_primegrid(HTMLParser):
         # assert False
 
 class HTMLParser_wuprop(HTMLParser):
-    def badgeTabel(self, soup):
+    def projectTable(self, html):
         """ Extracts projects table from wuprop.boinc-af.org/home.php"""
+        projects = dict()       # Key is user_friendly_name!
+        soup = BeautifulSoup(html)
         t = soup.find_all('table')
         for row in t[-1].find_all('tr'):
             data = row.find_all('td')
             if len(data) == 4:
-                projects = data[0].text
-                application = data[1].text
-                runningTime = float(data[2].text)*60*60
-                pending = float(data[3].text)*60*60
+                proj_name = data[0].text
+                app_name = data[1].text
+                runningTime = data[2].text
+                pending = data[3].text
+                stat = statistics.ApplicationStatistics_wuprop(runtime=runningTime,
+                                                               pending=pending)
+                if proj_name not in projects:
+                    projects[proj_name] = Project(name=proj_name)
+                projects.appendStatistics(stat)
                 #self.project = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)

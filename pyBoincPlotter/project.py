@@ -11,7 +11,7 @@ from statistics import ProjectStatistics
 from settings import Settings
 
 class Project(object):
-    def __init__(self, url, name=None, 
+    def __init__(self, url=None, name=None, 
                  user=None, statistics=None, settings=None):
         self.name = name
         if name == None:

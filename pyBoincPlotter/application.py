@@ -166,5 +166,5 @@ def mergeApplications(local_app, web_app):
     for remaining_task in local_tasks:
         web_app.tasks.append(remaining_task)
 
-    # if local_app.statistics != '':
-    #     web_app.appendStatistics(local_app.statistics)
+    if local_app.statistics != '':
+        web_app.appendStatistics(local_app.statistics)
