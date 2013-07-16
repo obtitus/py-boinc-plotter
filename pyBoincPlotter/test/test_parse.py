@@ -8,15 +8,23 @@ import browser
 import config
 import parse_input
 
+def _setUp(Browser, Parser, url, **kwargs):
+    CONFIG = config.setupConfigFile() # TODO: remove this requirement, write browser so that this can be None
+    dir = parse_input.dataFolder
+    #dir = tempfile.mkdtemp()
+    cache = browser.Browser_file(dir, removeOld=False)
+    b = Browser(browser_cache=cache, 
+                CONFIG=CONFIG, 
+                **kwargs)
+    p = project.Project(url)
+    parser = Parser(browser=b, project=p)
+    return b, parser
+
 class TestWorldcommunitygrid(unittest.TestCase):
     def setUp(self):
-        CONFIG = config.setupConfigFile() # TODO: remove this requirement, write browser so that this can be None
-        dir = parse_input.dataFolder
-        #dir = tempfile.mkdtemp()
-        cache = browser.Browser_file(dir, removeOld=False)
-        b = browser.Browser_worldcommunitygrid(cache, CONFIG)
-        p = project.Project('worldcommunitygrid.org')
-        self.parser = parse.HTMLParser_worldcommunitygrid(browser=b, project=p)
+        self.browser, self.parser = _setUp(browser.Browser_worldcommunitygrid,
+                                           parse.HTMLParser_worldcommunitygrid,
+                                           url='worldcommunitygrid.org')
 
     def test_rows(self):
         with open(parse_input.html_worldcommunitygrid, 'r') as content:
@@ -46,13 +54,9 @@ class TestWorldcommunitygrid(unittest.TestCase):
 
 class TestYoyo(unittest.TestCase):
     def setUp(self):
-        CONFIG = config.setupConfigFile() # TODO: remove this requirement, write browser so that this can be None
-        dir = parse_input.dataFolder
-        #dir = tempfile.mkdtemp()
-        cache = browser.Browser_file(dir, removeOld=False)
-        b = browser.Browser_yoyo(cache, CONFIG)
-        p = project.Project('www.rechenkraft.net/yoyo')
-        self.parser = parse.HTMLParser_yoyo(browser=b, project=p)
+        self.browser, self.parser = _setUp(browser.Browser_yoyo,
+                                           parse.HTMLParser_yoyo,
+                                           url='www.rechenkraft.net/yoyo')
 
     def test_rows(self):
         with open(parse_input.html_yoyo, 'r') as content:
@@ -71,14 +75,10 @@ class TestYoyo(unittest.TestCase):
 
 class TestPrimegrid(unittest.TestCase):
     def setUp(self):
-        CONFIG = config.setupConfigFile() # TODO: remove this requirement, write browser so that this can be None
-        dir = parse_input.dataFolder
-        #dir = tempfile.mkdtemp()
-        cache = browser.Browser_file(dir, removeOld=False)
-        b = browser.Browser('www.primegrid.com', 
-                            cache, CONFIG)
-        p = project.Project('www.primegrid.com')
-        self.parser = parse.HTMLParser_primegrid(browser=b, project=p)
+        self.browser, self.parser = _setUp(browser.Browser,
+                                           parse.HTMLParser_primegrid,
+                                           url='www.primegrid.com',
+                                           section='www.primegrid.com')
     
     def test_rows(self):
         with open(parse_input.html_primegrid, 'r') as content:
@@ -97,6 +97,13 @@ class TestPrimegrid(unittest.TestCase):
                               u'In progress', 
                               u'---', u'---', u'---', 
                               u'PPS (Sieve) v1.39 (cpuPPSsieve)'])
+
+class TestWuprop(unittest.TestCase):
+    def setUp(self):
+        self.browser, self.parser = _setUp(browser.Browser,
+                                           parse.HTMLParser_wuprop,
+                                           url='wuprop.boinc-af.org',
+                                           section='wuprop.boinc-af.org')
 
 if __name__ == '__main__':
     import logging
