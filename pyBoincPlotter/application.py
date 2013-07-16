@@ -8,6 +8,7 @@ logger = logging.getLogger('boinc.application')
 from bs4 import BeautifulSoup
 # This project
 import task
+from statistics import StatisticsList
 
 class Application(object):
     def __init__(self, name='', badge='', statistics=''):
@@ -59,10 +60,11 @@ class Application(object):
         return t
     
     def appendStatistics(self, statistics):
-        # TODO: consider keeping a reference to the object
         #self.statistics += str(statistics)
-        assert self.statistics == ''
-        self.statistics = statistics
+        if self.statistics == '':
+            self.statistics = StatisticsList([statistics])
+        else:
+            self.statistics.append(statistics)
         
     # Name
     """Name should be on the form <long> (<short>), do a regexp when the name is set.
@@ -163,3 +165,6 @@ def mergeApplications(local_app, web_app):
 
     for remaining_task in local_tasks:
         web_app.tasks.append(remaining_task)
+
+    # if local_app.statistics != '':
+    #     web_app.appendStatistics(local_app.statistics)

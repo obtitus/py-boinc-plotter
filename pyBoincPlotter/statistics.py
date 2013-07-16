@@ -9,6 +9,20 @@ from bs4 import BeautifulSoup
 from loggerSetup import loggerSetup
 import util
 
+class StatisticsList(list):
+    """A really wierd hack"""
+    def __getattr__(self, name):
+        for item in self:
+            try:
+                return getattr(item, name)
+            except AttributeError:
+                pass
+        raise AttributeError("'StatisticsList' object has no attribute '%s'" % name)
+
+    def __str__(self):
+        ret = [str(item) for item in self]
+        return " ".join(ret)
+
 class ProjectStatistics(object):
     def __init__(self, user_total_credit, user_expavg_credit,
                  host_total_credit, host_expavg_credit):

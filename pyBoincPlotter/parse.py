@@ -339,4 +339,4 @@ class HTMLParser_wuprop(HTMLParser):
                 application = data[1].text
                 runningTime = float(data[2].text)*60*60
                 pending = float(data[3].text)*60*60
-                self.projects[application] = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
+                #self.project = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
