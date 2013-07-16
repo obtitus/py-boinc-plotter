@@ -52,6 +52,35 @@ class TestWorldcommunitygrid(unittest.TestCase):
             self.assertEqual('Gold Level Badge (90 days) for Human Proteome Folding - Phase 2',
                              str(apps['Human Proteome Folding - Phase 2'].badge))
 
+    def test_parse(self):
+        project = self.browser.parse()
+        self.assertEqual(len(project), 90)
+
+        apps = project.applications
+        for key, app in apps.items():
+            print 'KEY', key
+            for t in app.tasks:
+                print t, t.done()
+            print 'TIME', app.pendingTime()
+
+        # These are from the web and therefore should give 0
+        self.assertEqual(apps['Computing for Clean Water'].pendingTime(),
+                         (0, 0, 0))
+        self.assertEqual(apps['The Clean Energy Project - Phase 2'].pendingTime(),
+                         (0, 0, 0))
+
+    def test_stats(self):
+        project = self.browser.parse()
+        apps = project.applications
+        self.assertEqual(str(apps['Computing for Clean Water'].statistics),
+                         '51 results returned, 20 708 credit, runtime of 5 days, 19:54:04.')
+        self.assertEqual(str(apps['Computing for Clean Water'].badge), '')
+
+        self.assertEqual(str(apps['GO Fight Against Malaria'].statistics),
+                         '317 results returned, 227 151 credit, runtime of 54 days, 13:01:58.')
+        self.assertEqual(str(apps['GO Fight Against Malaria'].badge),
+                         'Silver Level Badge (45 days) for GO Fight Against Malaria')
+
 class TestYoyo(unittest.TestCase):
     def setUp(self):
         self.browser, self.parser = _setUp(browser.Browser_yoyo,
