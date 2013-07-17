@@ -178,9 +178,20 @@ class TestWuprop(unittest.TestCase):
     def test_stat(self):
         html = self.browser.visitHome()
         projects = self.parser.projectTable(html)
-        for p in projects.values():
-            print p
-        assert False
+
+        for key, p in projects.items():
+            print key, p
+
+        p = projects['World Community Grid'] # Vops, note that key is not url
+        app = p.applications['Drug Search for Leishmaniasis']
+        self.assertTrue(str(app.statistics),
+                        'WuProp runtime 70 days, 18:30:00')
+
+        p = projects['MindModeling@Beta'] # Vops, note that key is not url
+        app = p.applications['Native Pypy  Application']
+        self.assertTrue(str(app.statistics),
+                        'WuProp runtime 3:58:48')
+
 
 class TestMindmodeling(unittest.TestCase):
     def setUp(self):
