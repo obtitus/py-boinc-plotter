@@ -123,6 +123,10 @@ class Project(object):
         self.name = self.name#.capitalize()
 
     def setUrl(self, url):
+        if url is None:
+            self.url = url
+            return
+
         if url.endswith('/'):
             self.url = url[:-1]
         else:
@@ -144,8 +148,8 @@ class Project(object):
                 ret.append(str(prop))
 
         for key in sorted(self.applications):
-            if len(self.applications[key]) != 0:
-                ret.append(str(self.applications[key]))
+            #if len(self.applications[key]) != 0:
+            ret.append(str(self.applications[key]))
 
         return "\n".join(ret)
 

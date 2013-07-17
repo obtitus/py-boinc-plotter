@@ -123,8 +123,12 @@ class ApplicationStatistics_worldcommunitygrid(ApplicationStatistics):
 
 class ApplicationStatistics_wuprop(object):
     def __init__(self, runtime, pending):
-        self.runtime = float(runtime)*60*60
-        self.pending = float(pending)*60*60
+        def toSec(x):
+            x = x.replace(',', '')
+            sec = float(x)*60*60
+            return datetime.timedelta(seconds=sec)
+        self.runtime = toSec(runtime)
+        self.pending = toSec(pending)
     
     @property
     def runtime_str(self):
@@ -135,8 +139,10 @@ class ApplicationStatistics_wuprop(object):
         return util.timedeltaToStr(self.pending)
 
     def __str__(self):
-        return "WuProp runtime {} ({})".format(self.runtime_str,
-                                               self.pending_str)
+        ret = "WuProp runtime {}".format(self.runtime_str)
+        if self.pending != datetime.timedelta(0):
+            ret += " (+{})".format(self.pending_str)
+        return ret
     
 class ProjectStatistics_primegrid(dict):
     def __str__(self):

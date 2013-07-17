@@ -11,6 +11,7 @@ import task
 import plot.badge as badge
 import async
 import statistics
+import project
 
 class HTMLParser(object):
     def __init__(self, browser, project):
@@ -344,6 +345,10 @@ class HTMLParser_wuprop(HTMLParser):
                 stat = statistics.ApplicationStatistics_wuprop(runtime=runningTime,
                                                                pending=pending)
                 if proj_name not in projects:
-                    projects[proj_name] = Project(name=proj_name)
-                projects.appendStatistics(stat)
+                    projects[proj_name] = project.Project(name=proj_name)
+
+                app = projects[proj_name].appendApplication(app_name)
+                app.appendStatistics(stat)
                 #self.project = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
+
+        return projects

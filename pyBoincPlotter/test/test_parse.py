@@ -175,6 +175,13 @@ class TestWuprop(unittest.TestCase):
                                            url='wuprop.boinc-af.org',
                                            section='wuprop.boinc-af.org')
 
+    def test_stat(self):
+        html = self.browser.visitHome()
+        projects = self.parser.projectTable(html)
+        for p in projects.values():
+            print p
+        assert False
+
 class TestMindmodeling(unittest.TestCase):
     def setUp(self):
         self.browser, self.parser = _setUp(browser.Browser,
