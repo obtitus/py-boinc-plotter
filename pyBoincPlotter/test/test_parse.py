@@ -228,11 +228,23 @@ class TestMindmodeling(unittest.TestCase):
         project = self.browser.parse()
         self.assertEqual(len(project), 7)
 
+class TestNumbersFields(unittest.TestCase):
+    def setUp(self):
+        self.browser, self.parser = _setUp(browser.Browser,
+                                           parse.HTMLParser,
+                                           url='numberfields.asu.edu/NumberFields',
+                                           section='numberfields.asu.edu/NumberFields')
+    
+    def test_parse(self):
+        project = self.browser.parse()
+        print project
+        self.assertEqual(len(project), 1)
+    
 if __name__ == '__main__':
     import logging
     from loggerSetup import loggerSetup
     loggerSetup(logging.INFO)
 
-    for t in [TestWuprop]:#[TestYoyo, TestPrimegrid, TestWorldcommunitygrid]:
+    for t in [TestNumbersFields]:#[TestYoyo, TestPrimegrid, TestWorldcommunitygrid, TestWuprop]:
         suite = unittest.TestLoader().loadTestsFromTestCase(t)
         unittest.TextTestRunner(verbosity=2).run(suite)

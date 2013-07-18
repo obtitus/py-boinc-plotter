@@ -53,10 +53,14 @@ class ProjectStatistics(object):
         length_host = len(util.fmtNumber(self.host[0], '.0f')) # user will always be longer than host
         
         def line(name, ix):
+            if self.user[ix] != 0:
+                per = self.host[ix]/self.user[ix]*100
+            else:
+                per = 0
             return '{} user: {:>{u}}, host: {:>{h}}, {:>3.0f}%'.format(name,
                                                                        util.fmtNumber(self.user[ix], '.0f'),
                                                                        util.fmtNumber(self.host[ix], '.0f'),
-                                                                       self.host[ix]/self.user[ix]*100,
+                                                                       per,
                                                                        u = length_user,
                                                                        h = length_host)
         return "{}\n{}".format(line('Total credit, ', 0), 

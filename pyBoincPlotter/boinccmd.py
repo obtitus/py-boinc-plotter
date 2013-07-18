@@ -1,10 +1,35 @@
 #!/usr/bin/env python
+"""Speaks to boinc both thorugh rpc calls and the command line boinccmd"""
 # Standard python
+import os
+import subprocess
 from socket import socket
 import logging
 logger = logging.getLogger('boinc.boinccmd')
 # This project
 from project import Project, pretty_print
+
+class CallBoinccmd(object):
+    """ tiny layer on top of subprocess Popen for calling boinccmd and getting stdout """
+    def __init__(self, boinc_dir, arguments=('--get_state', )):
+
+        cmd = [os.path.join(boinc_dir, 'boinccmd')]
+        cmd.extend(arguments)
+        logger.info('cmd: %s', cmd)
+        try:
+            self.process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, 
+                                            cwd=boinc_dir)
+        except Exception as e:
+            logger.error('Error when running %s, e = "%s"', cmd, e)
+            self.process = None
+
+    def communicate(self):
+        if self.process != None:
+            stdout, stderr = self.process.communicate()
+            if stderr != '':
+                print "Error: {}".format(stderr)
+                return ''
+            return stdout
 
 class Boinccmd(socket):
     def __init__(self, addr='', portNr=31416, **kwargs):

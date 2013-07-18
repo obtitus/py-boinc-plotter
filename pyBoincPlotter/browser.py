@@ -146,7 +146,7 @@ class BrowserSuper(object):
     def authenticate(self):
         try:
             r = self.client.post(self.loginPage, data=self.loginInfo, timeout=5)
-            logger.info('%s', r)            
+            logger.info('Authenticate responce "%s"', r)
         except requests.ConnectionError as e:
             print('Could not connect to login page. {}'.format(e))
         except requests.Timeout as e:
@@ -171,7 +171,7 @@ class BrowserSuper(object):
 
     def redirected(self, request):
         """ Returns whether a redirect has been done or not """
-        logger.info('%s, %s', request, request.history)
+        logger.info('response and history "%s", "%s"', request, request.history)
         if len(request.history) != 0:
             return True
         
@@ -181,8 +181,9 @@ class BrowserSuper(object):
         return 'Please log in' in firstLine
 
     def visitURL(self, URL, recursionCall=False, extension='.html'):
-        # recursionCall is used to limit recursion to 1 step
-        # Extension is used for the cache for ease of debugging        
+        """ RecursionCall is used to limit recursion to 1 step
+         Extension is used for the cache for ease of debugging
+        """
         content = self.browser_cache.visitURL(URL, extension)
         if content == None:
             logger.info('Visiting %s', URL)

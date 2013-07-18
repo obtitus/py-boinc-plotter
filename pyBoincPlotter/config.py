@@ -77,6 +77,27 @@ class MyConfigParser(ConfigParser.ConfigParser):
                 sections.append(section)
         return sections
 
+
+    def addAccount(self, name):
+        self.setupPassword(name, ['userid'], forgetOld=True)
+
+    def setupPassword(self, domain, additionalInfo=[], forgetOld=False):
+        username = self.get(domain, 'username')
+        if username == None or forgetOld:
+            username = raw_input('Enter username for {0}:\n'.format(domain))
+            self.set(domain, 'username', username)
+
+        password = self.getpassword(domain, 'username')
+        if password == None or forgetOld:
+            password = getpass.getpass('Enter password for user "{0}" at {1}: '.format(username, domain))
+            self.setpassword(domain, 'username', password)
+
+        for a in additionalInfo:
+            password = self.get(domain, a)
+            if password == None or forgetOld:
+                password = getpass.getpass('Enter {0} for user "{1}" at {2}: '.format(a, username, domain))
+                self.set(domain, a, password)
+
 from version import appName, appAuthor
 from appdirs import AppDirs
 appDirs = AppDirs(appName, appAuthor)
@@ -122,23 +143,6 @@ def setupBoincDir(CONFIG):
         
     return boincDir
 
-def setupPassword(domain, additionalInfo=[], forgetOld=False):
-    username = CONFIG.get(domain, 'username')
-    if username == None or forgetOld:
-        username = raw_input('Enter username for {0}:\n'.format(domain))
-        CONFIG.set(domain, 'username', username)
-        
-    password = CONFIG.getpassword(domain, 'username')
-    if password == None or forgetOld:
-        password = getpass.getpass('Enter password for user "{0}" at {1}: '.format(username, domain))
-        CONFIG.setpassword(domain, 'username', password)
-
-    for a in additionalInfo:
-        password = CONFIG.get(domain, a)
-        if password == None or forgetOld:
-            password = getpass.getpass('Enter {0} for user "{1}" at {2}: '.format(a, username, domain))
-            CONFIG.set(domain, a, password)
-
 # global CONFIG, CACHE_DIR, BOINC_DIR
 # BOINC_DIR = None
 # CONFIG = None
@@ -150,13 +154,11 @@ def set_globals():
     logger.info('Config file "%s"\nCache dir "%s"\nBoinc dir "%s"', CONFIG.filename, CACHE_DIR, BOINC_DIR)
     return CONFIG, CACHE_DIR, BOINC_DIR
     
-def main():
-    CONFIG, CACHE_DIR, BOINC_DIR = set_globals()
-    setupPassword('worldcommunitygrid.org', ['code'])
-    return CONFIG, CACHE_DIR, BOINC_DIR
+# def main():
+#     CONFIG, CACHE_DIR, BOINC_DIR = set_globals()
+#     # setupPassword('worldcommunitygrid.org', ['code'])
+#     return CONFIG, CACHE_DIR, BOINC_DIR
 
-def addAccount(name):
-    setupPassword(name, ['userid'], forgetOld=True)
 #     setupPassword('mindmodeling.org', ['userid'])
 #     setupPassword('wuprop.boinc-af.org', ['userid'])
 
