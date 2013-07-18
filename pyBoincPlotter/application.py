@@ -168,3 +168,6 @@ def mergeApplications(local_app, web_app):
 
     if local_app.statistics != '':
         web_app.appendStatistics(local_app.statistics)
+    
+    if web_app.name_short == '':
+        web_app.name_short = local_app.name_short

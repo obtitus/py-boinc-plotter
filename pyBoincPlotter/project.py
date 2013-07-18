@@ -197,7 +197,7 @@ def mergeWuprop(wuprop_projects,
     
     for remaining in wuprop_projects:
         logger.info(('Problem merging wuprop project "%s", '
-                     'this might be caused by this project not being'
+                     'this might be caused by this project not being '
                      'present locally'), remaining)
         local_projects[remaining] = wuprop_projects[remaining] # This is really messy, since remaining isn't a url
 
@@ -212,6 +212,8 @@ def mergeDicts(local_dict, web_dict, merge, name):
             del local_dict[key]
 
     def fuzzyMatch(name1, name2):
+        if name1 is None or name2 is None: return False
+
         if name1.startswith(name2):
             return True
         if name2.startswith(name1):
@@ -229,7 +231,7 @@ def mergeDicts(local_dict, web_dict, merge, name):
                 merge(remaining, web)
                 break
         else:
-            logger.warning('merge with %s, remaining local %s, web keys, %s', merge, remaining_key, web_dict.keys())
+            logger.warning('merge with %s failed, remaining local %s, web keys, %s', merge, remaining_key, web_dict.keys())
             web_dict[remaining_key] = local_dict[remaining_key]
 
     

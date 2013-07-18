@@ -75,13 +75,13 @@ def plot_wuprop(fig, projects, browser):
         for key, app in sorted(project.applications.items()):
             stat = app.statistics
             try:
-                stat.pending
+                stat.wuPending
             except AttributeError:
                 logger.debug('skipping %s since there are no wuprop stats', app.name)
                 continue
 
-            h = stat.runtime.total_seconds()
-            totalRuntime += stat.runtime
+            h = stat.wuRuntime.total_seconds()
+            totalRuntime += stat.wuRuntime
             
             color, b = Badge_wuprop.getColor(h)
             daysToMark.append([b, color])
@@ -90,7 +90,7 @@ def plot_wuprop(fig, projects, browser):
 
             ax.bar(ix, h, **kwargs)
 
-            pending = stat.pending.total_seconds()
+            pending = stat.wuPending.total_seconds()
             ax.bar(ix, pending, bottom=h, alpha=0.5, **kwargs)
             h += pending
 
@@ -137,11 +137,13 @@ if __name__ == '__main__':
     web_projects[web_p.url] = web_p
 
     wuprop_projects = browser.getProjects_wuprop(CONFIG, cache)
+    print 'WUPROP'
+    project.pretty_print(wuprop_projects, show_empty=True)
     
+    project.mergeWuprop(wuprop_projects, local_projects)
     project.merge(local_projects, web_projects)
-    project.mergeWuprop(wuprop_projects, web_projects)
     print 'MERGED'
-    project.pretty_print(web_projects)
+    project.pretty_print(web_projects, show_empty=True)
     
     fig1 = plt.figure()
     fig2 = plt.figure()
