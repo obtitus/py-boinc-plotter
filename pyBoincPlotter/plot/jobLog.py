@@ -251,13 +251,18 @@ class BarPlotter(object):
     # def plot(self, *args, **kwargs):
     #     self.ax.plot(*args, **kwargs)
 
-def plotAll(fig1, fig2, projects, BOINC_DIR):
+def plotAll(fig1, fig2, local_projects, BOINC_DIR):
+    projects = dict()
+    for p in local_projects.values():
+        url = Project(url=p.url)
+        projects[url.name] = p.name
+
     for url, filename in util.getLocalFiles(BOINC_DIR, 'job_log', '.txt'):
         try:
             p = Project(url=url)
             label = projects[p.name]
         except KeyError:
-            logging.warning('Could not find url %s in %s', url, projects)
+            logger.warning('Could not find url %s in %s', url, projects)
             label = url
 
         tasks = createFromFilename(JobLog, filename, 
@@ -276,13 +281,11 @@ if __name__ == '__main__':
     import boinccmd
     
     _, _, BOINC_DIR = config.set_globals()
-    projects = dict()
-    for p in boinccmd.get_state(command='get_project_status').values():
-        url = Project(url=p.url)
-        projects[url.name] = p.name
+
+    local_projects = boinccmd.get_state(command='get_project_status')
 
     fig1 = plt.figure()
     fig2 = plt.figure()
-    plotAll(fig1, fig2, projects, BOINC_DIR)
+    plotAll(fig1, fig2, local_projects, BOINC_DIR)
 
     raw_input('=== Press enter to exit ===\n')

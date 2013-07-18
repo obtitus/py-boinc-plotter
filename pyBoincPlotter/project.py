@@ -113,6 +113,10 @@ class Project(object):
             self.statistics += '\n' + str(statistics)
         
     def setName(self, name):
+        if name == None: 
+            self.name = name
+            return
+
         self.name = name.replace('https://', '')
         self.name = self.name.replace('http://', '')
         self.name = self.name.replace('www.', '')

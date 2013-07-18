@@ -90,44 +90,15 @@ if __name__ == '__main__':
 
     if args.plot:
         b = browser.BrowserSuper(cache)
-
-        from plot.importMatplotlib import plt
-        import plot.credits
+        import plot
         
-        fig = plt.figure()
-        plot.credits.plot(fig, web_projects, b)
-
-        import plot.dailyTransfer
-        fig = plt.figure()
-        filename = plot.dailyTransfer.getFilename(BOINC_DIR)
-        data = plot.dailyTransfer.parse(filename, limitDays=15)
-
-        plot.dailyTransfer.plot(fig, data)
-
-        import plot.deadline
-        fig = plt.figure()
-
-        plot.deadline.plot(fig, local_projects)
-
-        import plot.jobLog
-        fig1 = plt.figure()
-        fig2 = plt.figure()
-
-        plot.jobLog.plotAll(fig1, fig2, web_projects,
-                            BOINC_DIR)
-
-        import plot.pipeline
-        fig = plt.figure()
-        plot.pipeline.plot(fig, web_projects)
-
-        import plot.runtime
-        fig1 = plt.figure()
-        fig2 = plt.figure()
-        plot.runtime.plotAll(fig1, fig2, web_projects, b)
-
-        import plot.timeStats
-        fig = plt.figure()
-        plot.timeStats.plotAll(fig, BOINC_DIR)
+        plot.plot_credits(web_projects, b)
+        plot.plot_dailyTransfer(BOINC_DIR, limitDays=15)
+        plot.plot_deadline(local_projects)
+        plot.plot_jobLog(local_projects, BOINC_DIR)
+        plot.plot_pipeline(web_projects)
+        plot.plot_runtime(web_projects, b)
+        plot.plot_timeStats(BOINC_DIR)
 
     # fig1 = plt.figure()
     # fig2 = plt.figure()
