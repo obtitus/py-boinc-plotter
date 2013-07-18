@@ -20,7 +20,8 @@ class Badge(object):
         self.name = name
         self.url = url
 
-    def badgeToColor(self, name):
+    @staticmethod
+    def badgeToColor(name):
         name = name.lower()
         if name == 'bronze': name = '#8C7853'
         elif name == 'ruby': name = 'r'
@@ -75,7 +76,7 @@ class Badge_worldcommunitygrid(Badge):
     def color(self):
         reg = self.reg
         if reg:
-            return self.badgeToColor(reg.group(1))
+            return Badge.badgeToColor(reg.group(1))
         else:
             return 'k'
         
@@ -115,14 +116,19 @@ class Badge_wuprop(Badge):
     @runtime.setter
     def runtime(self, value):
         self._runtime = value
-        # color and value based on runtime
-        self.color = 'k'
-        self.value = 0
-        for b, c in self.badges:
-            if self.runtime >= b*60*60:
-                self.color = self.badgeToColor(c);
-                self.value = b
+        self.color, self.value = Badge_wuprop.getColor(self.runtime)
 
+    @staticmethod
+    def getColor(runtime):
+        # color and value based on runtime (in seconds)
+        color = 'k'
+        value = 0
+        for b, c in Badge_wuprop.badges:
+            if runtime >= b*60*60:
+                color = Badge.badgeToColor(c);
+                value = b
+        return color, value
+        
 class Badge_yoyo(Badge):
     badges = {'bronze': 10000,
               'silver': 100000,
@@ -144,7 +150,7 @@ class Badge_yoyo(Badge):
     def color(self):
         reg = self.reg
         if reg:
-            return self.badgeToColor(reg.group(1))
+            return Badge.badgeToColor(reg.group(1))
         else:
             return 'k'
         
@@ -170,7 +176,7 @@ class Badge_primegrid(Badge):
     def color(self):
         reg = self.reg
         if reg:
-            return self.badgeToColor(reg.group(2))
+            return Badge.badgeToColor(reg.group(2))
         else:
             return 'k'
     

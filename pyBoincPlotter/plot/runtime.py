@@ -6,9 +6,16 @@ import logging
 logger = logging.getLogger('boinc.plot.runtime')
 # This project
 from importMatplotlib import *
-                
+from badge import Badge_wuprop
         
-def plot(fig, project, browser):
+def plot_worldcommunitygrid(fig, projects, browser):
+    try:
+        project = projects['http://www.worldcommunitygrid.org']
+    except KeyError:
+        logger.exception('Vops, boinc.plot.runtime.plot_worldcommunitygrid got dictionary without worldcommunitygrid, got %s',
+                         projects.keys())
+        return
+
     ax = fig.add_subplot(111)
     width = 0.75
     ix = 0
@@ -53,6 +60,60 @@ def plot(fig, project, browser):
     ax.set_ylabel('Runtime')
     ax.yaxis.set_major_formatter(formatter_timedelta)
 
+def plot_wuprop(fig, projects, browser):
+    ax = fig.add_subplot(111)
+
+    labels = list()
+    width = 0.75
+    ix = 0
+    badges = Badge_wuprop.badges
+
+    daysToMark = list()
+    totalRuntime = datetime.timedelta(0)
+    for key, project in sorted(projects.items()):
+        for key, app in sorted(project.applications.items()):
+            stat = app.statistics
+            try:
+                stat.pending
+            except AttributeError:
+                logger.debug('skipping %s since there are no wuprop stats', app.name)
+                continue
+
+            h = stat.runtime.total_seconds()
+            totalRuntime += stat.runtime
+            
+            color, b = Badge_wuprop.getColor(h)
+            daysToMark.append([b, color])
+
+            kwargs = dict(width=width, color=color)
+
+            ax.bar(ix, h, **kwargs)
+
+            pending = stat.pending.total_seconds()
+            ax.bar(ix, pending, bottom=h, alpha=0.5, **kwargs)
+            h += pending
+
+            pending, running, validation = app.pendingTime()
+            for t, alpha in ((running, 0.25), (validation, 0.125)):
+                ax.bar(ix, t, bottom=h, alpha=alpha, **kwargs)
+                h += t
+
+            ix += 1
+            labels.append(app.name)
+
+    pos = np.arange(ix)
+    ax.set_xticks(pos+width/2)
+    ax.set_xticklabels(labels, rotation=17, horizontalalignment='right')
+
+    for hours, color in daysToMark:
+        day = datetime.timedelta(hours=hours).total_seconds()
+        plt.axhline(day, color=color)
+
+    ax.yaxis.set_major_formatter(formatter_timedelta)
+
+    ax.set_title('Stats for {} projects, total runtime {}'.format(len(labels), totalRuntime))
+    
+    
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
     loggerSetup(logging.INFO)
@@ -61,8 +122,6 @@ if __name__ == '__main__':
     import browser
     import project
     import boinccmd
-
-    fig = plt.figure()
 
     local_projects = boinccmd.get_state()
     print 'LOCAL'
@@ -73,14 +132,19 @@ if __name__ == '__main__':
     b = browser.BrowserSuper(cache)
 
     web_p = browser.getProject('worldcommunitygrid.org', CONFIG, cache)
-    
     web_projects = dict()
     web_projects[web_p.url] = web_p
+
+    wuprop_projects = browser.getProjects_wuprop(CONFIG, cache)
     
     project.merge(local_projects, web_projects)
+    project.mergeWuprop(wuprop_projects, web_projects)
     print 'MERGED'
-    print web_projects
     project.pretty_print(web_projects)
     
-    plot(fig, web_p, b)
+    fig1 = plt.figure()
+    fig2 = plt.figure()
+
+    plot_worldcommunitygrid(fig1, web_projects, b)
+    plot_wuprop(fig2, web_projects, b)
     raw_input('=== Press enter to exit ===\n')

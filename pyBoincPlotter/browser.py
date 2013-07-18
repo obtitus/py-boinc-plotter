@@ -295,6 +295,7 @@ class Browser_yoyo(Browser):
 
 
 def getProject(section, CONFIG, browser_cache):
+    """Gets a single project object based on section"""
     # projects = list()
     # for section in CONFIG.sections():
     logger.debug('section %s', section)
@@ -311,7 +312,20 @@ def getProject(section, CONFIG, browser_cache):
                           CONFIG=CONFIG)
     return browser.parse()
 
+
+def getProjects_wuprop(CONFIG, browser_cache):
+    """Returns dictionary of wuprop projects, key is user_friendly_name"""
+    section = 'wuprop.boinc-af.org'
+    browser =  Browser(section=section, 
+                       browser_cache=browser_cache, 
+                       CONFIG=CONFIG)
+    parser = HTMLParser.getParser(section, browser=browser)
+    html = browser.visitHome()
+    return parser.projectTable(html)
+
+    
 def getProjectsDict(CONFIG, browser_cache):
+    """Async version og getProjet, returns a dictionary of projects where key is url"""
     sections = CONFIG.projects()
     projects_list = async.Pool(getProject, *sections, 
                                CONFIG=CONFIG, browser_cache=browser_cache)

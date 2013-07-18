@@ -35,7 +35,7 @@ class Application(object):
             try:
                 return self.badge.runtime
             except:
-                return 0
+                return datetime.timedelta(0)
 
     def setNameFromXML(self, xml):
         """

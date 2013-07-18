@@ -7,6 +7,7 @@ import project
 import browser
 import config
 import parse_input
+import boinccmd
 
 def _setUp(Browser, Parser, url, **kwargs):
     CONFIG = config.setupConfigFile() # TODO: remove this requirement, write browser so that this can be None
@@ -192,6 +193,29 @@ class TestWuprop(unittest.TestCase):
         self.assertTrue(str(app.statistics),
                         'WuProp runtime 3:58:48')
 
+    def test_merge(self):
+        # todo: avoid duplicate
+        CONFIG = config.setupConfigFile() # TODO: remove this requirement, write browser so that this can be None
+        dir = parse_input.dataFolder
+        browser_cache = browser.Browser_file(dir, removeOld=False)
+
+        wuprop_projects = browser.getProjects_wuprop(CONFIG, browser_cache)
+        #web_projects    = browser.getProjectsDict(CONFIG, browser_cache)
+        local_projects = boinccmd.get_state() # TODO: must replace this with file based
+
+        p = project.pretty_print
+        # print 'Before merge'
+        # print 'WU:', 
+        # p(wuprop_projects)
+        # print 'WEB:', 
+        # p(local_projects)
+        
+        project.mergeWuprop(wuprop_projects,
+                            local_projects)
+        print 'After merge'
+        p(local_projects)
+
+        assert False            # not done
 
 class TestMindmodeling(unittest.TestCase):
     def setUp(self):
@@ -209,6 +233,6 @@ if __name__ == '__main__':
     from loggerSetup import loggerSetup
     loggerSetup(logging.INFO)
 
-    for t in [TestYoyo, TestPrimegrid, TestWorldcommunitygrid]:
+    for t in [TestWuprop]:#[TestYoyo, TestPrimegrid, TestWorldcommunitygrid]:
         suite = unittest.TestLoader().loadTestsFromTestCase(t)
         unittest.TextTestRunner(verbosity=2).run(suite)

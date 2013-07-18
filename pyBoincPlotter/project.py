@@ -180,6 +180,27 @@ def mergeProject(local_project, web_project):
     web_apps = web_project.applications
     mergeDicts(local_apps, web_apps, mergeApplications, 'name_long')
 
+def mergeWuprop(wuprop_projects,
+                local_projects):
+    """Tries to merge the wuprop project dict (which is sorted by user_friendly_name)
+    with the normal local_projects which are sorted by url. Works inplace on local_projects"""
+    wuprop_projects = dict(wuprop_projects)
+    for key in wuprop_projects.keys():
+        wuprop_project = wuprop_projects[key]
+        # find:
+        for local_project in local_projects.values():
+            if local_project.name == wuprop_project.name:
+                mergeProject(wuprop_project,
+                             local_project)
+                del wuprop_projects[key]
+                break
+    
+    for remaining in wuprop_projects:
+        logger.info(('Problem merging wuprop project "%s", '
+                     'this might be caused by this project not being'
+                     'present locally'), remaining)
+        local_projects[remaining] = wuprop_projects[remaining] # This is really messy, since remaining isn't a url
+
 def mergeDicts(local_dict, web_dict, merge, name):
     """Helper function for above merge rutines"""
     logging.debug('merging with %s, ("%s", "%s")', merge, 

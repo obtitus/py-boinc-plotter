@@ -14,7 +14,7 @@ import statistics
 import project
 
 class HTMLParser(object):
-    def __init__(self, browser, project):
+    def __init__(self, browser, project=None):
         self.Task = task.Task_web
         self.browser = browser
         self.project = project
