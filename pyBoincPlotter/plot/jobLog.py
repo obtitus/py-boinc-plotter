@@ -11,7 +11,7 @@ import projectColors
 import task
 from project import Project
 from importMatplotlib import *
-from util import diffMonths
+import util
 
 def createFromFilename(cls, filename, limitMonths=None, label=''):
     """ Returns a JobLog instance from a given filename
@@ -30,7 +30,7 @@ def createFromFilehandle(cls, f, limitMonths=None, label=''):
     now = datetime.datetime.now()
     for line in f:
         t = task.Task_jobLog.createFromJobLog(line)
-        if limitMonths == None or diffMonths(t.time, now) < limitMonths:
+        if limitMonths == None or util.diffMonths(t.time, now) < limitMonths:
             tasks.append(t)
     return tasks
 
@@ -251,22 +251,7 @@ class BarPlotter(object):
     # def plot(self, *args, **kwargs):
     #     self.ax.plot(*args, **kwargs)
 
-if __name__ == '__main__':
-    from loggerSetup import loggerSetup
-    loggerSetup(logging.DEBUG)
-    
-    import config
-    import util
-    import boinccmd
-    
-    _, _, BOINC_DIR = config.set_globals()
-    projects = dict()
-    for p in boinccmd.get_state(command='get_project_status').values():
-        url = Project(url=p.url)
-        projects[url.name] = p.name
-
-    fig1 = plt.figure()
-    fig2 = plt.figure()
+def plotAll(fig1, fig2, projects, BOINC_DIR):
     for url, filename in util.getLocalFiles(BOINC_DIR, 'job_log', '.txt'):
         try:
             p = Project(url=url)
@@ -282,5 +267,22 @@ if __name__ == '__main__':
         tasks = createFromFilename(JobLog_Months, filename, 
                                    label=label, limitMonths=120)
         tasks.plot(fig=fig2)
+
+if __name__ == '__main__':
+    from loggerSetup import loggerSetup
+    loggerSetup(logging.DEBUG)
+    
+    import config
+    import boinccmd
+    
+    _, _, BOINC_DIR = config.set_globals()
+    projects = dict()
+    for p in boinccmd.get_state(command='get_project_status').values():
+        url = Project(url=p.url)
+        projects[url.name] = p.name
+
+    fig1 = plt.figure()
+    fig2 = plt.figure()
+    plotAll(fig1, fig2, projects, BOINC_DIR)
 
     raw_input('=== Press enter to exit ===\n')

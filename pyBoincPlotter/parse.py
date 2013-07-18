@@ -62,7 +62,7 @@ class HTMLParser(object):
             if len(ret) != 0:
                 self.logger.debug('in parseTable, got %s, len = %s', ret, len(ret))
 
-            if len(ret) == 10:
+            if len(ret) == 10 and ret[0].strip() != '':
                 yield ret
 
     def getRows(self, html):

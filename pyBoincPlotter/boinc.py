@@ -81,18 +81,60 @@ if __name__ == '__main__':
     project.mergeWuprop(wuprop_projects, local_projects)
     project.merge(local_projects, web_projects)
     # print 'MERGED'
-    project.pretty_print(web_projects, show_empty=True)
+    project.pretty_print(web_projects, 
+                         show_empty=args.verbose)
 
     if len(boinccmd_args) != 0:
         print boinccmd_responce.communicate()
 
+
+    if args.plot:
+        b = browser.BrowserSuper(cache)
+
+        from plot.importMatplotlib import plt
+        import plot.credits
+        
+        fig = plt.figure()
+        plot.credits.plot(fig, web_projects, b)
+
+        import plot.dailyTransfer
+        fig = plt.figure()
+        filename = plot.dailyTransfer.getFilename(BOINC_DIR)
+        data = plot.dailyTransfer.parse(filename, limitDays=15)
+
+        plot.dailyTransfer.plot(fig, data)
+
+        import plot.deadline
+        fig = plt.figure()
+
+        plot.deadline.plot(fig, local_projects)
+
+        import plot.jobLog
+        fig1 = plt.figure()
+        fig2 = plt.figure()
+
+        plot.jobLog.plotAll(fig1, fig2, web_projects,
+                            BOINC_DIR)
+
+        import plot.pipeline
+        fig = plt.figure()
+        plot.pipeline.plot(fig, web_projects)
+
+        import plot.runtime
+        fig1 = plt.figure()
+        fig2 = plt.figure()
+        plot.runtime.plotAll(fig1, fig2, web_projects, b)
+
+        import plot.timeStats
+        fig = plt.figure()
+        plot.timeStats.plotAll(fig, BOINC_DIR)
+
     # fig1 = plt.figure()
     # fig2 = plt.figure()
 
-    # b = browser.BrowserSuper(cache)
     # plot_worldcommunitygrid(fig1, web_projects, b)
     # plot_wuprop(fig2, web_projects, b)
-    # raw_input('=== Press enter to exit ===\n')
+    raw_input('=== Press enter to exit ===\n')
 
 
     # # Add account

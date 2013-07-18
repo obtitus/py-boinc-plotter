@@ -52,6 +52,9 @@ def plot(fig, data):
     ax.set_ylabel('upload/-download MB')
     dayFormat(ax)
 
+def getFilename(BOINC_DIR):
+    return os.path.join(BOINC_DIR, 'daily_xfer_history.xml')
+
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
     loggerSetup(logging.INFO)
@@ -59,10 +62,9 @@ if __name__ == '__main__':
     import config
     
     _, _, BOINC_DIR = config.set_globals()
-    filename = os.path.join(BOINC_DIR, 'daily_xfer_history.xml')
     fig1 = plt.figure()
     
-    data = parse(filename, limitDays=15)
+    data = parse(getFilename(BOINC_DIR), limitDays=15)
     plot(fig1, data)
 
     raw_input('=== Press enter to exit ===\n')

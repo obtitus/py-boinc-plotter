@@ -126,6 +126,10 @@ def plot_wuprop(fig, projects, browser):
     for mark in pos[::20][1:]:
         ax.axvline(mark)
 
+def plotAll(fig1, fig2, projects, browser):
+    plot_worldcommunitygrid(fig1, projects, browser)
+    plot_wuprop(fig2, projects, browser)
+
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
     loggerSetup(logging.INFO)
@@ -159,6 +163,5 @@ if __name__ == '__main__':
     fig1 = plt.figure()
     fig2 = plt.figure()
 
-    plot_worldcommunitygrid(fig1, web_projects, b)
-    plot_wuprop(fig2, web_projects, b)
+    plotAll(fig1, fig2, web_projects, b)
     raw_input('=== Press enter to exit ===\n')

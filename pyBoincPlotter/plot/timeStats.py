@@ -118,6 +118,12 @@ class PrevState(object): # namedtuple('PreviousState', ['t', 'desc'])
         self.t = t
         self.desc = desc
 
+def plotAll(fig, BOINC_DIR):
+    filename = os.path.join(BOINC_DIR, 'time_stats_log')
+    with open(filename, 'r') as f:
+        p = parse(f)
+        plot(fig, p, limitDays=14)
+    
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
     loggerSetup(logging.DEBUG)
@@ -127,9 +133,6 @@ if __name__ == '__main__':
     _, _, BOINC_DIR = config.set_globals()
 
     fig = plt.figure()
-    filename = os.path.join(BOINC_DIR, 'time_stats_log')
-    with open(filename, 'r') as f:
-        p = parse(f)
-        plot(fig, p, limitDays=14)
+    plotAll(fig, BOINC_DIR)
 
     raw_input('=== Press enter to exit ===\n')
