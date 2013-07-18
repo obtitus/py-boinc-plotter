@@ -53,8 +53,9 @@ def plot_worldcommunitygrid(fig, projects, browser):
         labels.append(str(app.name))
         ix += 1
 
-    pos = np.arange(ix)
-    plt.xticks(pos+width/2, labels, rotation=17, horizontalalignment='right')
+    pos = np.arange(len(labels))
+    ax.set_xticks(pos+width/2)
+    ax.set_xticklabels(labels, rotation=17, horizontalalignment='right')
     ax.set_xlabel('Application')
 
     ax.set_ylabel('Runtime')
@@ -101,7 +102,7 @@ def plot_wuprop(fig, projects, browser):
             ix += 1
             labels.append(app.name)
 
-    pos = np.arange(ix)
+    pos = np.arange(len(labels))
     ax.set_xticks(pos+width/2)
     ax.set_xticklabels(labels, rotation=17, horizontalalignment='right')
 
