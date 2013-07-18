@@ -145,8 +145,10 @@ class BrowserSuper(object):
 
     def authenticate(self):
         try:
+            #print self.loginInfo
             r = self.client.post(self.loginPage, data=self.loginInfo, timeout=5)
             logger.info('Authenticate responce "%s"', r)
+            #print r.content
         except requests.ConnectionError as e:
             print('Could not connect to login page. {}'.format(e))
         except requests.Timeout as e:
