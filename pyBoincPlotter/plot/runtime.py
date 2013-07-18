@@ -64,57 +64,68 @@ def plot_worldcommunitygrid(fig, projects, browser):
 def plot_wuprop(fig, projects, browser):
     ax = fig.add_subplot(111)
 
-    labels = list()
-    width = 0.75
-    ix = 0
-    badges = Badge_wuprop.badges
-
-    daysToMark = list()
-    totalRuntime = datetime.timedelta(0)
+    applications = list()
     for key, project in sorted(projects.items()):
         for key, app in sorted(project.applications.items()):
-            stat = app.statistics
             try:
-                stat.wuPending
+                runtime = app.statistics.wuRuntime
             except AttributeError:
                 logger.debug('skipping %s since there are no wuprop stats', app.name)
                 continue
 
-            h = stat.wuRuntime.total_seconds()
-            totalRuntime += stat.wuRuntime
-            
-            color, b = Badge_wuprop.getColor(h)
-            daysToMark.append([b, color])
+            runtime_sec = runtime.total_seconds()
+            color, value = Badge_wuprop.getColor(runtime_sec)
+            applications.append((value, color, app)) # Uses value for sorting
 
-            kwargs = dict(width=width, color=color)
+    applications.sort(reverse=True)
 
-            ax.bar(ix, h, **kwargs)
+    labels = list()
+    width = 0.75
+    badges = Badge_wuprop.badges # list of levels
 
-            pending = stat.wuPending.total_seconds()
-            ax.bar(ix, pending, bottom=h, alpha=0.5, **kwargs)
-            h += pending
+    totalRuntime = datetime.timedelta(0)
+    # for key, project in sorted(projects.items()):
+    #     for key, app in sorted(project.applications.items()):
+    for ix, data in enumerate(applications):
+        badgeLine = data[0]
+        color = data[1]
+        app = data[2]
+        stat = app.statistics
 
-            pending, running, validation = app.pendingTime()
-            for t, alpha in ((running, 0.25), (validation, 0.125)):
-                ax.bar(ix, t, bottom=h, alpha=alpha, **kwargs)
-                h += t
+        h = stat.wuRuntime.total_seconds()
+        totalRuntime += stat.wuRuntime
 
-            ix += 1
-            labels.append(app.name)
+        color, b = Badge_wuprop.getColor(h)
+
+        kwargs = dict(width=width, color=color)
+
+        ax.bar(ix, h, **kwargs)
+
+        pending = stat.wuPending.total_seconds()
+        ax.bar(ix, pending, bottom=h, alpha=0.5, **kwargs)
+        h += pending
+
+        pending, running, validation = app.pendingTime()
+        for t, alpha in ((running, 0.25), (validation, 0.125)):
+            ax.bar(ix, t, bottom=h, alpha=alpha, **kwargs)
+            h += t
+
+        labels.append(app.name)
+
+        days = badgeLine*60*60
+        plt.axhline(days, color=color)
 
     pos = np.arange(len(labels))
     ax.set_xticks(pos+width/2)
     ax.set_xticklabels(labels, rotation=17, horizontalalignment='right')
 
-    for hours, color in daysToMark:
-        day = datetime.timedelta(hours=hours).total_seconds()
-        plt.axhline(day, color=color)
-
     ax.yaxis.set_major_formatter(formatter_timedelta)
 
     ax.set_title('Stats for {} projects, total runtime {}'.format(len(labels), totalRuntime))
-    
-    
+
+    for mark in pos[::20][1:]:
+        ax.axvline(mark)
+
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
     loggerSetup(logging.INFO)
