@@ -9,12 +9,14 @@ from importMatplotlib import *
 from task import Task
 
 def plot(fig, projects):
-    states = Task.desc_state
-    states.extend(['in progress', 
-                   'aborted', 'detached', 'error', 'no reply', 
-                   'pending validation', 'pending verification', 
-                   'valid', 'invalid', 'inconclusive', 'too late', 
-                   'waiting to send'])
+    states = list(Task.desc_state)
+    for s in ['in progress', 
+              'aborted', 'detached', 'error', 'no reply', 
+              'pending validation', 'pending verification', 
+              'valid', 'invalid', 'inconclusive', 'too late', 
+              'waiting to send']:
+        if s not in states:
+            states.append(s)
 
     apps = list()
     for p in projects.values():

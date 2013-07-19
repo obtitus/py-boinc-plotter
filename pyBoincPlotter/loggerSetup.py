@@ -27,4 +27,5 @@ def loggerSetup(loggerLevel):
         logger.addHandler(ch)
         logger.propagate = False 
     else:
-        logger.warning("Logger already setup")
+        pass
+        # logger.warning("Logger already setup")

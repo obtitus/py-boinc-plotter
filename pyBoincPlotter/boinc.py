@@ -31,17 +31,9 @@ import browser
 import project
 import boinccmd
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Boinc statistics')
-    parser.add_argument('-p', '--plot', action='store_true', help='Use matplotlib to plot statistics and progress')
-    parser.add_argument('-dmacosx', action='store_true', help='Use the macosx backend for plotting')    
-    #parser.add_argument('-s', '--save', action='store_true', help='Use in combination with --plot, saves the figures to disk in the current working directory')
-    parser.add_argument('--verbose', '-v', action='store_true', help='Sets logging level to DEBUG')
-    parser.add_argument('--silent', '-s', action='store_true', help='Sets logging level to ERROR')    
-    parser.add_argument('--add', help='Add webpage that pyBoinc should track, example: --add wuprop.boinc-af.org/')
-    parser.add_argument('args', nargs=argparse.REMAINDER, 
-                        help='Remaining args are passed to the command line boinccmd if available, pass "--help " (with quotes for help)')
-    args, boinccmd_args = parser.parse_known_args()
+def main(parser, args=None, namespace=None):
+    args, boinccmd_args = parser.parse_known_args(args=args,
+                                                  namespace=namespace)
     boinccmd_args.extend(args.args)
 
     ### Make global variables ###
@@ -100,44 +92,24 @@ if __name__ == '__main__':
         plot.plot_runtime(web_projects, b)
         plot.plot_timeStats(BOINC_DIR)
 
-    # fig1 = plt.figure()
-    # fig2 = plt.figure()
+    return args
 
-    # plot_worldcommunitygrid(fig1, web_projects, b)
-    # plot_wuprop(fig2, web_projects, b)
-    raw_input('=== Press enter to exit ===\n')
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Boinc statistics')
+    parser.add_argument('-p', '--plot', action='store_true', help='Use matplotlib to plot statistics and progress')
+    parser.add_argument('-dmacosx', action='store_true', help='Use the macosx backend for plotting')    
+    #parser.add_argument('-s', '--save', action='store_true', help='Use in combination with --plot, saves the figures to disk in the current working directory')
+    parser.add_argument('--verbose', '-v', action='store_true', help='Sets logging level to DEBUG')
+    parser.add_argument('--silent', '-s', action='store_true', help='Sets logging level to ERROR')    
+    parser.add_argument('--add', help='Add webpage that pyBoinc should track, example: --add wuprop.boinc-af.org/')
+    parser.add_argument('args', nargs=argparse.REMAINDER, 
+                        help='Remaining args are passed to the command line boinccmd if available, pass "--help " (with quotes for help)')
+    namespace = main(parser)
 
+    while True:
+        user_input = raw_input('=== Enter q, quit, e or exit to exit ===\n')
+        if user_input in ('q', 'quit', 'e', 'exit'):
+            break
 
-    # # Add account
-    # if args.add:
-    #     config.addAccount(args.add)
-
-    # # call on boinccmd
-    # boinccmd = None
-    # prefs = None
-    # if len(args.args) > 0:
-    #     cmds = " ".join(args.args)
-    #     boinccmd = task.BoincCMD(cmds)
-    # if args.toggle:
-    #     prefs = changePrefs.toggleCPUusage()
-
-    # main(shouldPlot = args.plot)
-    # if boinccmd: print boinccmd.communicate()
-    # if prefs: print prefs.communicate()
-
-    # prompt = '=== Enter q, quit, e or exit to exit ===\n'
-    # user_input = raw_input(prompt)
-    # while not(user_input in ('q', 'quit', 'e', 'exit')):
-    #     boinccmd = None
-    #     if user_input in ('always', 'auto', 'never'):
-    #         boinccmd = task.BoincCMD('--set_run_mode {0} --set_network_mode {0}'.format(user_input))
-    #     elif user_input in ('toggle', 'toggle cpu'):
-    #         boinccmd = changePrefs.toggleCPUusage()
-    #     elif user_input != '':
-    #         boinccmd = task.BoincCMD(user_input)
-
-    #     browser.browser_cache.update()          # Clears out any cach which have gotten too old
-    #     main(shouldPlot = args.plot)
-    #     if boinccmd: print boinccmd.communicate()
-        
-    #     user_input = raw_input(prompt)
+        main(parser, 
+             args=user_input.split(), namespace=namespace)
