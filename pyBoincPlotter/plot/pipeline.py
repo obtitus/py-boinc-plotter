@@ -24,7 +24,7 @@ import logging
 logger = logging.getLogger('boinc.plot.pipeline')
 # This project
 from importMatplotlib import *
-from task import Task
+from ..task import Task
 
 def plot(fig, projects):
     states = list(Task.desc_state)
@@ -43,7 +43,7 @@ def plot(fig, projects):
 
             for task in app.tasks:
                 if task.state_str not in states:
-                    states.append(task.state)
+                    states.append(task.state_str)
 
 
     colormap = matplotlib.cm.get_cmap('Set1')
