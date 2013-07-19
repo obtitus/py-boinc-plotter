@@ -18,7 +18,7 @@ if __name__ == '__main__':
         version=__version__,
         author=appAuthor,
         author_email='obtitus@gmail.com',
-        packages=['pyBoincPlotter'],
+        packages=['pyBoincPlotter', 'pyBoincPlotter.plot', 'pyBoincPlotter.test'],
         scripts=['bin/py-boinc-plotter','bin/py-boinc-change-prefs'],
         url='http://pypi.python.org/pypi/pyBoincPlotter/',
         license='LICENSE.txt',
