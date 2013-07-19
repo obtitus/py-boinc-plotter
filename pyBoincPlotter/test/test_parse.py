@@ -189,7 +189,7 @@ class TestWuprop(unittest.TestCase):
                         'WuProp runtime 70 days, 18:30:00')
 
         p = projects['MindModeling@Beta'] # Vops, note that key is not url
-        app = p.applications['Native Pypy  Application']
+        app = p.applications['Native Pypy Application']
         self.assertTrue(str(app.statistics),
                         'WuProp runtime 3:58:48')
 

@@ -107,6 +107,7 @@ class Application(object):
             e = reg.end()
             self.version = reg.group()
             name_long = name_long[:s] + name_long[e:]
+            name_long = name_long.replace('  ', ' ')
         else:
             name_long = name_long
         self.name_long = name_long.strip()
