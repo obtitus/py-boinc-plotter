@@ -1,25 +1,25 @@
 #!/usr/bin/env python
-# This file is part of the py-boinc-plotter,
-# which provides parsing and plotting of boinc statistics and
-# badge information.
+# This file is part of the py-boinc-plotter, which provides parsing and plotting of boinc statistics and badge information.
 # Copyright (C) 2013 obtitus@gmail.com
-#
+# 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-#
+# 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# 
 # END LICENCE
 """
 Uses request library to download web content, also stores a local cache.
 """
+# Standard python imports
 import pickle as pk
 import time
 import os
@@ -27,10 +27,12 @@ import sys
 import re
 import logging
 logger = logging.getLogger('boinc.browser')
-
+# Non-standard python
 import requests
-
-import config
+# This project
+from project import Project, pretty_print
+from parse import HTMLParser
+import async
 
 # Helper functions:
 def sanitizeURL(url):
@@ -44,44 +46,54 @@ def readFile(filename):
         return f.read()
 join = os.path.join
 
-class Browser_cache(object):
-    # Cache aware browser
-    # This is just to seperate the code a little
-    # Using this class directly makes no sense
-    # Beware, not thread safe to initialize or update
-    # Note: the entire cache folder is currently read into memory
-    def __init__(self):
-        self.cacheDir = config.CACHE_DIR
+class Browser_file(object):
+    """Cache aware browser
+    Use self.update() (which is called on init) to read in content from the cache folder
+    then use self.visitURL(...) which returns the content on success or None on failure
+    Cache is invalidated and removed based on age
+    Using this class directly makes little sense, unless you have the entire updated internet in our cache folder
+    Beware, not thread safe to update
+    """
+    def __init__(self, CACHE_DIR, removeOld=True):
+        """removeOld should be set to False for testing"""
+        self.cacheDir = CACHE_DIR
+        self.removeOld = removeOld
         self.update()
 
-    def update(self):
-        self.cache = self.read_cache()        
+    def add(self, filename):
+        #logger.debug('Adding %s to valid cache', filename)
+        self.cache[filename] = None
+    def remove(self, filename):
+        logger.info('Removing old cache %s', filename)
+        try:
+            os.remove(filename)
+        except:
+            logger.exception('Unable to clean up old cach file %s', filename)
 
-    def read_cache(self):
-        cache = dict()
-        now = time.time()
+    def fileAge(self, filename):
+        fileChanged = os.path.getmtime(filename)
+        age = (self.now - fileChanged)/(60*60) # age of file in hours
+        #logger.debug('%s is %.3g h old', filename, age)
+        return age
+    
+    def update(self):
+        self.cache = dict()
+        self.now = time.time()
         for filename in self.findCacheFiles(('.html', '.xml')):
-            fileChanged = os.path.getmtime(filename)
-            age = (now - fileChanged)/(60*60) # age of file in hours
-            logger.debug('%s is %s h old', filename, age)
+            age = self.fileAge(filename)
             oldAge = 1
             if 'workunit' in filename:
-                oldAge = 24*14 # Currently the workunit page is only used for project name, which will never change. Set to 14 days so that the file will eventually be cleaned
+                # Currently the workunit page is only used for project name, 
+                # which will never change. Set to 30 days so that the file will eventually be cleaned
+                oldAge = 30*24
                 
-            if age < oldAge:
-                logger.debug('Adding %s to valid cache', filename)
-                cache[filename] = readFile(filename)
+            if not(self.removeOld) or age < oldAge:
+                self.add(filename)
             else:
-                logger.info('Removing old cache %s', filename)
-                os.remove(filename)
+                self.remove(filename)
 
-        for filename in self.findCacheFiles('.jpg'): # These never expire
-            logger.debug('Adding %s to valid cache', filename)            
-            cache[filename] = readFile(filename)
-        for filename in self.findCacheFiles('.png'): # These never expire
-            logger.debug('Adding %s to valid cache', filename)            
-            cache[filename] = readFile(filename)            
-        return cache
+        for filename in self.findCacheFiles(('.jpg', '.png')): # These never expire
+            self.add(filename)
         
     def findCacheFiles(self, extension):#htmlCache(self):
         for root, dirs, files in os.walk(self.cacheDir):
@@ -90,19 +102,19 @@ class Browser_cache(object):
                     yield join(root, f)
 
     def visitURL(self, URL, extension='.html'):
-        try:
-            filename = join(self.cacheDir, sanitizeURL(URL)) + extension
-            content = self.cache[filename]
+        """Returns content if the site is in cache, None otherwise."""
+        filename = join(self.cacheDir, sanitizeURL(URL)) + extension
+        if filename in self.cache:
             logger.debug('Getting from cache %s, %s', URL, filename)
-        except KeyError:                # Not found in cache
-            content = None
-        return content
+            return readFile(filename)
+        else:
+            return None
 
 class BrowserSuper(object):
     # Browser for visiting the web, use subclass to actually connect somewhere
-    # Subclass must define self.URL, self.loginInfo, self.loginPage and self.name
+    # Subclass must define self.URL, self.loginInfo, self.loginPage and self.section
     # or use the visitURL function directly
-    def __init__(self):
+    def __init__(self, browser_cache):
         self.visitedPages = list()
         self.browser_cache = browser_cache # address of cache class
         self.client = requests.session()
@@ -129,18 +141,21 @@ class BrowserSuper(object):
         filename = join(self.browser_cache.cacheDir, sanitizeURL(URL)) + extension
         with open(filename, 'w') as f:
             f.write(content)
-        
+        return filename
+
     def authenticate(self):
         try:
+            #print self.loginInfo
             r = self.client.post(self.loginPage, data=self.loginInfo, timeout=5)
-            logger.info('%s', r)            
+            logger.info('Authenticate responce "%s"', r)
+            #print r.content
         except requests.ConnectionError as e:
             print('Could not connect to login page. {}'.format(e))
         except requests.Timeout as e:
             print('Connection to login page timed out. {}'.format(e))
         except Exception as e:
             print('Uncaught exception for login page. {}'.format(e))
-            
+
         sessionCache = pk.dumps(self.client.cookies)
         self.writeFile(self.name, sessionCache, '.pickle')
 
@@ -154,17 +169,32 @@ class BrowserSuper(object):
         return self.visitURL(URL)
 
     def visitPage(self, page):
-        return self.visitURL('http://{name}/{page}'.format(name=self.name, page=page))
+        return self.visitURL('{name}/{page}'.format(name=self.name, page=page))
+
+    def redirected(self, request):
+        """ Returns whether a redirect has been done or not """
+        logger.info('response and history "%s", "%s"', request, request.history)
+        if len(request.history) != 0:
+            return True
+        
+        ix = request.content.find('\n')
+        firstLine = request.content[:ix]
+        logger.debug('First line "%s"', firstLine)
+        return 'Please log in' in firstLine
 
     def visitURL(self, URL, recursionCall=False, extension='.html'):
-        # recursionCall is used to limit recursion to 1 step
-        # Extension is used for the cache for ease of debugging        
+        """ RecursionCall is used to limit recursion to 1 step
+         Extension is used for the cache for ease of debugging
+        """
         content = self.browser_cache.visitURL(URL, extension)
         if content == None:
             logger.info('Visiting %s', URL)
 
             try:
                 r = self.client.get(URL, timeout=5)
+            except requests.ConnectionError:
+                print('Could not connect to {0}'.format(URL))
+                return ''
             except requests.ConnectionError as e:
                 print('Could not connect to {0}. {1}'.format(URL, e))
                 return ''
@@ -174,10 +204,8 @@ class BrowserSuper(object):
             except Exception as e:
                 print('Uncaught exception for {}. {}'.format(URL, e))
                 return ''
-            logger.info('%s, %s', r, r.history)
-            firstLine = r.content.split('\n')[0].strip()
-            logger.debug('First line "%s"', firstLine)
-            if r.url != URL or firstLine == '<html><head><title>Please log in</title>' or '<td><h3 align="center" class="txtTitle">Please log in</h3>' in r.content: # redirected or hack for rosetta or hack for climateprediction
+
+            if self.redirected(r):
                 if not(recursionCall):
                     logger.info('Seem to have been redirected, trying to authenticate first. %s', r.url)
                     self.authenticate()
@@ -190,65 +218,134 @@ class BrowserSuper(object):
             self.writeFile(URL, content, extension=extension)
         return content
 
-#     def visitUnvisited(self, listOfPages, projectId=-1):
-#         if listOfPages == []:
-#             yield self.visit(1, projectId)             # visit first page
-            
-#         for page in listOfPages:
-#             yield self.visit(page, projectId)
+    def parse(self, project=None):
+        if project == None:
+            project = Project(url=self.name)
+
+        taskPage = self.visit()
+        if taskPage == '':
+            return project
+
+        parser = HTMLParser.getParser(self.section, browser=self, project=project)
+        parser.parse(taskPage)
+        try:
+            parser.getBadges()
+        except AttributeError as e:  # Parser does not implement getBadges
+            logging.debug('no badge for %s, %s', self.section, e)
+            pass
+        return project
+
+    @property
+    def name(self):
+        ret = self.section
+        if not(self.section.startswith('www.')):
+            ret = 'www.' + ret
+        return 'http://' + ret
 
 class Browser_worldcommunitygrid(BrowserSuper):
-    def __init__(self):
-        self.name = 'worldcommunitygrid'
-        BrowserSuper.__init__(self)
-        self.URL = 'http://www.worldcommunitygrid.org/ms/viewBoincResults.do'
-        self.URL += '?filterDevice=0&filterStatus=-1&projectId=-1&'
-        self.URL += 'pageNum={0}&sortBy=sentTime'
+    def __init__(self, browser_cache, CONFIG):
+        BrowserSuper.__init__(self, browser_cache)
+        self.CONFIG = CONFIG
+        self.section = 'worldcommunitygrid.org'
+        self.URL = self.name +\
+                   '/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum={0}&sortBy=sentTime'
 
         self.loginInfo = {
             'settoken': 'on',
-            'j_username': config.CONFIG.get('worldcommunitygrid.org', 'username'),
-            'j_password': config.CONFIG.getpassword('worldcommunitygrid.org', 'username'),
+            'j_username': CONFIG.get('worldcommunitygrid.org', 'username'),
+            'j_password': CONFIG.getpassword('worldcommunitygrid.org', 'username'),
             }
         self.loginPage = 'https://secure.worldcommunitygrid.org/j_security_check'
 
     def visitStatistics(self):
-        page = self.visitURL("http://www.worldcommunitygrid.org/verifyMember.do?name={0}&code={1}".format(config.CONFIG.get('worldcommunitygrid.org', 'username'),
-                                                                                                        config.CONFIG.get('worldcommunitygrid.org', 'code')), extension='.xml')
+        username = self.CONFIG.get('worldcommunitygrid.org', 'username')
+        code = self.CONFIG.get('worldcommunitygrid.org', 'code')
+        url = self.name + "/verifyMember.do?name={0}&code={1}"
+        page = self.visitURL(url.format(username, code), extension='.xml')
         return page
 
 class Browser(BrowserSuper):
-    def __init__(self, webpageName):
-        self.name = webpageName
-        BrowserSuper.__init__(self)
-        self.webpageName = webpageName
+    def __init__(self, section, browser_cache, CONFIG):
+        self.section = section
+        BrowserSuper.__init__(self, browser_cache)
+        
+        self.userid = CONFIG.get(section, 'userid')
         self.URL = 'http://{name}/results.php?userid={userid}'.format(
-            name = webpageName,
-            userid=config.CONFIG.get(webpageName, 'userid'))
+            name = section,
+            userid=self.userid)
         self.URL += '&offset={0}&show_names=1&state=0&appid='
 
-        self.loginInfo = {'email_addr': config.CONFIG.get(webpageName, 'username'),
+        self.loginInfo = {'email_addr': CONFIG.get(section, 'username'),
                           'mode': 'Log in',
                           'next_url': 'home.php',
-                          'passwd': config.CONFIG.getpassword(webpageName, 'username'),
+                          'passwd': CONFIG.getpassword(section, 'username'),
                           'stay_logged_in': 'on', # used by mindmodeling and wuprop
                           'send_cookie': 'on'}    # used by rosetta and yoyo
-        self.loginPage = 'http://{0}/login_action.php'.format(webpageName)
+        self.loginPage = 'http://{0}/login_action.php'.format(section)
 
     def visitHome(self):
-        return self.visitURL('http://{0}/home.php'.format(self.webpageName))
+        return self.visitURL('http://{0}/home.php'.format(self.section))
 
     def visit(self, offset=0):
         return BrowserSuper.visit(self, offset)
 
 class Browser_yoyo(Browser):
-    def __init__(self):
-        Browser.__init__(self, webpageName='www.rechenkraft.net/yoyo')
+    def __init__(self, browser_cache, CONFIG):
+        Browser.__init__(self, section='www.rechenkraft.net/yoyo',
+                         browser_cache=browser_cache, CONFIG=CONFIG)
         self.loginInfo['mode'] = 'Log in with email/password'
         self.loginInfo['next_url'] = '/yoyo/home.php'
-        
-global browser_cache
-browser_cache = None                    # There should be only 1 instance of this class
-def main():
-    global browser_cache    
-    browser_cache = Browser_cache()         # The one and only instance of this class!    
+
+
+def getProject(section, CONFIG, browser_cache):
+    """Gets a single project object based on section"""
+    # projects = list()
+    # for section in CONFIG.sections():
+    logger.debug('section %s', section)
+    # Pick subclass
+    if section == 'worldcommunitygrid.org':
+        browser = Browser_worldcommunitygrid(browser_cache, CONFIG)
+    elif section == 'www.rechenkraft.net/yoyo':
+        browser = Browser_yoyo(browser_cache, CONFIG)
+    elif section == 'configuration': # Not a boinc project
+        return None
+    else:                   # Lets try the generic
+        browser = Browser(section=section, 
+                          browser_cache=browser_cache, 
+                          CONFIG=CONFIG)
+    return browser.parse()
+
+
+def getProjects_wuprop(CONFIG, browser_cache):
+    """Returns dictionary of wuprop projects, key is user_friendly_name"""
+    section = 'wuprop.boinc-af.org'
+    browser =  Browser(section=section, 
+                       browser_cache=browser_cache, 
+                       CONFIG=CONFIG)
+    parser = HTMLParser.getParser(section, browser=browser)
+    html = browser.visitHome()
+    return parser.projectTable(html)
+
+    
+def getProjectsDict(CONFIG, browser_cache):
+    """Async version og getProjet, returns a dictionary of projects where key is url"""
+    sections = CONFIG.projects()
+    projects_list = async.Pool(getProject, *sections, 
+                               CONFIG=CONFIG, browser_cache=browser_cache)
+    projects = dict()
+    for p in projects_list.ret:
+        projects[p.url] = p    
+    return projects
+
+if __name__ == '__main__':
+    from loggerSetup import loggerSetup
+    loggerSetup(logging.INFO)
+    
+    import config
+    
+    CONFIG, CACHE_DIR, _ = config.set_globals()
+    browser_cache = Browser_file(CACHE_DIR)
+    
+    projects = getProjectsDict(CONFIG, browser_cache)
+
+    pretty_print(projects)

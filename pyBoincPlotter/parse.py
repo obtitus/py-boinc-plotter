@@ -1,475 +1,354 @@
-#!/usr/bin/env python
-# This file is part of the py-boinc-plotter,
-# which provides parsing and plotting of boinc statistics and
-# badge information.
-# Copyright (C) 2013 obtitus@gmail.com
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# END LICENCE
-"""
-Parsing
-"""
+# Standard
 import re
-from HTMLParser import HTMLParser
+import logging
+logger = logging.getLogger('boinc.browser')
+import xml.etree.ElementTree
 
+# Non-standard python
+from bs4 import BeautifulSoup
+# This project
 import task
+import plot.badge as badge
+import async
+import statistics
 import project
 
-#import xml
+class HTMLParser(object):
+    def __init__(self, browser, project=None):
+        self.Task = task.Task_web
+        self.browser = browser
+        self.project = project
+        self.name = browser.name
+        self.logger = logging.getLogger('boinc.browser.{}'.format(self.__class__.__name__))
 
-import logging
-logger = logging.getLogger('boinc.parse')
+    @staticmethod
+    def getParser(section, **kwargs):
+        """Factory for returning the correct subclass based on section name"""
+        if section == 'worldcommunitygrid.org':
+            logger.debug('getting worldcommunitygrid.org parser')
+            parser = HTMLParser_worldcommunitygrid(**kwargs)
+        elif section == 'www.rechenkraft.net/yoyo':
+            logger.debug('getting yoyo parser')
+            parser = HTMLParser_yoyo(**kwargs)
+        elif section == 'wuprop.boinc-af.org':
+            logger.debug('getting wuprop parser')
+            parser = HTMLParser_wuprop(**kwargs)
+        elif section == 'www.primegrid.com':
+            logger.debug('getting primegrid parser')
+            parser = HTMLParser_primegrid(**kwargs)
+        else:                   # Lets try the generic
+            logger.debug('getting generic parser, name = %s', section)
+            parser = HTMLParser(**kwargs)
 
-from loggerSetup import loggerSetup
+        return parser
 
-# Only contains info on currently running tasks, but contains slot number and short name
-# class InitDataParser(task.Task):
-#     # Parse a init_data.xml file into a single task.Task object
-#     def __init__(self, page):
-#         Task.__init__(self)
-#         self.parse()
-        
-#     def parse(self)
-#         tree = xml.etree.ElementTree.parse(page)
-#         self.name = tree.find('result_name')
+    def parse(self, content):
+        """Fills up the self.project with applications and tasks
+        Assumes the application name is the last column"""
+        for row in self.getRows(content):
+            try:
+                t = self.Task.createFromHTML(row[:-1])
+            except Exception as e:
+                self.logger.warning('Unable to parse %s as task', row)
+                continue
 
-def shortLongName(projectName):
-    name_re = re.match('([^(]+)\((\w+)\)', projectName)
-    name_short = ''
-    name_long = projectName.replace(name_short, '') # hack                
-    if name_re:
-        name_long = name_re.group(1)                    
-        name_short = name_re.group(2)
+            application = self.project.appendApplication(row[-1])
+            application.tasks.append(t)
 
-    logger.debug('short long name called with %s -> (%s, %s)', projectName, name_long, name_short)
-    return name_long.strip(), name_short.strip()
-                    
-class CMDparser(object):
-    # Parses output from boinccmd --get_state
-    class State(dict):
-        # Internal state, which part of the output are we parsing?
-        def __init__(self, parser):
-            dict.__init__(self, {'Projects': [False, parser.parseProject],
-                                 'Applications': [False, parser.parseApplications],
-                                 'Application versions': [False, parser.parseApplicationsVersions],
-                                 'Workunits': [False, parser.parseWorkunits],
-                                 'Tasks': [False, parser.parseTasks],
-                                 'Time stats': [False, parser.parseTimeStats]})
-        def switchState(self, key):
-            # Switch state 'key' to true and set all others false
-            for k in self:
-                self[k][0] = False
-            self[key][0] = True
+    def parseTable(self, soup):
+        for tr in soup.find_all('tr'):
+            ret = [td.text for td in tr.find_all('td')]
 
-        def callParser(self, line):
-            # call parsers where state is true
-            for k in self:
-                if self[k][0]:self[k][1](line)
+            if len(ret) != 0:
+                self.logger.debug('in parseTable, got %s, len = %s', ret, len(ret))
 
-    def __init__(self):
-        self.state = self.State(self)
-        self.info = ''
-        self.tasks = list()
-        self.projects = list()
+            if len(ret) == 10 and ret[0].strip() != '':
+                yield ret
 
-    def parseLine(self, line):
-        heading = re.match("======== ([\w ]*) ========", line)
-        if heading != None:
-            key = heading.group(1)
-            assert key in self.state, 'Could not find "{0}" in known states'.format(key)
-            self.state.switchState(key)
-        else:
-            self.state.callParser(line)
+    def getRows(self, html):
+        """Generator for each row in result table"""
+        soup = BeautifulSoup(html)
+        for row in self.parseTable(soup):
+            self.logger.debug('yielding %s', row)
+            yield row
 
-    def splitColon(self, line):
-        if ':' in line:
-            split = line.split(':')
-            name = split[0].strip()
-            value = ":".join(split[1:]).strip()
-            return name, value
-        else:
-            return None, None
-        
-    def parseProject(self, line):
-        name, value = self.splitColon(line)
-        if name == 'master URL': self.info += '{0}\n'.format(value)        
-        if name == 'user_name': self.info += 'User: {0}\n'.format(value)
-        if name == 'user_total_credit': self.info += 'Total boinc credits: {0:.0f}\n'.format(float(value))
-        if name == 'user_expavg_credit': self.info += 'Average boinc credits: {0:.0f}\n'.format(float(value))
+        for additionalPage in self.findNextPage(soup):
+            html = self.browser.visit(additionalPage)
+            if html != '':
+                for row in self.getRows(html): # Recursion!
+                    yield row
 
-    def parseApplications(self, line):
-        name, value = self.splitColon(line)
-        if name == 'name':
-            self.projects.append(project.Project(name_short = value))
-            
-    def parseApplicationsVersions(self, line):
-        pass
-    def parseWorkunits(self, line):
-        pass
-    def parseTasks(self, line):
-        #print 'line', line
-        if re.match('[\d]*\) -----------', line):
-            self.task = task.Task() # new task
-            self.tasks.append(self.task)
-            
-        name, value = self.splitColon(line)
-        if name == 'name':
-            self.task.name = value
-        elif name == 'ready to report':
-            self.task.readyToReport = value
-        elif name == 'fraction done':
-            self.task.fractionDone = value
-        elif name == 'final CPU time':
-            self.task.finalCPUtime = value
-        elif name == 'current CPU time':
-            self.task.currentCPUtime = value
-        elif name == 'estimated CPU time remaining':
-            self.task.remainingCPUtime = value
-        elif name == 'report deadline':
-            self.task.deadline = value
-        elif name == 'state':
-            self.task.state = value
-        elif name == 'active_task_state':
-            self.task.active = value
-        elif name == 'scheduler state':
-            self.task.schedularState = value
-        else:
-            pass
-            #print('ignoring', name, value)
-            
-    def parseTimeStats(self, line):
-        pass
+    def findNextPage(self, soup):
+        """Finds links to additional pages of tasks"""
+        reg_compiled = re.compile('offset=(\d+)')
+        offset = soup.find('a', href=reg_compiled)
+        if offset is not None:
+            offset_str = re.search(reg_compiled, offset['href']).group(1)
+            offset_int = int(offset_str)
+            if offset_int != 0:
+                yield offset_int
 
-    def __str__(self):
-        ret = self.info
-        try:
-            h = self.tasks[0].header
-            ret += h + '\n'
-            ret += len(h)*'-' + '\n'
-        except IndexError: pass
-        for task in self.tasks:
-            ret += str(task) + '\n'
-        return ret
-
-    def feed(self, page):
-        for line in page.split('\n'):
-            self.parseLine(line)
-    
+    def parseWorkunit(self, html):
+        """Parses the workunit page, currently returns the application name"""
+        soup = BeautifulSoup(html)
+        for first_td in soup.find_all('td', class_='fieldname'):
+            if first_td.text == 'application':
+                app_name = first_td.find_next_sibling('td', class_='fieldvalue')
+                return app_name.text
 
 class HTMLParser_worldcommunitygrid(HTMLParser):
-    def __init__(self, browser):
-        self.inTitle = False
-        self.inDiv = False # div section at top, contains short and long project names
-        self.inTable = False
-        self.inData = False
-        self.inFullName = False
+    def __init__(self, *args, **kwargs):
+        super(HTMLParser_worldcommunitygrid, self).__init__(*args, **kwargs)
+        self.Task = task.Task_web_worldcommunitygrid
 
-        self.current_shortName = ''             # Set in starttage from the url
-        self.projects = dict() # key is long name, value is a project.Project() object
+    def parse(self, content):
+        async_data = list()
+        for row in self.getRows(content):
+            url = self.name + row[0]
+            workunit = self.browser.visitURL(url)
 
-        self.current_data = ''          # Append everything in td tags (which is also in a table)
-        
-        self.currentTask = list()
-        self.tasks = list()
-        self.listOfPages = list() # unique reference to other pages (1, 2, 3)...
+            t = async.Async(self.Task.createFromHTML, row[1:])
+            app_name = async.Async(self.parseWorkunit, workunit)
+            async_data.append((t, app_name))
 
-        self.browser = browser
-        self.parse_workUnit = HTMLParser_worldcommunitygrid_workunit()
-        HTMLParser.__init__(self)
-        
-    def handle_starttag(self, tag, attrs):
-        if tag == 'title':
-            self.inTitle = True
-        elif tag == 'table':
-            self.inTable = True
-        elif tag == 'div':
-            self.inDiv = True
+        for t, app_name in async_data:
+            application = self.project.appendApplication(app_name.ret)
+            application.tasks.append(t.ret)
 
-        if self.inTable and tag == 'td':
-            self.inData = True
-
-        if self.inTable and tag == 'a':
-            # Try to find reference to other pages
-            if attrs[0][0] == 'href':
-                url = attrs[0][1]
-                reg = re.search('pageNum=(\d*)', url) # Look for multiple pages
-                if reg and reg.group(1) != '':
-                    res = reg.group(1)
-                    if res not in self.listOfPages: self.listOfPages.append(res)
-
-                reg = re.search("javascript:addHostPopup\('/ms/device/viewWorkunitStatus.do\?workunitId=(\d*)'", url) # Look for detailed work information
-                if reg:
-                    workId = reg.group(1)
-                    url = 'http://www.worldcommunitygrid.org/ms/device/viewWorkunitStatus.do?workunitId={0}'.format(workId)
-                    content = self.browser.visitURL(url)
-                    self.parse_workUnit.feed(content)
-                    self.currentTask.append(self.parse_workUnit.projectName)
-            
-        if self.inDiv and tag == 'a':
-            # Try to find short and long project names
-            if attrs[0][0] == 'href':
-                url = attrs[0][1]
-                reg = re.search('research/(\w*)/overview.do', url)
-                if reg:
-                    self.current_shortName = reg.group(1)
-                    self.inFullName = True
-                    
-            
-    def handle_endtag(self, tag):
-        if tag == 'title':
-            self.inTitle = False
-        elif tag == 'div':
-            self.inDiv = False
-        elif tag == 'td':
-            self.inData = False
-            if self.current_data != '':
-                self.currentTask.append(self.current_data)
-                self.current_data = ''
-        elif tag == 'tr':
-            if len(self.currentTask) == 8:
-                self.tasks.append(task.WebTask_worldcommunitygrid(self.currentTask))
-            elif len(self.currentTask) != 0:
+    def findNextPage(self, soup):
+        reg_compiled = re.compile('pageNum=(\d+)')
+        for link in soup.table.find_all('a'):
+            try:
+                reg = re.search(reg_compiled, link['href'])
+                page_num = int(reg.group(1))
+                if page_num != 1:
+                    yield page_num
+            except (TypeError, AttributeError):
                 pass
-                #print len(self.currentTask), self.currentTask
-            self.currentTask = list() # new
-
-    def handle_data(self, data):
-        if self.inTitle:
-            self.title = data
-        if self.inData:
-            data = data.strip()
-            self.current_data += data
-        if self.inFullName:
-            name_long, name_short = shortLongName(data)
-            if name_short == '':
-                name_short = self.current_shortName
-            self.projects[name_long] = project.Project(name_long, name_short)
-            self.inFullName = False
-
-    def __str__(self):
-        s = ''
-        for project in self.projects:
-            s += self.projects[project].__str__() + '\n'
-        for task in self.tasks:
-            s += task.__str__() + '\n'
-        return s
-
-    def feed(self, *args, **kwargs):
-        HTMLParser.feed(self, *args, **kwargs)
-
-        # Lets check if there are additional pages we should visit (browser keeps track so that we don't bombard the same page multiple times)
-        for page in self.listOfPages:
-            content = self.browser.visit(page)
-            if content != '':
-                self.feed(content) # recursion!
-        
-
-class HTMLParser_worldcommunitygrid_workunit(HTMLParser):
-    # Parses the workunit info page, example: http://www.worldcommunitygrid.org/ms/device/viewWorkunitStatus.do?workunitId=660908836
-    def __init__(self):
-        self.inSpan = False
-        self.inProjectName = False
-        HTMLParser.__init__(self)
-
-    def handle_starttag(self, tag, attrs):
-        if tag == 'span':
-            if attrs[0] == ('class', 'contentText'):
-                self.inSpan = True
-        
-    def handle_endtag(self, tag):
-        if tag == 'span': self.inSpan = False
-
-    def handle_data(self, data):
-        if self.inSpan:
-            if data.strip() == 'Project Name:':
-                self.inProjectName = True
-            elif self.inProjectName: # Next time
-                self.projectName = data
-                self.inProjectName = False # reset
-
-class HTMLParser_boinc_workunit(HTMLParser):
-    # Rosetta style classes need to parse each individual workunit to get project name
-    def __init__(self):
-        HTMLParser.__init__(self)
-        self.inFieldName = False
-        self.inFieldValue = False
-        self.inApplication = False
-        self.projectName = ''           # not found
-
-    def handle_starttag(self, tag, attrs):
-        try:
-            if tag == 'td' and attrs[1] == ('class', 'fieldname'):
-                self.inFieldName = True
-        except IndexError: pass
-        try:
-            if tag == 'td' and attrs[0] == ('class', 'fieldvalue'):
-                self.inFieldValue = True
-        except IndexError: pass
-        
-    def handle_endtag(self, tag):
-        if tag == 'td':
-            self.inFieldName = False
-            self.inFieldValue = False
-
-    def handle_data(self, data):
-        if self.inFieldName:
-            if data == 'application':
-                self.inApplication = True
-                
-        if self.inFieldValue and self.inApplication:
-            self.projectName = data
-            self.inApplication = False
-
-    def feed(self, data):
-        HTMLParser.feed(self, data)
-        logger.debug('project name "%s"', self.projectName)
-        if self.projectName == '':
-            # Apperently there is some bad html somewhere, so we do it the ugly way (used by rosetta)
-            logger.debug('Finding project name by regexp')
-            reg_exp = re.compile('"fieldvalue">([\w\s]+)')
-            for line in data.split('\n'):
-                if line.startswith('<center>'):
-                    reg = re.search(reg_exp, line)
-                    if reg:
-                        self.projectName = reg.group(1)
-                #line = '<center><table bgcolor=000000 cellpadding=0 cellspacing=1 cellpadding=5 width=100%><td bgcolor=white><table border=0 bgcolor=white cellpadding=5 width=100%><td><table border=0 cellpadding=10 cellspacing=0 width=100%><td width=100%><table border="1" cellpadding="5" width="100%"><tr><td width="40%" class="fieldname">application</td><td class="fieldvalue">Rosetta Mini</td></tr>'
-                #HTMLParser.feed(self, line)
-
-class HTMLParser_boinc(HTMLParser):
-    def __init__(self, browser, tasks=None, projects=None):
-        HTMLParser.__init__(self)
-        # State:
-        self.inTable = False
-        self.inTr = False
-        self.currentTask = list()
-        # Public:
-        if tasks == None:
-            self.tasks = list()
-        else:
-            self.tasks = tasks
-        if projects == None:
-            self.projects = dict()
-        else:
-            self.projects = projects
-
-        self.browser = browser
-        self.parse_workUnit = HTMLParser_boinc_workunit()
-        self.listOfPages = list()       # list of additional pages to visit
-
-    def handle_starttag(self, tag, attrs):
-        if tag == 'table': #and len(attrs) == 2: # Only the main table seems to have 2 entries (for now!)
-            self.inTable = True
-        if tag == 'tr' and self.inTable:
-            self.inTr = True
-        if tag == 'a' and self.inTable:
-            if len(attrs) > 1 and attrs[1][0] == 'title':
-                name = attrs[1][1].split(':') # 'Name: cryo_be__chain_L_subrun_000_SAVE_ALL_OUT_IGNORE_THE_REST_78241_337_1'
-                self.name = name[-1].strip()
-            if len(attrs) > 0 and attrs[0][0] == 'href' and 'workunit.php' in attrs[0][1]:
-                content = self.browser.visitPage(attrs[0][1])
-                self.parse_workUnit.feed(content)
-                self.projectName = self.parse_workUnit.projectName
-        if len(attrs) > 0 and attrs[0][0] == 'href' and 'results.php?userid=' in attrs[0][1]:
-            reg = re.search('offset=(\d+)', attrs[0][1])
-            page = reg.group(1)
-            if not(page in self.listOfPages) and int(page) != 0:
-                self.listOfPages.append(page) # results.php?userid=<userid>&offset=40
-        
-    def handle_endtag(self, tag):
-        if tag == 'table':
-            self.inTable = False
-        if tag == 'tr':
-            self.inTr = False
-            logger.debug('%s %s', self.currentTask, len(self.currentTask))
-            t = None
-            if len(self.currentTask) == 10:
-                name_long, name_short = shortLongName(self.currentTask[9])
-                self.currentTask[9] = name_long
-                try:
-                    t = task.WebTask(*self.currentTask)
-                    logging.debug('Normal task created %s', t)
-                except Exception as e:                 # Guess not, rosetta seems to have arranged the colums differently, lets try that
-                    logger.debug('normal task error %s', e)
-                    logger.debug('%s %s %s', self.name, self.currentTask, self.projectName)
-                    t = task.WebTask(name=self.name,
-                                     workunit=self.currentTask[1],
-                                     device='', # does not give info about device
-                                     sent=self.currentTask[2],
-                                     deadline=self.currentTask[3],
-                                     state="{0} {1} {2}".format(self.currentTask[4] , self.currentTask[5] , self.currentTask[6]),
-                                     finaltime='', # not given
-                                     finalCPUtime=self.currentTask[7],
-                                     granted=self.currentTask[9],
-                                     projectName=self.projectName,
-                                     claimed=self.currentTask[8])
-                    name_long = self.projectName
-                    name_short = ''
-                    logger.debug('rosetta style task %s', t)
-            if len(self.currentTask) == 11: # climateprediction
-                try:
-                    t = task.WebTask(name=self.currentTask[0],
-                                     workunit=self.currentTask[1],
-                                     device=self.currentTask[2],
-                                     sent=self.currentTask[3],
-                                     deadline=self.currentTask[4],
-                                     state=self.currentTask[5],
-                                     finaltime=self.currentTask[6],
-                                     finalCPUtime=self.currentTask[7],
-                                     claimed=self.currentTask[8],
-                                     granted=self.currentTask[9],
-                                     projectName=self.currentTask[10])
-                    logger.debug('climateprediction task created %s', t)
-                    name_long = self.currentTask[10]
-                    name_short = ''
-                except Exception as e:
-                    logger.debug('climateprediction task error %s', e)
-            if t != None:
-                self.tasks.append(t)
-                self.projects[name_long] = project.Project(name_long=name_long,
-                                                           name_short=name_short) # hack
-            self.currentTask = list()
-
-    def handle_data(self, data):
-        if self.inTable and self.inTr:
-            if data.strip() != '':
-                self.currentTask.append(data)
-
-    def feed(self, *args, **kwargs):
-        HTMLParser.feed(self, *args, **kwargs)
-
-        # Lets check if there are additional pages we should visit (browser keeps track so that we don't bombard the same page multiple times)
-        for page in self.listOfPages:
-            logger.debug('additional %s', page)
-            content = self.browser.visit(page)
-            if content != '':
-                self.feed(content) # recursion!
-
-if __name__ == '__main__':
-    loggerSetup(logging.DEBUG)
-
-    import browser
-    import config
-    config.main()
-    browser.main()
     
-    #browser = browser.Browser('mindmodeling.org')
-    #browser = browser.Browser('boinc.bakerlab.org')
-    #browser = browser.Browser('boincsimap.org/boincsimap')
-    browser = browser.Browser('climateapps2.oerc.ox.ac.uk/cpdnboinc')    
+    def parseTable(self, soup):
+        reg_compiled = re.compile("javascript:addHostPopup\('(/ms/device/viewWorkunitStatus.do\?workunitId=\d+)")
+        for tr in soup.table.find_all('tr'):
+            row = list()
+            for td in tr.find_all('td'):
+                try:
+                    reg = re.match(reg_compiled, td.a['href'])
+                    row.append(reg.group(1))
+                except (TypeError, AttributeError):
+                    pass
+                row.append(td.text.strip())
 
-    parser = HTMLParser_boinc(browser)
-    content = browser.visit()
-    print content
-    parser.feed(content)
-    print parser.tasks
+            if len(row) == 8:
+                yield row
+
+    def parseWorkunit(self, html):
+        soup = BeautifulSoup(html)
+        reg_compiled = re.compile('Project Name:\s*([^\n]+)\n')
+        for tr in soup.find_all('tr'):
+            for td in tr.find_all('td'):
+                reg = re.search(reg_compiled, td.text)
+                if reg:
+                    return reg.group(1).strip()
+
+    def getBadges(self):
+        page = self.browser.visitStatistics()
+        self.parseStatistics(page)
+
+    def parseStatistics(self, page):
+        """Gets the xml statistics for worldcommunitygrid"""
+        tree = xml.etree.ElementTree.fromstring(page)
+
+        e = tree.find('Error')
+        if e:
+            print e.text
+            return None, None
+
+        try:
+            member = tree.iter('MemberStat').next()
+        except StopIteration:
+            print 'Something is wrong with xml statisics, correct username and code?'
+            return None, None
+        lastResult = member.find('LastResult').text
+        lastResult = lastResult.replace('T', ' ')
+
+        stat = list()
+        for s in ['RunTime', 'RunTimeRank', 'RunTimePerDay',
+                  'Points', 'PointsRank', 'PointsPerDay',
+                  'Results', 'ResultsRank', 'ResultsPerDay']:
+            i = member.iter(s).next()
+            stat.append(i.text)
+        stat = statistics.ProjectStatistics_worldcommunitygrid(lastResult, *stat)
+        self.project.appendStatistics(stat)
+
+        for application in tree.iter('Project'):
+            short = application.find('ProjectShortName').text
+            name = application.find('ProjectName').text
+            runtime = application.find('RunTime').text
+            points = application.find('Points').text
+            results = application.find('Results').text
+            
+            app = self.project.appendApplication(name)
+            Stat = statistics.ApplicationStatistics_worldcommunitygrid
+            app.appendStatistics(Stat(runtime, points, results))
+
+        for b in tree.iter('Badge'):
+            name = b.find('ProjectName').text
+            url = b.iter('Url').next().text
+            t = b.iter('Description').next().text
+            Badge = badge.Badge_worldcommunitygrid
+            self.project.appendBadge(name, Badge(name=t, url=url))
+
+
+class HTMLParser_yoyo(HTMLParser_worldcommunitygrid):
+    def __init__(self, *args, **kwargs):
+        super(HTMLParser_yoyo, self).__init__(*args, **kwargs)
+        self.Task = task.Task_web_yoyo
+
+    def parseTable(self, soup):
+        for table in soup.find_all('table'):
+            for tr in table.find_all('tr'):
+                row = list()
+                for td in tr.find_all('td'):
+                    if td.find('a') != None:
+                        name = td.a.get('title')
+                        if name is not None:
+                            row.append(name.replace('Name: ', ''))
+
+                        url = td.a.get('href', '')
+                        if 'workunit' in url:
+                            row.append('/'+url)
+                    else:
+                        row.append(td.text)
+
+                if len(row) == 10:
+                    row[0], row[1] = row[1], row[0]
+                    yield row
+
+    def findNextPage(self, soup):
+        # This is ugly, but we need to bypass the superclass
+        return HTMLParser.findNextPage(self, soup)
+
+    def parseWorkunit(self, html):
+        # This is ugly, but we need to bypass the superclass
+        return HTMLParser.parseWorkunit(self, html)
+
+    def getBadges(self):
+        """Fills out project badges"""
+        html = self.browser.visitPage('home.php')
+        soup = BeautifulSoup(html)
+        self.badgeTabel(soup)
+
+    def badgeTabel(self, soup):
+        """ Extracts projects table from www.rechenkraft.net/yoyo/home.php"""
+        for t in soup.find_all('table'):
+            badgeTable = t.table            # The table within a table
+            if badgeTable != None:
+                for row in badgeTable.find_all('tr'):
+                    data = row.find_all('td')
+                    if len(data) == 4:
+                        name = data[0].text
+                        totalCredits = data[1].text.replace(',', '') # thousand seperator
+                        workunits = data[2].text
+                        if re.match('\d+ \w\w\w \d\d\d\d', data[3].text):
+                            # Hack to avoid the "Projects in which you are participating" table.
+                            continue
+
+                        app = self.project.appendApplication(name)
+                        app.appendStatistics(statistics.ApplicationStatistics(totalCredits,
+                                                                              workunits))
+                        if data[3].a:
+                            b = data[3].a.img['alt']
+                            url = data[3].a.img['src']
+
+                            self.project.appendBadge(name, badge.Badge_yoyo(b, url))
+
+
+class HTMLParser_primegrid(HTMLParser):
+    def getBadges(self):
+        """Fills out project badges"""
+        html = self.browser.visitPage('home.php')
+        soup = BeautifulSoup(html)
+        for app_name, badge in self.parseHome(soup):
+            self.project.appendBadge(app_name, badge)
+
+        self.parseStatistics(soup)
+
+    def parseHome(self, soup):
+        """yields app name and Badge object"""
+        for row in soup.find_all('tr'):
+            if row.td is None:
+                continue
+                
+            first_td = row.td
+            _class = first_td.get('class', [''])
+
+            if _class == ['fieldname'] and first_td.text == 'Badges':
+                for badge in first_td.find_next_sibling('td').find_all('a'):
+                    yield self.parseBadge(badge)
+
+    def parseBadge(self, soup):
+        """
+        Expects something like this:
+        <a href="/show_badges.php?userid=222267">
+        <img alt="PPS Sieve Bronze: More than 20,000 credits (30,339)" class="badge" 
+        src="/img/badges/sr2sieve_pps_bronze.png" title="PPS Sieve Bronze: More than 20,000 credits (30,339)"/>
+        </a>
+        """
+        url = str(self.browser.name)
+        url += soup.img.get('src')
+        name = soup.img.get('title')
+        b = badge.Badge_primegrid(name=name,
+                                  url=url)
+        self.logger.debug('Badge %s', b)
+        return b.app_name, b
+
+    def parseStatistics(self, soup):
+        """Tries to parse the application table at home.php"""
+        table = soup.find_all('table')[-2] # Hack
+        stat = None
+
+        for td in table.find_all('td'):
+            class_ = td.get('class')
+            if class_ == ['heading']:
+                if stat is not None:
+                    self.project.appendStatistics(stat) # Append previous
+
+                stat = statistics.ProjectStatistics_primegrid()
+                stat['name'] = td.text
+
+            elif class_ == ['fieldname']:
+                fieldname = td.text
+            elif class_ == ['fieldvalue']:
+                fieldvalue = td.text
+                stat[fieldname] = fieldvalue
+
+        if stat is not None:
+            self.project.appendStatistics(stat) # Append last
+
+        # for app in self.project.applications:
+        #     print self.project.applications[app]
+        # assert False
+
+class HTMLParser_wuprop(HTMLParser):
+    def projectTable(self, html):
+        """ Extracts projects table from wuprop.boinc-af.org/home.php"""
+        projects = dict()       # Key is user_friendly_name!
+        soup = BeautifulSoup(html)
+        t = soup.find_all('table')
+        for row in t[-1].find_all('tr'):
+            data = row.find_all('td')
+            if len(data) == 4:
+                proj_name = data[0].text
+                app_name = data[1].text
+                runningTime = data[2].text
+                pending = data[3].text
+                stat = statistics.ApplicationStatistics_wuprop(runtime=runningTime,
+                                                               pending=pending)
+                if proj_name not in projects:
+                    projects[proj_name] = project.Project(name=proj_name)
+
+                app = projects[proj_name].appendApplication(app_name)
+                app.appendStatistics(stat)
+                #self.project = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
+
+        return projects

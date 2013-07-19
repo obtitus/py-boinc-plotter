@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MemberStatsWithTeamHistory>
+    <MemberStats>
+   <MemberStat>
+      <Name>Tullus</Name>
+      <MemberId>537977</MemberId>
+      <TeamId>93HHX25VRP1</TeamId>
+      <RegisterDate>2008-11-14</RegisterDate>
+      <LastResult>2013-07-12T19:00:20</LastResult>
+      <NumDevices>4</NumDevices>
+      <StatisticsTotals>
+         <RunTime>43334189</RunTime>
+         <RunTimeRank>73617</RunTimeRank>
+         <Points>1718196</Points>
+         <PointsRank>50724</PointsRank>
+         <Results>2062</Results>
+         <ResultsRank>70856</ResultsRank>
+      </StatisticsTotals>
+      <StatisticsAverages>
+         <RunTimePerDay>25446</RunTimePerDay>
+         <RunTimePerResult>21016</RunTimePerResult>
+         <PointsPerHourRunTime>142.73961836400002</PointsPerHourRunTime>
+         <PointsPerDay>1008.9230769230761</PointsPerDay>
+         <PointsPerResult>833.266731328806</PointsPerResult>
+         <ResultsPerDay>1.2108044627120003</ResultsPerDay>
+      </StatisticsAverages>
+      <Badges>
+         <Badge>
+         <ProjectName>FightAIDS@Home</ProjectName>
+            <Resource>
+               <Url>http://www.worldcommunitygrid.org/images/pb/faah_2.jpg</Url>
+               <Description>Gold Level Badge (90 days) for FightAIDS@Home</Description>
+            </Resource>
+         </Badge>
+         <Badge>
+         <ProjectName>Human Proteome Folding - Phase 2</ProjectName>
+            <Resource>
+               <Url>http://www.worldcommunitygrid.org/images/pb/hpf2_2.jpg</Url>
+               <Description>Gold Level Badge (90 days) for Human Proteome Folding - Phase 2</Description>
+            </Resource>
+         </Badge>
+         <Badge>
+         <ProjectName>Help Conquer Cancer</ProjectName>
+            <Resource>
+               <Url>http://www.worldcommunitygrid.org/images/pb/hcc1_0.jpg</Url>
+               <Description>Bronze Level Badge (14 days) for Help Conquer Cancer</Description>
+            </Resource>
+         </Badge>
+         <Badge>
+         <ProjectName>The Clean Energy Project - Phase 2</ProjectName>
+            <Resource>
+               <Url>http://www.worldcommunitygrid.org/images/pb/cep2_1.jpg</Url>
+               <Description>Silver Level Badge (45 days) for The Clean Energy Project - Phase 2</Description>
+            </Resource>
+         </Badge>
+         <Badge>
+         <ProjectName>Drug Search for Leishmaniasis</ProjectName>
+            <Resource>
+               <Url>http://www.worldcommunitygrid.org/images/pb/dsfl_2.jpg</Url>
+               <Description>Gold Level Badge (90 days) for Drug Search for Leishmaniasis</Description>
+            </Resource>
+         </Badge>
+         <Badge>
+         <ProjectName>GO Fight Against Malaria</ProjectName>
+            <Resource>
+               <Url>http://www.worldcommunitygrid.org/images/pb/gfam_1.jpg</Url>
+               <Description>Silver Level Badge (45 days) for GO Fight Against Malaria</Description>
+            </Resource>
+         </Badge>
+         <Badge>
+         <ProjectName>Say No to Schistosoma</ProjectName>
+            <Resource>
+               <Url>http://www.worldcommunitygrid.org/images/pb/sn2s_0.jpg</Url>
+               <Description>Bronze Level Badge (14 days) for Say No to Schistosoma</Description>
+            </Resource>
+         </Badge>
+      </Badges>
+      <Resource>
+         <Url>http://www.worldcommunitygrid.org/stat/viewMemberInfo.do?userName=Tullus&amp;xml=true</Url>
+         <Description>Tullus</Description>
+      </Resource>
+   </MemberStat>
+</MemberStats>
+    <TeamHistory>
+   <Team>
+      <Name>UserFriendly.Org</Name>
+      <TeamId>93HHX25VRP1                         </TeamId>
+      <JoinDate>2008-11-14</JoinDate>
+      <StatisticsTotals>
+         <RunTime>43334189</RunTime>
+         <Points>1718196</Points>
+         <Results>2062</Results>
+      </StatisticsTotals>
+   </Team>
+    </TeamHistory>
+   <MemberStatsByProjects>
+      <Project>         <ProjectName>The Clean Energy Project - Phase 2</ProjectName>
+         <ProjectShortName>cep2</ProjectShortName>
+         <RunTime>6814014</RunTime>
+         <Points>337532</Points>
+         <Results>242</Results>
+      </Project>      <Project>         <ProjectName>FightAIDS@Home</ProjectName>
+         <ProjectShortName>faah</ProjectShortName>
+         <RunTime>8387245</RunTime>
+         <Points>281787</Points>
+         <Results>286</Results>
+      </Project>      <Project>         <ProjectName>Say No to Schistosoma</ProjectName>
+         <ProjectShortName>sn2s</ProjectShortName>
+         <RunTime>3180926</RunTime>
+         <Points>146500</Points>
+         <Results>191</Results>
+      </Project>      <Project>         <ProjectName>Drug Search for Leishmaniasis</ProjectName>
+         <ProjectShortName>dsfl</ProjectShortName>
+         <RunTime>7912118</RunTime>
+         <Points>370443</Points>
+         <Results>474</Results>
+      </Project>      <Project>         <ProjectName>Computing for Clean Water</ProjectName>
+         <ProjectShortName>c4cw</ProjectShortName>
+         <RunTime>503644</RunTime>
+         <Points>20708</Points>
+         <Results>51</Results>
+      </Project>      <Project>         <ProjectName>Help Fight Childhood Cancer</ProjectName>
+         <ProjectShortName>hfcc</ProjectShortName>
+         <RunTime>212948</RunTime>
+         <Points>8020</Points>
+         <Results>8</Results>
+      </Project>      <Project>         <ProjectName>Computing for Sustainable Water</ProjectName>
+         <ProjectShortName>cfsw</ProjectShortName>
+         <RunTime>51914</RunTime>
+         <Points>1653</Points>
+         <Results>2</Results>
+      </Project>      <Project>         <ProjectName>GO Fight Against Malaria</ProjectName>
+         <ProjectShortName>gfam</ProjectShortName>
+         <RunTime>4712518</RunTime>
+         <Points>227151</Points>
+         <Results>317</Results>
+      </Project>      <Project>         <ProjectName>Help Cure Muscular Dystrophy - Phase 2</ProjectName>
+         <ProjectShortName>hcmd2</ProjectShortName>
+         <RunTime>23220</RunTime>
+         <Points>1530</Points>
+         <Results>4</Results>
+      </Project>      <Project>         <ProjectName>Nutritious Rice for the World</ProjectName>
+         <ProjectShortName>rice</ProjectShortName>
+         <RunTime>279383</RunTime>
+         <Points>4647</Points>
+         <Results>8</Results>
+      </Project>      <Project>         <ProjectName>Help Conquer Cancer</ProjectName>
+         <ProjectShortName>hcc1</ProjectShortName>
+         <RunTime>2919585</RunTime>
+         <Points>72426</Points>
+         <Results>186</Results>
+      </Project>      <Project>         <ProjectName>Human Proteome Folding - Phase 2</ProjectName>
+         <ProjectShortName>hpf2</ProjectShortName>
+         <RunTime>8336674</RunTime>
+         <Points>245799</Points>
+         <Results>293</Results>
+      </Project>   </MemberStatsByProjects>
+</MemberStatsWithTeamHistory>

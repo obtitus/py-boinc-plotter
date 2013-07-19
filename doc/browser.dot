@@ -1,0 +1,4 @@
+digraph G {
+	internet -> "cache folder" [label="Browser_cache"];
+	"cache folder" -> "py-boinc" [label="Browser"];
+}

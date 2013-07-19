@@ -1,0 +1,1289 @@
+
+
+
+
+
+
+
+
+
+<html>
+<head>
+
+
+
+<meta name="Description" content="World Community Grid"/>
+<meta name="Abstract" content="World Community Grid"/>
+<meta name="Keywords" content="World Community Grid, Technology Solving Problems"/>
+<meta name="Security" content="Public"/>
+<meta name="Robots" content="index,follow"/>
+<meta Http-Equiv="Cache-Control" Content="no-cache">
+<meta Http-Equiv="Pragma" Content="no-cache">
+<meta Http-Equiv="Expires" Content="0">
+
+
+
+
+<link rel="alternate" type="application/rss+xml" title="News" href="http://www.worldcommunitygrid.org/rss_main.php" />
+<link rel="alternate" type="application/rss+xml" title="Stats" href="http://www.worldcommunitygrid.org/rssGlobal.xml" />
+
+<!--	
+	Licensed Materials  - Property  of IBM
+	(c)  Copyright IBM Canada Ltd. 2004    All Rights Reserved
+-->
+
+
+
+<TITLE>World Community Grid - BOINC Results</TITLE>
+
+ 
+<link rel="stylesheet" type="text/css" href="/css/common.css" />
+ 
+<!-- dojo styles (required for Issue Team Challenge -->
+<link rel="stylesheet" type="text/css" href="/dojo/dojo/resources/dojo.css" />
+<link rel="stylesheet" type="text/css" href="/dojo/dijit/themes/tundra/tundra.css" />
+<link rel="stylesheet" type="text/css" href="/dojo/dijit/themes/dijit.css" />
+<link rel="stylesheet" type="text/css" href="/dojo/dojox/widget/Calendar/Calendar.css" />
+
+
+<SCRIPT language="JavaScript" type="text/javascript">
+<!-- 
+	var lang = 'en';
+//-->
+</SCRIPT>
+<script language="javascript" src="/js/popup.js" type="text/javascript"></script>
+<script language="javascript" src="/js/rollover_root.js" type="text/javascript"></script>
+
+</head>
+<body leftmargin="0" topmargin="0" marginwidth="0" marginheight="0" bgcolor="#FFFFFF" background="/images/hp09/tan_stripe.jpg">
+<script language="JavaScript" type="text/javascript">
+if ( lang == 'zh' ) {
+	document.write('<style>.zhIE{vertical-align:middle;}</style>');
+}
+</script>
+<center>
+
+	
+
+
+
+
+
+<script language="javascript" src="/js/loginLink.js" type="text/javascript"></script>
+<script language="JavaScript" src="/js/checkOS.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+function displayPointsCookie() {
+	var pointsCookie = getCookie('points');
+	document.write(pointsCookie);
+}
+
+function displayRankCookie() {
+	var rankCookie = getCookie('rank');
+	document.write(rankCookie);
+}
+</script>
+<script type="text/javascript">
+var ffsi = '<div id="signin" class="" style="width:58px; height:24px; position:relative; top:-30px; left:897px; vertical-align:middle; text-align:center; background-repeat:no-repeat; background-image:url(\'http://www.worldcommunitygrid.org/images/hp09/sign_in_09.png\');"><a href="javascript:document.forms[0].submit()" tabindex="4" class="buttonText">Sign In</a>&nbsp;</div>';
+var wksi = '<div id="signin" class="" style="width:58px; height:24px; position:relative; top:-20px; left:897px; vertical-align:middle; text-align:center; background-repeat:no-repeat; background-image:url(\'http://www.worldcommunitygrid.org/images/hp09/sign_in_09.png\');"><a href="javascript:document.forms[0].submit()" tabindex="4" class="buttonText">Sign In</a>&nbsp;</div>';
+var iesi = '<div id="signin" class="" style="width:58px; position:relative; top:-20px; left:-80px; vertical-align:middle; text-align:center; background-repeat:no-repeat; background-image:url(\'http://www.worldcommunitygrid.org/images/hp09/sign_in_09.png\');"><a href="javascript:document.forms[0].submit()" tabindex="4" class="buttonText">Sign In</a>&nbsp;</div>';
+</script>
+
+<div style="height:40px; width:955px; position:relative; text-align:right; top:5px;">
+
+<!-- Begin header login form //-->
+
+
+	
+	<span class="signin">Welcome back,&nbsp;</span><span class="orangeText">Tullus</span>
+		
+			
+			<span class="signin">&#160;::&#160;Accumulated Points:&nbsp;<script>displayPointsCookie();</script></span>
+		
+		
+				
+			<span class="signin">&#160;::&#160;Current Ranking:&nbsp;<script>displayRankCookie();</script></span>
+		
+		&#160;<a onmouseover="mOver('signout');return true" onmouseout="mOut('signout');return true" href="/forums/wcg/logout"><img src="/images/signout_off.gif" name="signout" height="27" border="0" style="vertical-align:middle" alt="Sign Out"></a>			
+
+ <!-- End header login form //-->
+ 
+ </div>
+	
+<div id="sth" style="height:111px; width:955px; background-image:url('http://www.worldcommunitygrid.org/images/hp09/secondTierHeaderImage.png'); text-align:left;"><a href="/index.jsp"><img src="/images/spacer.gif" alt="" border="0" width="400" height="105" /></a>
+	<div style="position:relative; margin-top:-60px; margin-left:520px; width:420px;"><a href="https://secure.worldcommunitygrid.org/forums/wcg/viewthread_thread,28166" class="homeCTA" style="text-decoration:none;"></a></div>
+</div>
+   	
+
+
+
+
+
+
+
+
+
+
+<script language="javascript" src="/js/loginLink.js" type="text/javascript"></script>
+<script language="javascript">
+function forums() {
+	var cookieValue = getCookie('member');
+    if ( cookieValue != null ) {
+    	self.location.href="http://www.worldcommunitygrid.org/forums/wcg";
+    } else {
+		self.location.href="http://www.worldcommunitygrid.org/forums/wcg/index";
+    }
+}
+</script> 
+
+<script language="javascript" src="/js/misc.js" type="text/javascript"></script>
+<script language="javascript" type="text/javascript">
+<!--
+function loadLang() {
+
+	var testUrl = self.location.href;
+	
+	/* if (testUrl.indexOf('viewRegister.do') > -1) {
+		selectBox = document.getElementById('langSelect');
+		destLang = selectBox.options[selectBox.selectedIndex].value;
+		document.registerBean.s_locale.value = destLang;
+		document.registerBean.selectTeam.value='false';
+		document.registerBean.submit();
+	} else { */
+		var url = getURL();
+		self.location.href = url;
+	// }
+}
+
+// this function can only be used by the language drop-down
+function getURL() {
+
+	selectBox = document.getElementById('langSelect');
+	destLang = selectBox.options[selectBox.selectedIndex].value;
+
+	var url = self.location.href;
+		
+	// redirIndex is the base url for the host
+	var redirIndex;
+	if (url.indexOf('https') > -1) {
+		redirIndex = 'https://' + document.getElementById('shost').value + '/';
+	} else {
+		redirIndex = 'http://' + document.getElementById('host').value + '/';
+	}
+	
+	var deltron = url.indexOf('?');
+	if (deltron > 0) {
+		// urlsplit gives us an array with the pieces of the url separated by ?'s
+		var urlsplit = url.split('?');
+		// base_url is everything before the first ?
+		base_url = urlsplit[0];
+	
+		if (redirIndex == base_url) {
+			// if base url is equal to the host, then we are on the home page
+			base_url = base_url + 'index.jsp?language=' + destLang;
+			return base_url;
+		}
+
+		var ampcount = urlsplit[1].split('&').length - 1;
+		var ampsplit = urlsplit[1].split('&');
+		var first_param = true;
+		
+		for (var i=0; i<=ampcount; i++) {
+			if (ampsplit[i].indexOf('partner') < 0) {
+				if (ampsplit[i].indexOf('language') < 0 && true == first_param ) {
+					base_url = base_url + '?' + ampsplit[i];
+					first_param = false;
+				} else if (ampsplit[i].indexOf('language') < 0 && false == first_param) {
+					base_url = base_url + '&' + ampsplit[i];
+				}
+			}
+		}
+		
+		if (true == first_param) {
+			base_url = base_url + "?language=" + destLang;
+		} else {
+			base_url = base_url + "&language=" + destLang;
+ 		}
+		return base_url;
+	} else {
+		if (redirIndex == url) {
+			// if base url is equal to the host, then we are on the home page
+			url = url + 'index.jsp?language=' + destLang;
+			return url;
+		} else {
+			url = url + '?language=' + destLang;	
+			return url;
+		}
+	}
+}
+
+//-->
+</script>
+
+<script language="javascript" type="text/javascript">
+sfHover = function() {
+	var sfEls = document.getElementById("mainNav").getElementsByTagName("LI");
+	for (var i=0; i<sfEls.length; i++) {
+		sfEls[i].onmouseover=function() {
+			this.className+=" sfhover";
+		}
+		sfEls[i].onmouseout=function() {
+			this.className=this.className.replace(new RegExp(" sfhover\\b"), "");
+		}		
+	}
+	if (document.body.clientHeight < 880) {
+		if (self.location.href.indexOf('index') > 0 || self.location.href.indexOf('home') > 0 || self.location.href == 'http://www.worldcommunitygrid.org/' || self.location.href == 'https://secure.worldcommunitygrid.org/' ) {
+			document.getElementById("research").className+=" topside";
+		}
+	}
+}
+
+if (window.attachEvent) window.attachEvent("onload", sfHover);
+</script>
+
+
+ <!-- Begin mainNav //-->
+
+		
+			
+		
+		
+
+	<div id="mainNavDiv" style="width:955px; height:27px; border-style:none none none solid; border-color:#c3c3c3; border-width:1px; background: url('/images/nav_bkgd.gif');">
+	<ul id="mainNav">
+	    <li style="padding-left:15px; padding-right:15px;"><a href="http://www.worldcommunitygrid.org/index.jsp">Home</a>
+	    	<ul id="home" class="menu">
+			
+        		<li><a href="/forums/wcg/logout" class="menuLink">Sign Out</a></li>
+    		
+    		
+        		<li><a href="/login/forgotMemberName.do" class="menuLink">Forgot Member Name</a></li>	    	
+        		<li><a href="/login/forgotPassword.do" class="menuLink">Forgot Password</a></li>
+	    	</ul>
+	    </li>
+	    <li class="nohover"><img src="/images/hp09/nav_button_bar.jpg" alt="" border="0" width="1px" height="21px" style="vertical-align:top" /></li>
+        <li style="padding-left:15px; padding-right:15px;"><a href="http://www.worldcommunitygrid.org/about_us/viewAboutUs.do">About us</a>
+        	<ul id="about" class="menu">
+        		<li><a href="http://www.worldcommunitygrid.org/about_us/viewAboutUs.do" class="menuLink">About Us</a></li>
+        		<li><a href="http://www.worldcommunitygrid.org/about_us/viewGridComputingBasics.do" class="menuLink">How Grid Computing Works</a></li>
+        		<li><a href="http://www.worldcommunitygrid.org/about_us/viewOurPartners.do" class="menuLink">Our Partners</a></li>
+        		<li><a href="http://www.worldcommunitygrid.org/about_us/viewBecomePartner.do" class="menuLink">Become a Partner</a></li>
+        		<li><a href="http://www.worldcommunitygrid.org/about_us/displayNews.do" class="menuLink">News & Updates</a></li>
+        		<li><a href="http://www.worldcommunitygrid.org/about_us/viewMarketingToolkit.do" class="menuLink">Marketing Toolkit</a></li>
+        	</ul>
+        </li>
+	    <li class="nohover"><img src="/images/hp09/nav_button_bar.jpg" alt="" border="0" width="1px" height="21px" style="vertical-align:top" /></li>
+		<li style="padding-left:15px; padding-right:15px;"><a href="http://www.worldcommunitygrid.org/research/viewAllProjects.do">Research</a>
+			<ul id="research" class="menu">
+				<li><a href="http://www.worldcommunitygrid.org/research/viewAllProjects.do" class="menuLink secondLevelHeading">Research Overview</a></li>
+				<li><a href="http://www.worldcommunitygrid.org/research/research.do?filterCategory=3_0" class="menuLink secondLevelHeading">Research News & Updates</a></li>
+				<li><a href="http://www.worldcommunitygrid.org/research/viewSubmitAProposal.do" class="menuLink secondLevelHeading">Submit a Proposal</a></li>
+				<li><span>Active Research</span></li>
+				
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/sn2s/overview.do" class="menuLink">Say No to Schistosoma</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/dsfl/overview.do" class="menuLink">Drug Search for Leishmaniasis</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/c4cw/overview.do" class="menuLink">Computing for Clean Water</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/cep2/overview.do" class="menuLink">The Clean Energy Project - Phase 2</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/hfcc/overview.do" class="menuLink">Help Fight Childhood Cancer</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/faah/overview.do" class="menuLink">FightAIDS@Home</a></li>
+				
+				<li><span>Completed Research</span></li>
+				
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/cfsw/overview.do" class="menuLink">Computing for Sustainable Water</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/gfam/overview.do" class="menuLink">GO Fight Against Malaria</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/dddt2/overview.do" class="menuLink">Discovering Dengue Drugs - Together - Phase 2</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/hcmd2/overview.do" class="menuLink">Help Cure Muscular Dystrophy - Phase 2</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/flu1/overview.do" class="menuLink">Influenza Antiviral Drug Search</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/cep1/overview.do" class="menuLink">The Clean Energy Project</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/rice/overview.do" class="menuLink">Nutritious Rice for the World</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/hcc1/overview.do" class="menuLink">Help Conquer Cancer</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/acah/overview.do" class="menuLink">AfricanClimate@Home</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/dddt/overview.do" class="menuLink">Discovering Dengue Drugs - Together</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/hcmd/overview.do" class="menuLink">Help Cure Muscular Dystrophy</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/fcg1/overview.do" class="menuLink">Genome Comparison</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/hdc/overview.do" class="menuLink">Help Defeat Cancer</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/hpf2/overview.do" class="menuLink">Human Proteome Folding - Phase 2</a></li>
+				
+				<li><a href="http://www.worldcommunitygrid.org/research/proteome/overview.do" class="menuLink">Human Proteome Folding</a></li>
+				
+			</ul>
+		</li>
+	    <li class="nohover"><img src="/images/hp09/nav_button_bar.jpg" alt="" border="0" width="1px" height="21px" style="vertical-align:top" /></li>
+        <li style="padding-left:15px; padding-right:15px;"><a href="/forumLogin.do">Forums</a>
+	    	<ul id="forums" class="menu">
+        		<li><a href="http://www.worldcommunitygrid.org/forums/wcg/listthreads?forum=1" class="menuLink">Member News</a></li>
+        		<li><a href="http://www.worldcommunitygrid.org/forums/wcg/listforums?category=21&other_category_invisible=true" class="menuLink">Active Research&nbsp;Forums</a></li>
+        		<li><a href="http://www.worldcommunitygrid.org/forums/wcg/listforums?category=3&other_category_invisible=true" class="menuLink">Support&nbsp;Forums</a></li>
+	    		<li><a href="http://www.worldcommunitygrid.org/forums/wcg/listrecentthreads" class="menuLink">Recent Threads</a></li>
+	    	</ul>
+	    </li>
+	    <li class="nohover"><img src="/images/hp09/nav_button_bar.jpg" alt="" border="0" width="1px" height="21px" style="vertical-align:top" /></li>
+        <li style="padding-left:15px; padding-right:15px;"><a href="http://www.worldcommunitygrid.org/stat/viewGlobal.do">Statistics</a>
+        	<ul id="stats" class="menu">
+        		<li><a href="http://www.worldcommunitygrid.org/stat/viewGlobal.do" class="menuLink">Global Statistics</a></li>
+        		<li><a href="http://www.worldcommunitygrid.org/stat/viewProjects.do" class="menuLink">By Projects</a></li>
+        		<li><a href="http://www.worldcommunitygrid.org/stat/viewGeography.do" class="menuLink">By Geography</a></li>
+        		<li><a href="http://www.worldcommunitygrid.org/stat/viewTeams.do" class="menuLink">By Teams</a></li>
+        		<li><a href="http://www.worldcommunitygrid.org/stat/viewMembers.do" class="menuLink">By Members</a></li>
+        	</ul>
+        </li>
+	    <li class="nohover"><img src="/images/hp09/nav_button_bar.jpg" alt="" border="0" width="1px" height="21px" style="vertical-align:top" /></li>
+        <li style="padding-left:15px; padding-right:15px;"><a href="http://www.worldcommunitygrid.org/ms/viewMyMemberPage.do">My&nbsp;Grid</a>
+			<ul id="mygrid" class="menu">
+        		<li><a href="http://www.worldcommunitygrid.org/ms/viewMyMemberPage.do" class="menuLink">My Statistics</a></li>			
+        		<li><a href="https://secure.worldcommunitygrid.org/ms/viewMyProfile.do" class="menuLink">My Profile</a></li>				
+        		<li><a href="http://www.worldcommunitygrid.org/ms/viewMyProjects.do" class="menuLink">My Projects</a></li>				
+        		<li><a href="http://www.worldcommunitygrid.org/ms/sm/viewSocialMedia.do" class="menuLink">Twitter</a></li>				
+        		<li><a href="https://secure.worldcommunitygrid.org/ms/login/viewChangePassword.do" class="menuLink">Sign In Manager</a></li>				
+        		<li><a href="http://www.worldcommunitygrid.org/ms/device/viewDevices.do" class="menuLink">Device Manager</a></li>				
+        		<li><a href="http://www.worldcommunitygrid.org/ms/viewBoincResults.do" class="menuLink">Results Status</a></li>				
+        		<li><a href="http://www.worldcommunitygrid.org/ms/team/viewMyTeam.do" class="menuLink">My Team</a></li>				
+        		<li><a href="http://www.worldcommunitygrid.org/ms/viewGetWidget.do" class="menuLink">Create Widget</a></li>				
+        		<li><a href="http://www.worldcommunitygrid.org/ms/device/viewBetaProfiles.do" class="menuLink">Beta Testing</a></li>				
+			</ul>
+		</li>
+		<li class="nohover"><img src="/images/hp09/nav_button_bar.jpg" alt="" border="0" width="1px" height="21px" style="vertical-align:top" /></li>
+        <li style="padding-left:15px; padding-right:15px;"><a href="http://www.worldcommunitygrid.org/reg/ms/viewDownloadAgain.do">Download</a>
+        	<ul id="mydownload" class="menu">
+        		<li><a href="/reg/viewRegister.do" class="menuLink">Join Now</a></li>        		
+        		<li><a href="/reg/ms/viewDownloadAgain.do" class="menuLink">Download</a></li>        		
+        	</ul>
+        </li>
+	    <li class="nohover"><img src="/images/hp09/nav_button_bar.jpg" alt="" border="0" width="1px" height="21px" style="vertical-align:top" /></li>
+		
+		
+		
+		<script type="text/javascript" language="JavaScript">
+			if ( lang == "fr" ) {
+				document.write('<li class="nohover"><img src="/images/spacer.gif" height="1" width="20" border="0" alt=""></li>');
+			} else if ( lang == "en" ) {
+				document.write('<li class="nohover"><img src="/images/spacer.gif" height="1" width="140" border="0" alt=""></li>');
+			} else if ( lang == "es" ) {
+				document.write('<li class="nohover"><img src="/images/spacer.gif" height="1" width="5" border="0" alt=""></li>');
+			} else if ( lang == "ja" ) {
+				document.write('<li class="nohover"><img src="/images/spacer.gif" height="1" width="85" border="0" alt=""></li>');
+			} else if ( lang == "zh" ) {
+				document.write('<li class="nohover"><img src="/images/spacer.gif" height="1" width="270" border="0" alt=""></li>');
+			}
+		</script>
+		
+		
+		
+		<li class="nohover" style="padding:0px;">
+			<input type="hidden" id="host" value="www.worldcommunitygrid.org" />
+			<input type="hidden" id="shost" value="secure.worldcommunitygrid.org" />
+			<span style="padding-top: 2px; height: 17px;"><select name="langSelect" onChange="javascript:loadLang()" id="langSelect" title="Language">
+				<option value="" selected>Select Language</option>
+				<option value="en_US">English</option>
+				<option value="fr_CA">Français</option>
+				<option value="ja_JP">&#26085;&#26412;&#35486;</option>
+				<option value="es_MX">Espa&ntilde;ol</option>
+				<option value="zh_CN">&#20013;&#25991;</option>
+			</select></span><img src="/images/spacer.gif" height="17" width="8" border="0" alt=""></li>
+	    <li class="nohover"><img src="/images/hp09/nav_button_bar.jpg" alt="" border="0" width="1px" height="21px" style="vertical-align:top" /></li>
+        <li style="padding-left:15px; padding-right:15px;"><a href="/help/viewHelp.do" style="color:#D38F4C">Help</a>
+        	<ul id="help" class="menu">
+        		<li><a href="/help/viewHelp.do" class="menuLink">Help</a></li>        		
+        	</ul>
+        </li>
+	</ul>
+	<script type="text/javascript">
+	// this will set the research nav to the top for firefox
+	if (window.innerHeight < 880) {
+		if (self.location.href.indexOf('index') > 0 || self.location.href.indexOf('home') > 0 || self.location.href == 'http://www.worldcommunitygrid.org/' || self.location.href == 'https://secure.worldcommunitygrid.org/' ) {
+			document.getElementById("research").className+=" topside";
+		}
+	}
+	</script>
+	</div>
+ <!-- End mainNav //-->
+   	<div style="width:955px; position:relative; top:-6px;"">
+		<table width="955px" cellspacing="10px" cellpadding="15px" align="left" style="background:#FFFFFF;width:955px; border-style:none solid none solid; border-color:#c3c3c3; border-width:1px;">
+			<tr>
+				<td width="125px" valign="top" align="left">
+					
+					
+					
+					
+
+
+
+
+
+
+						<img src="/images/left_nav/wcg_left_nav_top.jpg" alt=""><br />
+                           <img src="/images/spacer.gif" height="10" width="1"><br />
+
+						
+							<a href="http://www.worldcommunitygrid.org/ms/viewMyMemberPage.do" class="secondLevelNav">My Statistics</a>
+							<img src="/images/left_nav/arrow_left.gif" border="0" alt="">                        
+                        
+                        
+						
+						<br /><img src="/images/spacer.gif" height="5" width="24" alt=""><br />
+                         
+ 						
+                          <a href="https://secure.worldcommunitygrid.org/ms/viewMyProfile.do" class="secondLevelNav">My Profile</a>
+                        
+                        
+                        
+						<!-- My Projects Nav -->
+                         
+						<br /><img src="/images/spacer.gif" height="5" width="24" alt=""><br />
+                         
+ 						
+                          <a href="https://secure.worldcommunitygrid.org/ms/viewMyProjects.do" class="secondLevelNav">My Projects</a>
+                        
+                        
+                        
+						<!-- End My Projects Nav -->
+					    
+						<!-- Social Networks Nav -->
+                         
+						<br /><img src="/images/spacer.gif" height="5" width="24" alt=""><br />
+                         
+ 						
+                          <a href="http://www.worldcommunitygrid.org/ms/sm/viewSocialMedia.do" class="secondLevelNav">Twitter</a>
+                        
+                        
+                        
+						<!-- End Social Networks Nav -->
+					    
+						<br /><img src="/images/spacer.gif" height="5" width="24" alt=""><br />
+
+ 						
+							<a href="https://secure.worldcommunitygrid.org/ms/login/viewChangePassword.do" class="secondLevelNav">Sign In Manager</a>                        
+							<img src="/images/left_nav/arrow_left.gif" border="0" alt="">                        
+                        
+                        
+                        
+						 
+						<br /><img src="/images/spacer.gif" height="5" width="24" alt=""><br />
+                        
+ 					 
+						<a href="http://www.worldcommunitygrid.org/ms/device/viewDevices.do" class="secondLevelNav">Device Manager</a>
+						<img src="/images/left_nav/arrow_left.gif" border="0" alt="">
+                    
+
+                    
+					 
+					<br /><img src="/images/spacer.gif" height="5" width="24" alt=""><br />
+					
+				<!-- Boinc Results Nav -->
+					
+						
+						
+	 					
+						
+							<a href="https://secure.worldcommunitygrid.org/ms/viewBoincResults.do" class="secondLevelNavSelected">Results Status</a>
+						
+						 
+						<br /><img src="/images/spacer.gif" height="5" width="24" alt=""><br />
+						
+						
+					
+				<!-- End Boinc Results Nav -->
+				
+				<!-- Start #TEAM nav -->
+ 						
+							<a href="http://www.worldcommunitygrid.org/ms/team/viewMyTeam.do" class="secondLevelNav">My Team</a>
+							<img src="/images/left_nav/arrow_left.gif" border="0" alt="">
+                        
+                         
+				<!-- End Team Nav -->
+
+						<br /><img src="/images/spacer.gif" height="5" width="24" alt=""><br />
+						
+						<!-- Create Widget Nav -->
+ 						
+							<a href="https://secure.worldcommunitygrid.org/ms/viewGetWidget.do" class="secondLevelNav">Create Widget</a>
+                        
+                        
+						<!-- End Create Widget Nav -->
+						
+						<br /><img src="/images/spacer.gif" height="5" width="24" alt=""><br />
+
+						
+							
+
+	 						
+								<a href="https://secure.worldcommunitygrid.org/ms/device/viewBetaProfiles.do" class="secondLevelNav">Beta Testing</a>
+	                        
+	                        
+
+							
+						
+                         
+						<br />	
+						<img src="/images/spacer.gif" height="14" width="24" alt=""><br />
+						<img src="/images/left_nav/wcg_left_nav_bottom.jpg" alt=""><br /></td>
+				<td width="575px" valign="top" align="left">
+
+
+
+
+
+
+
+<script type="text/javascript">
+<!--
+var filDev = '0';
+//-->
+</script>
+
+					<span class="newHeaderText"><nobr>Results Status<img src="/images/white.gif" width="8" height="20" alt="" border="0"><img src="/images/spacer.gif" height="1" alt="" width="1"></nobr></span>
+					<img src="/images/title_underneath.jpg" alt="" border="0" /><br />
+					<img src="/images/spacer.gif" height="12" width="1"><br />
+					<form name="boincResultsBean" method="GET" action="/ms/viewBoincResults.do">
+					<table border="0" cellspacing="0" cellpadding="3">
+						<tr align="left"><td colspan="5"><span class="contentTextBold">Filter by:</span></td></tr>
+						<tr align="left">
+							<td><span class="contentTextSmall">Device Name:</span></td>
+							<td><select name="filterDevice" style="font-size:9px; width:135px;"><option value="0" selected="selected">All</option>
+									<option value="1919469">coffe.local</option></select>
+							</td>
+							<td><span class="contentTextSmall">Result Status:</span></td>
+							<TD><select name="filterStatus" style="font-size:9px; width:135px;"><option value="-1" selected="selected">All</option>
+<option value="0">In Progress</option>
+<option value="1">Error</option>
+<option value="2">No Reply</option>
+<option value="3">Pending Validation</option>
+<option value="4">Valid</option>
+<option value="5">Invalid</option>
+<option value="6">Pending Verification</option>
+<option value="7">Too Late</option>
+<option value="11">Aborted</option>
+<option value="12">User Aborted</option>
+<option value="13">Server Aborted</option></select>
+							</TD>
+						</tr>
+						<tr align="left">
+							<td><span class="contentTextSmall">Project Name:</span></td>
+							<td colspan="3"><select name="projectId" style="font-size:9px; width:270px;"><option value="-1" selected="selected">All</option>
+<option value="112">Drug Search for Leishmaniasis</option>
+<option value="110">The Clean Energy Project - Phase 2</option>
+<option value="11">FightAIDS@Home</option>
+<option value="113">Say No to Schistosoma</option>
+<option value="111">Computing for Clean Water</option>
+<option value="105">Help Fight Childhood Cancer</option>
+<option value="1">Beta Testing</option></select>
+							</td>
+							<TD><a href="javascript:document.boincResultsBean.pageNum.value='1'; document.boincResultsBean.submit();" onmouseover="mOver('filter');return true" onmouseout="mOut('filter');return true"><img src="/images/filter_off.gif" name="filter" border="0" alt="Filter"></a></TD>
+						</tr>
+					</table>
+					<img src="/images/spacer.gif" height="12" width="1"><br />
+	<!-- Start top page navigation -->
+	<table width="564" border="0" cellspacing="0" cellpadding="0">
+		<tr> 
+			<td colspan="15" height="15" align="right">
+			<span class="contentText">Page:
+			
+			<!-- First display "< Previous" if not on the first page; if page number is greater than 7, add a link to the first page, and an ellipsis -->
+			
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&sortBy=sentTime&pageNum=1" class="contentLink">&lt; First</a>&nbsp;
+				
+			
+			
+			<!-- Use the functions in boincResultsBean to display 5 pages before the current page number -->
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=&sortBy=sentTime" class="contentLink"></a>
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=&sortBy=sentTime" class="contentLink"></a>
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=1&sortBy=sentTime" class="contentLink">1</a>
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=2&sortBy=sentTime" class="contentLink">2</a>
+
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=3&sortBy=sentTime" class="contentLink">3</a>
+
+			<!-- There's no logic for this part since we always want to display which page we're on -->
+			<span class="contentText">4</span>
+
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=5&sortBy=sentTime" class="contentLink">5</a>
+
+			<!-- Use the functions in boincResultsBean to 5 pages after the current page number -->
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=&sortBy=sentTime" class="contentLink"></a>
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=&sortBy=sentTime" class="contentLink"></a>
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=&sortBy=sentTime" class="contentLink"></a>
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=&sortBy=sentTime" class="contentLink"></a>
+
+			<!--  If there's more than 10 pages, we'll have to insert an ellipsis before the 5 "next" pages and the last page -->
+			
+				
+				<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&sortBy=sentTime&pageNum=5" class="contentLink">Last &gt;</a>
+			
+			&nbsp;</td>
+		</tr>
+	</table>
+	<!-- End top page navigation -->
+
+					<input type="hidden" name="sortBy" value="sentTime">
+					<input type="hidden" name="pageNum" value="4">
+					<table width="564" border="0" cellspacing="3" cellpadding="3">
+						<tr align="center" class="paleorange">
+							<td class="tableHeader">Result Name</td>
+							<td class="tableHeader"><a href="javascript:document.boincResultsBean.sortBy.value='deviceId';document.boincResultsBean.submit();">Device Name</a></td>
+							<td class="tableHeader"><nobr>&nbsp;Status</nobr></td>
+							<td class="tableHeader"><a href="javascript:document.boincResultsBean.sortBy.value='sentTime';document.boincResultsBean.submit();">Sent Time</a></td>
+							<td class="tableHeader"><a href="javascript:document.boincResultsBean.sortBy.value='dueTime';document.boincResultsBean.submit();"><span class="contentTextItalic">Time Due</span></a>&nbsp;/<br />&nbsp;<a href="javascript:document.boincResultsBean.sortBy.value='returnedTime';document.boincResultsBean.submit();"><span class="contentTextSmall">Return Time</span></a></td>
+							<td class="tableHeader"><a href="javascript:document.boincResultsBean.sortBy.value='runTime';document.boincResultsBean.submit();">CPU Time / Elapsed Time (hours)</a></td>
+							<td class="tableHeader">Claimed/ Granted BOINC Credit</td>
+						</tr>
+						
+						
+						<tr height="54" >
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=739220117','statusPop',650,650);" class="contentLink">DSFL_ 00100-49_ 0000034_ 0279_ 0-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493554722','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">7/2/13 11:18:24</span></td>
+							<td><span class="contentTextSmall">7/3/13 04:52:42</span></td>
+							<td><span class="contentTextSmall">5.55 / 5.66</span></td>
+							<td><span class="contentTextSmall">145.6&nbsp;/&nbsp;141.4</span></td>
+						</tr>
+						
+						
+						<tr height="54" class="palegrey">
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=739270048','statusPop',650,650);" class="contentLink">faah42091_ ZINC29243471_ xBr27_ refmac2_ A_ PR_ 02_ 0-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493609296','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">7/2/13 11:18:24</span></td>
+							<td><span class="contentTextSmall">7/3/13 19:03:26</span></td>
+							<td><span class="contentTextSmall">9.45 / 9.67</span></td>
+							<td><span class="contentTextSmall">172.9&nbsp;/&nbsp;139.8</span></td>
+						</tr>
+						
+						
+						<tr height="54" >
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=739030460','statusPop',650,650);" class="contentLink">E214226_ 234_ C.34.C30H17NS2Se.01740635.0.set1d06_ 0-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493288900','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">7/1/13 19:00:35</span></td>
+							<td><span class="contentTextSmall">7/4/13 10:43:38</span></td>
+							<td><span class="contentTextSmall">8.91 / 9.28</span></td>
+							<td><span class="contentTextSmall">236.6&nbsp;/&nbsp;211.4</span></td>
+						</tr>
+						
+						
+						<tr height="54" class="palegrey">
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=738979360','statusPop',650,650);" class="contentLink">faah42048_ ZINC03338910_ xBr27_ refmac2_ A_ PR_ 00_ 0-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493212924','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">7/1/13 19:00:35</span></td>
+							<td><span class="contentTextSmall">7/3/13 19:03:26</span></td>
+							<td><span class="contentTextSmall">11.14 / 11.41</span></td>
+							<td><span class="contentTextSmall">204.0&nbsp;/&nbsp;179.0</span></td>
+						</tr>
+						
+						
+						<tr height="54" >
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=738920167','statusPop',650,650);" class="contentLink">DSFL_ 00100-47_ 0000007_ 0323_ 0-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493150555','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">7/1/13 19:00:35</span></td>
+							<td><span class="contentTextSmall">7/3/13 04:52:42</span></td>
+							<td><span class="contentTextSmall">7.46 / 7.61</span></td>
+							<td><span class="contentTextSmall">195.8&nbsp;/&nbsp;176.2</span></td>
+						</tr>
+						
+						
+						<tr height="54" class="palegrey">
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=738920194','statusPop',650,650);" class="contentLink">DSFL_ 00100-47_ 0000007_ 0424_ 0-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493150617','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							Pending Validation
+							
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">7/1/13 19:00:35</span></td>
+							<td><span class="contentTextSmall">7/3/13 04:52:42</span></td>
+							<td><span class="contentTextSmall">7.14 / 7.31</span></td>
+							<td><span class="contentTextSmall">187.9&nbsp;/&nbsp;0.0</span></td>
+						</tr>
+						
+						
+						<tr height="54" >
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=738979277','statusPop',650,650);" class="contentLink">faah42047_ ZINC55047363_ xBr27_ refmac2_ A_ PR_ 00_ 0-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493212850','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">7/1/13 19:00:35</span></td>
+							<td><span class="contentTextSmall">7/3/13 04:52:42</span></td>
+							<td><span class="contentTextSmall">9.41 / 9.55</span></td>
+							<td><span class="contentTextSmall">173.5&nbsp;/&nbsp;148.0</span></td>
+						</tr>
+						
+						
+						<tr height="54" class="palegrey">
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=738979289','statusPop',650,650);" class="contentLink">faah42047_ ZINC03300123_ xBr27_ refmac2_ A_ PR_ 01_ 0-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493212866','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">7/1/13 19:00:35</span></td>
+							<td><span class="contentTextSmall">7/3/13 04:52:42</span></td>
+							<td><span class="contentTextSmall">9.04 / 9.20</span></td>
+							<td><span class="contentTextSmall">167.2&nbsp;/&nbsp;138.5</span></td>
+						</tr>
+						
+						
+						<tr height="54" >
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=738979295','statusPop',650,650);" class="contentLink">faah42047_ ZINC04536748_ xBr27_ refmac2_ A_ PR_ 01_ 0-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493212869','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">7/1/13 19:00:35</span></td>
+							<td><span class="contentTextSmall">7/3/13 19:03:26</span></td>
+							<td><span class="contentTextSmall">9.70 / 9.94</span></td>
+							<td><span class="contentTextSmall">177.7&nbsp;/&nbsp;132.2</span></td>
+						</tr>
+						
+						
+						<tr height="54" class="palegrey">
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=738979297','statusPop',650,650);" class="contentLink">faah42047_ ZINC06274792_ xBr27_ refmac2_ A_ PR_ 00_ 0-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493212870','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">7/1/13 19:00:35</span></td>
+							<td><span class="contentTextSmall">7/3/13 04:52:42</span></td>
+							<td><span class="contentTextSmall">8.89 / 9.04</span></td>
+							<td><span class="contentTextSmall">164.3&nbsp;/&nbsp;127.2</span></td>
+						</tr>
+						
+						
+						<tr height="54" >
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=738979336','statusPop',650,650);" class="contentLink">faah42047_ ZINC22000829_ xBr27_ refmac2_ A_ PR_ 01_ 0-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493212912','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">7/1/13 19:00:35</span></td>
+							<td><span class="contentTextSmall">7/3/13 04:52:42</span></td>
+							<td><span class="contentTextSmall">7.07 / 7.17</span></td>
+							<td><span class="contentTextSmall">130.2&nbsp;/&nbsp;176.4</span></td>
+						</tr>
+						
+						
+						<tr height="54" class="palegrey">
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=739030491','statusPop',650,650);" class="contentLink">E214226_ 338_ C.34.C29H17NOSSeSi.01763391.4.set1d06_ 0-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493288922','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">7/1/13 19:00:35</span></td>
+							<td><span class="contentTextSmall">7/3/13 19:03:26</span></td>
+							<td><span class="contentTextSmall">11.79 / 12.39</span></td>
+							<td><span class="contentTextSmall">321.7&nbsp;/&nbsp;278.3</span></td>
+						</tr>
+						
+						
+						<tr height="54" >
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=738607783','statusPop',650,650);" class="contentLink">E214207_ 626_ C.35.C29H17N3S2Si.01478796.3.set1d06_ 0-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1492711421','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">6/30/13 19:00:35</span></td>
+							<td><span class="contentTextSmall">7/3/13 19:03:26</span></td>
+							<td><span class="contentTextSmall">10.62 / 11.05</span></td>
+							<td><span class="contentTextSmall">286.7&nbsp;/&nbsp;256.0</span></td>
+						</tr>
+						
+						
+						<tr height="54" class="palegrey">
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=733853942','statusPop',650,650);" class="contentLink">DSFL_ 00100-11_ 0000046_ 0820_ 2-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493679968','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">6/30/13 19:00:35</span></td>
+							<td><span class="contentTextSmall">7/2/13 11:18:24</span></td>
+							<td><span class="contentTextSmall">5.20 / 5.25</span></td>
+							<td><span class="contentTextSmall">138.5&nbsp;/&nbsp;135.1</span></td>
+						</tr>
+						
+						
+						<tr height="54" >
+							<td><span class="contentTextSmall"><a href="javascript:addHostPopup('/ms/device/viewWorkunitStatus.do?workunitId=733854083','statusPop',650,650);" class="contentLink">DSFL_ 00100-11_ 0000046_ 0689_ 2-- </a></span></td>
+							<td><span class="contentTextSmall">coffe.local</span></td>
+							<td><span class="contentTextSmall">
+							
+								
+									<a href="javascript:addHostPopup('/ms/device/viewResultErrorLog.do?resultId=1493680036','errPop',500,700);" class="contentLink">
+								
+							
+							
+							
+							
+							
+							Valid
+							
+							
+							
+							
+							
+												
+												
+												
+							</a>
+							</span></td>
+							<td><span class="contentTextSmall">6/30/13 19:00:35</span></td>
+							<td><span class="contentTextSmall">7/2/13 11:18:24</span></td>
+							<td><span class="contentTextSmall">5.90 / 5.94</span></td>
+							<td><span class="contentTextSmall">156.9&nbsp;/&nbsp;138.1</span></td>
+						</tr>
+						
+					</table>
+
+	<!-- End bottom page navigation -->
+	<table width="564" border="0" cellspacing="0" cellpadding="0">
+		<tr> 
+			<td colspan="15" height="15" align="right">
+			<span class="contentText">Page:
+			
+			<!-- First display "< Previous" if not on the first page; if page number is greater than 7, add a link to the first page, and an ellipsis -->
+			
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&sortBy=sentTime&pageNum=1" class="contentLink">&lt; First</a>&nbsp;
+				
+			
+			
+			<!-- Use the functions in boincResultsBean to display 5 pages before the current page number -->
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=&sortBy=sentTime" class="contentLink"></a>
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=&sortBy=sentTime" class="contentLink"></a>
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=1&sortBy=sentTime" class="contentLink">1</a>
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=2&sortBy=sentTime" class="contentLink">2</a>
+
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=3&sortBy=sentTime" class="contentLink">3</a>
+
+			<!-- There's no logic for this part since we always want to display which page we're on -->
+			<span class="contentText">4</span>
+
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=5&sortBy=sentTime" class="contentLink">5</a>
+
+			<!-- Use the functions in boincResultsBean to 5 pages after the current page number -->
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=&sortBy=sentTime" class="contentLink"></a>
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=&sortBy=sentTime" class="contentLink"></a>
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=&sortBy=sentTime" class="contentLink"></a>
+			<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum=&sortBy=sentTime" class="contentLink"></a>
+
+			<!--  If there's more than 10 pages, we'll have to insert an ellipsis before the 5 "next" pages and the last page -->
+			
+				
+				<a href="/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&sortBy=sentTime&pageNum=5" class="contentLink">Last &gt;</a>
+			
+			&nbsp;</td>
+		</tr>
+	</table>
+	<!-- End bottom page navigation -->
+					</form>
+                      
+                      <table width="564" border="0" cellspacing="0" cellpadding="0">
+						<tr>
+							<td><img src="/images/spacer.gif" height="21" width="1"><br /></td>
+						</tr>
+                        <tr> 
+                          <td align="right"><a href="#top" class="returnToTopLink">Return to Top&nbsp;<img src="/images/top.gif" border="0"/></a></td>
+                        </tr>
+                      </table>
+</td>
+				<td width="152px" valign="top" align="left">
+					<img src="/images/spacer.gif" height="22px" width="18px" alt="" border="0" /><br />
+					
+
+
+
+
+
+		<table width="152" border="0" cellspacing="0" cellpadding="0">
+			<tr>
+				<td>
+				<img src="/images/spacer.gif" width="1" height="16" alt=""><br />
+				<table width="152" border="0" cellspacing="0" cellpadding="0">
+					<tr> 
+						<td width="1"><img src="/images/spacer.gif" width="1" height="1" alt=""></td>
+						<td class="lightgrey" width="1" valign="bottom"><img src="/images/seperator_end.gif" width="1" height="191" alt=""></td>
+						<td width="11"><img src="/images/spacer.gif" width="11" height="1" alt=""></td>
+						<td valign="top">
+							<span class="promoHeaderGrey zhIE">Download Software</span><br />
+							<img src="/images/spacer.gif" width="1" height="6" alt=""><br />
+							<span class="rightText">Do you want to download the software again? <a href="/reg/ms/viewDownloadAgain.do" class="smallLink">Click here</a> to visit the Download page.</span><br />
+							<img src="/images/spacer.gif" width="1" height="10" alt=""><br />
+							<span class="promoHeaderGrey">Visit the Forums</span><br />
+							<img src="/images/spacer.gif" width="1" height="6" alt=""><br />
+							<span class="rightText">If you need technical assistance beyond what's available in </span><a class="smallLink" href="/help/viewHelp.do">Help</a><span class="rightText">, please </span><a href="Javascript:redirectToForums();" class="smallLink">visit the forums</a><span class="rightText"> to post your questions and get answers on how others are using World Community Grid.</span><br />
+							<img src="/images/spacer.gif" width="1" height="10" alt=""><br />
+							<span class="promoHeaderGrey">Tell A Friend</span><br />
+							<img src="/images/spacer.gif" width="1" height="6" alt=""><br />
+							<span class="rightText">Help accelerate humanitarian research even further by <a href="/viewTellAFriend.do" class="contentLink">telling your friends</a> about World Community Grid.<br />
+							<img src="/images/spacer.gif" width="1" height="16" alt=""><br />
+							<span class="promoHeaderGrey">Related Resources</span><br />
+							<span class="rightText"><img src="/images/content_arrow.gif" height="12" width="13" alt=""><a href="/help/viewTopic.do?shortName=minimumreq" class="smallLink">System Requirements</a></span><br />
+							<span class="rightText"><img src="/images/content_arrow.gif" height="12" width="13" alt=""><a href="/help/viewTopic.do?shortName=points" class="smallLink">Points System</a></span><br />
+							<span class="rightText"><img src="/images/content_arrow.gif" height="12" width="13" alt=""><a href="/viewMemberPolicy.do" class="smallLink">Member Policy</a></span><br />
+							<img src="/images/spacer.gif" width="1" height="16" alt=""><br />
+                            <a href="http://www.ibm.com/ibm/ibmgives" target="blank">
+                            <img src="/images/ibm.gif" height="34" width="73" border="0" alt="Powered by IBM"></a><br />
+                            <img src="/images/spacer.gif" width="1" height="24" alt="">
+						</td>
+					</tr>
+				</table>
+				</td>
+			</tr>
+		</table>
+				</td>
+			</tr>
+	    </table>
+    </div>
+    <div style="width:955px; height:17px; position:relative; top:-6px; z-index:-1;">
+		<img src="/images/hp09/rounded_corners_bottom.png" alt="" />
+		
+
+
+
+<!-- Begin footer region //-->
+	
+<table width="952" border="0" cellspacing="0" cellpadding="0">
+		<tr><td colspan="3"><img src="/images/spacer.gif" width="10" height="20" alt="" /></td></tr>
+		<tr>
+			<td valign="middle" align="left">
+				<a href="http://boinc.berkeley.edu/" target="_blank"><img src="/images/hp09/boinc_logo_t.png" border="0" alt="BOINC Logo" /></a>
+				<img src="/images/spacer.gif" width="1" height="24" alt="" /><br />
+			</td>
+			<td align="center"><img src="/images/spacer.gif" width="1">
+				<div style="background-image:url('http://www.worldcommunitygrid.org/images/hp09/footer_fade.png'); width:392px; height:37px; background-repeat: no-repeat; line-height:37px;">
+<!-- 					<a href="/viewMemberPolicy.do" class="footerLink">Privacy</a><span class="seperators"> | </span> <a href="/viewSitemap.do" class="footerLink">Sitemap</a><span class="seperators"> | </span> <a href="/viewContactUs.do" class="footerLink">Contact Us</a> | <a href="http://www.facebook.com/worldcommunitygrid.org" target="_blank"><img src="/images/hp09/facebook.png" alt="Facebook" border="0" style="vertical-align:middle" /></a>&nbsp;<a href="http://twitter.com/WCGrid" target="_blank"><img src="/images/hp09/twitter.png" alt="Twitter" border="0" style="vertical-align:middle" /></a>&nbsp;<a href="http://www.linkedin.com/groups/World-Community-Grid-124386?trk=myg_ugrp_ovr" target="_blank"><img src="/images/hp09/linkedin.gif" alt="Linkedin" border="0" style="vertical-align:middle" /></a><g:plusone size="small" count="false" style="vertical-align:middle"></g:plusone> -->
+					<table>
+						<tr valign="center">
+							<td>
+								<img src="/images/spacer.gif" width="1" height="35" alt="" />
+							</td>
+							<td>
+								<a href="/viewMemberPolicy.do" class="footerLink">Privacy</a>
+							</td>
+							<td>
+								<span class="seperators"> | </span>
+							</td>
+							<td>
+								<a href="/viewSitemap.do" class="footerLink">Sitemap</a>
+							</td>
+							<td>
+								<span class="seperators"> | </span>
+							</td>
+							<td>
+								<a href="/viewContactUs.do" class="footerLink">Contact Us</a>
+							</td>
+							<td>
+								<span class="seperators"> | </span>
+							</td>
+							<td>
+								<a href="http://www.facebook.com/worldcommunitygrid.org" target="_blank"><img src="/images/hp09/facebook.png" alt="Facebook" border="0" /></a>
+							</td>
+							<td>
+								<a href="http://twitter.com/WCGrid" target="_blank"><img src="/images/hp09/twitter.png" alt="Twitter" border="0" /></a>
+							</td>
+							<td>
+								<a href="http://www.linkedin.com/groups/World-Community-Grid-124386?trk=myg_ugrp_ovr" target="_blank"><img src="/images/hp09/linkedin.gif" alt="Linkedin" border="0" /></a>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</td>
+			<td valign="top" align="right">
+				<a href="http://www.ibm.com/ibm/ibmgives" target="_blank"><img src="/images/hp09/ibm_logo_t.png" border="0" alt="Powered by IBM" /></a><br />
+				<img src="/images/spacer.gif" width="1" height="9" alt="" /><br />
+			</td>
+		</tr>
+	</table>
+    <!-- End footer region //-->
+
+	</div> 
+</center>
+<!-- <META name="links-collection-enabled" content="false"> -->
+<!-- Copyright IBM Corporation, 2001-2004 -->
+<script src="https://ssl.google-analytics.com/urchin.js" type="text/javascript">
+</script>
+<script type="text/javascript">
+_uacct = "UA-2292953-1";
+_udn="worldcommunitygrid.org";
+urchinTracker();
+</script>
+</body>
+</html>

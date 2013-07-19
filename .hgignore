@@ -1,0 +1,8 @@
+\.ropeproject
+pyBoincPlotter/test/cover
+syntax:glob
+*.pyc
+*~
+*.DS_Store
+*.coverage
+*.pickle

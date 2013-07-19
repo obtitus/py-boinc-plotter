@@ -1,21 +1,20 @@
 #!/usr/bin/env python
-# This file is part of the py-boinc-plotter,
-# which provides parsing and plotting of boinc statistics and
-# badge information.
+# This file is part of the py-boinc-plotter, which provides parsing and plotting of boinc statistics and badge information.
 # Copyright (C) 2013 obtitus@gmail.com
-#
+# 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-#
+# 
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-#
+# 
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
+# 
 # END LICENCE
 
 # Standard python imports
@@ -71,11 +70,39 @@ class MyConfigParser(ConfigParser.ConfigParser):
             name = username
         keyring.set_password(section, name, password)
 
+    def projects(self):
+        sections = list()
+        for section in self.sections():
+            if section != 'configuration':
+                sections.append(section)
+        return sections
+
+
+    def addAccount(self, name):
+        self.setupPassword(name, ['userid'], forgetOld=True)
+
+    def setupPassword(self, domain, additionalInfo=[], forgetOld=False):
+        username = self.get(domain, 'username')
+        if username == None or forgetOld:
+            username = raw_input('Enter username for {0}:\n'.format(domain))
+            self.set(domain, 'username', username)
+
+        password = self.getpassword(domain, 'username')
+        if password == None or forgetOld:
+            password = getpass.getpass('Enter password for user "{0}" at {1}: '.format(username, domain))
+            self.setpassword(domain, 'username', password)
+
+        for a in additionalInfo:
+            password = self.get(domain, a)
+            if password == None or forgetOld:
+                password = getpass.getpass('Enter {0} for user "{1}" at {2}: '.format(a, username, domain))
+                self.set(domain, a, password)
+
 from version import appName, appAuthor
 from appdirs import AppDirs
 appDirs = AppDirs(appName, appAuthor)
 
-def setupCacheDir():
+def setupCacheDir(CONFIG):
     cacheDir = CONFIG.get('configuration', 'cache_dir')
     if cacheDir == None:
         cacheDir = appDirs.user_cache_dir
@@ -101,7 +128,7 @@ def setupConfigFile():
     configFile = MyConfigParser(configFilename)        
     return configFile
 
-def setupBoincDir():
+def setupBoincDir(CONFIG):
     boincDir = CONFIG.get('configuration', 'boinc_dir')
     if boincDir == None:                # hmm, lets try this
         boincDir = os.environ.get('BOINC_PROJECT_DIR')
@@ -116,40 +143,22 @@ def setupBoincDir():
         
     return boincDir
 
-def setupPassword(domain, additionalInfo=[], forgetOld=False):
-    username = CONFIG.get(domain, 'username')
-    if username == None or forgetOld:
-        username = raw_input('Enter username for {0}:\n'.format(domain))
-        CONFIG.set(domain, 'username', username)
-        
-    password = CONFIG.getpassword(domain, 'username')
-    if password == None or forgetOld:
-        password = getpass.getpass('Enter password for user "{0}" at {1}: '.format(username, domain))
-        CONFIG.setpassword(domain, 'username', password)
-
-    for a in additionalInfo:
-        password = CONFIG.get(domain, a)
-        if password == None or forgetOld:
-            password = getpass.getpass('Enter {0} for user "{1}" at {2}: '.format(a, username, domain))
-            CONFIG.set(domain, a, password)
-
-global CONFIG, CACHE_DIR, BOINC_DIR
-BOINC_DIR = None
-CONFIG = None
-CACHE_DIR = None
+# global CONFIG, CACHE_DIR, BOINC_DIR
+# BOINC_DIR = None
+# CONFIG = None
+# CACHE_DIR = None
 def set_globals():
-    global CONFIG, CACHE_DIR, BOINC_DIR
     CONFIG = setupConfigFile()
-    CACHE_DIR = setupCacheDir()
-    BOINC_DIR = setupBoincDir()
+    CACHE_DIR = setupCacheDir(CONFIG)
+    BOINC_DIR = setupBoincDir(CONFIG)
     logger.info('Config file "%s"\nCache dir "%s"\nBoinc dir "%s"', CONFIG.filename, CACHE_DIR, BOINC_DIR)
+    return CONFIG, CACHE_DIR, BOINC_DIR
     
-def main():
-    set_globals()
-    setupPassword('worldcommunitygrid.org', ['code'])
+# def main():
+#     CONFIG, CACHE_DIR, BOINC_DIR = set_globals()
+#     # setupPassword('worldcommunitygrid.org', ['code'])
+#     return CONFIG, CACHE_DIR, BOINC_DIR
 
-def addAccount(name):
-    setupPassword(name, ['userid'], forgetOld=True)
 #     setupPassword('mindmodeling.org', ['userid'])
 #     setupPassword('wuprop.boinc-af.org', ['userid'])
 
