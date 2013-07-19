@@ -228,12 +228,17 @@ class BrowserSuper(object):
             return project
 
         parser = HTMLParser.getParser(self.section, browser=self, project=project)
-        parser.parse(taskPage)
         try:
-            parser.getBadges()
-        except AttributeError as e:  # Parser does not implement getBadges
-            logging.debug('no badge for %s, %s', self.section, e)
-            pass
+            parser.parse(taskPage)
+            
+            try:
+                parser.getBadges()
+            except AttributeError as e:  # Parser does not implement getBadges
+                logging.debug('no badge for %s, %s', self.section, e)
+                pass
+        except Exception as e:
+            logger.exception('Uncaught parse exception %s', e)
+                            
         return project
 
     @property
@@ -320,12 +325,22 @@ def getProject(section, CONFIG, browser_cache):
 def getProjects_wuprop(CONFIG, browser_cache):
     """Returns dictionary of wuprop projects, key is user_friendly_name"""
     section = 'wuprop.boinc-af.org'
+    if section not in CONFIG.projects():
+        return {}
+
     browser =  Browser(section=section, 
                        browser_cache=browser_cache, 
                        CONFIG=CONFIG)
     parser = HTMLParser.getParser(section, browser=browser)
     html = browser.visitHome()
-    return parser.projectTable(html)
+    if html == '':
+        return {}
+
+    try:
+        return parser.projectTable(html)
+    except Exception as e:
+        logger.exception('Uncaught parse exception %s', e)
+        return {}
 
     
 def getProjectsDict(CONFIG, browser_cache):
