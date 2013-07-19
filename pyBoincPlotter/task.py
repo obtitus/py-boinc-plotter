@@ -1,47 +1,82 @@
-#!/usr/bin/env python
-# This file is part of the py-boinc-plotter,
-# which provides parsing and plotting of boinc statistics and
-# badge information.
-# Copyright (C) 2013 obtitus@gmail.com
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
-# END LICENCE
 """
-Classes to represent a single workunit/task,
-Task is for local task while WebTask is for tasks from worldcommunitygrids results status page
+Task -> Task_local
+Task -> Task_web -> Task_web_worlcommunitygrid
 """
-import os
-import subprocess
-import datetime
 
+# Standard python imports
+import datetime
 import logging
 logger = logging.getLogger('boinc.task')
 
-from loggerSetup import loggerSetup
-import config
+# non standard:
+from bs4 import BeautifulSoup
 
 class Task(object):
-    # Each property as a variable for the python object _<property>
-    # and a set <property> for converting from a string
-    # and a get <property> for returning a string representation
+    """
+    Mostly handles string conversion around the following properties:
+    - name
+    - device
+    - state
+    - elapsedCPUtime
+    - remainingCPUtime
+    - deadline
+    - claimedCredit
+    - grantedCredit
+    Subclasses Task_local and Task_web are the one to use depending on source.
+    """
+    desc_state = ['downloading', 'ready to run', 'running', 'suspended', 'paused', 'computation completed', 'uploading', 'ready to report', 'unknown']
+    fmt_date = '%d %b %Y %H:%M:%S UTC'
+    def __init__(self, name='', device='localhost',
+                 state='unknown', fractionDone='0',
+                 elapsedCPUtime='0', remainingCPUtime='0', deadline=None):
+        """
+        Each attribute has a string representation and a 'data' representation:
+        Use self.set_fractionDone(str) for the string to object conversion.
+        type(self.fractionDone_str) == str
+        type(self.fractionDone) == float
+        each attribute has a setter method that assumes a string is passed in. This is then converted to a python object
+        like float, datetime or timedelta.
+        """
+        self.setName(name)                # There is also a self.name_short which is max 15 characters long
+        self.setDevice(device)
 
-    desc_state = ['downloading', 'ready to run', 'running', 'suspended', 'paused', 'computation completed', 'uploading', 'ready to report']
-    desc_active = ['paused', 'running', 2, 3, 4, 5, 6, 7, 8, 'running']
-    desc_schedularState = ['ready to start', 'suspended', 'running']
+        self.setState(state) # Stored as integer representing index in the self.desc_state list
+        self.setFractionDone(fractionDone) # stored as float
 
+        self.setElapsedCPUtime(elapsedCPUtime) # stored as timedelta, see strToTimedelta and timedeltaToStr
+        self.setRemainingCPUtime(remainingCPUtime) # stored as timedelta, see strToTimedelta and timedeltaToStr
+        self.setDeadline(deadline)                 # stored as datetime, string is time until deadline
+
+    N = 10
+    fmt = []
+    columnSpacing = dict()
+    for i in range(N):
+        columnSpacing['col%d' % i] = 0
+        fmt.append('{%d:>{col%d}}' % (i, i))
+    fmt = " ".join(fmt)
+
+    def toString(self):
+        return [self.nameShort_str,
+                self.state_str, self.fractionDone_str,
+                self.elapsedCPUtime_str, self.remainingCPUtime_str, self.deadline_str, 
+                self.device_str]
+    
+    def __str__(self):
+        s = self.toString()
+        for i in range(Task.N - len(s)):
+            s.append('')
+
+        return Task.fmt.format(*s, **self.columnSpacing)
+    
+    def done(self):
+        return not(self.desc_state[self.state] == 'in progress')
+
+    #
+    # Conversion functions
+    #
+    # Applied to self.elapsedCPUtime and self.remainingCPUtime
     def strToTimedelta(self, sec):
-        timedelta = datetime.timedelta(seconds=float(sec))
+        timedelta = datetime.timedelta(seconds=self.toFloat(sec))
         return timedelta
 
     def timedeltaToStr(self, timedelta):
@@ -51,236 +86,278 @@ class Task(object):
             timedelta = timedelta[:ix]
         return timedelta
 
-    def __init__(self):
-
-        self.fmt_date = '%a %b %d %H:%M:%S %Y'
-        #self.fmt = "{self.name:<20} {stateDesc:<15} {self.fractionDone:<5} {self.currentCPUtime:<10} {self.remainingCPUtime:<10} {self.deadline:<25} {self.state} {self.active} {self.schedularState}"
-        self.fmt = "{self.nameShort:<20} {self.state:<20} {self.fractionDone:<5} {self.currentCPUtime:<10} {self.remainingCPUtime:<10} {self.deadline:<25} {self.claimed:>5} {self.granted:>5} {self.device:>20}"
-        self.header = self.fmt.replace('self.', '')
-        self.header = self.header.format(nameShort="Name", state="State", fractionDone="Done",
-                                         currentCPUtime='Current', remainingCPUtime="Remaining",
-                                         deadline="Deadline/Return time",
-                                         claimed="Claimed", granted='Granted', device='Device')
-        # These are given meaning in subclass webTask
-        self.claimed = 0
-        self.granted = 0
-        self.device = 'localhost'
-    
-    def __str__(self):            
-        return self.fmt.format(self=self)
-
-    def done(self):
-        # Is the task finished?
-        if self.desc_state[self._state] == 'in progress': # For tasks on other computers
-            return False
-        else:
-            return self.remainingCPUtime == '0:00:00'
-    def isWebTask(self):
-        return isinstance(self, WebTask_worldcommunitygrid) or \
-               isinstance(self, WebTask)
-            
-    @property
-    def name(self):
-        return self._name
-    @property
-    def nameShort(self):
-        if len(self._name) > 15:
-            return self._name[:15] + '...'
-        else:
-            return self._name        
-    @name.setter
-    def name(self, name):
-        self._name = name
-
-    @property
-    def deadline(self):
-        # Return time until deadline
-        now = datetime.datetime.today()
-        delta = self._deadline - now
-        s = self.timedeltaToStr(delta)
-        if delta.days < 0:
-            delta = now - self._deadline
-            s = '-' + self.timedeltaToStr(delta)
-        return s
-    @deadline.setter
-    def deadline(self, deadline):
-        self._deadline = datetime.datetime.strptime(deadline, self.fmt_date)
-
-    @property
-    def readyToReport(self):
-        return self._readyToReport
-    @readyToReport.setter
-    def readyToReport(self, readyToReport):
-        self._readyToReport = readyToReport
-    
-    @property
-    def finalCPUtime(self):
-        return self.timedeltaToStr(self._finalCPUtime)
-    @finalCPUtime.setter
-    def finalCPUtime(self, finalCPUtime):
-        self._finalCPUtime = self.strToTimedelta(finalCPUtime)
-
-    @property
-    def state(self):
-        state = self.desc_state[self._state]
-        # Hack
-        if self.remainingCPUtime == '0:00:00' and not(state == 'in progress') and self._schedularState != -1: # done and not on other computer
-            self.fractionDone = '1' # this is set to 0 when done, weird!
-            self._currentCPUtime = self._finalCPUtime
-            state = 'ready to report'
-        elif state == 'computation completed':
-            state = 'completed'
-        elif self.schedularState == 'suspended':
-            state = self.schedularState
-        elif self.schedularState == 'ready to start':
-            state = 'ready to run'
-        elif self.active in ['Paused', 'Running']:
-            state = self.active
-
-        return state
-    
-    @state.setter
-    def state(self, state):
+    def toFloat(self, value):
+        value = value.replace(',', '')
+        # if value == '---':
+        #     value = '0'
         try:
-            self._state = int(state)
-        except ValueError:  # lets hope its a string representing the state
-            try:
-                self._state = self.desc_state.index(state.lower())
-            except:                     # guess not
-                self.desc_state.append(state.lower())  # now it is!
-                self._state = self.desc_state.index(state.lower())
-    
-    @property
-    def active(self):
-        return self.desc_active[self._active]
-    @active.setter
-    def active(self, active):
-        self._active = int(active)
-
-    @property
-    def schedularState(self):
-        return self.desc_schedularState[self._schedularState]
-
-    @schedularState.setter
-    def schedularState(self, schedularState):
-        self._schedularState = int(schedularState)
-    
-    @property
-    def currentCPUtime(self):
-        if self.done():
-            self._currentCPUtime = self._finalCPUtime
-        return self.timedeltaToStr(self._currentCPUtime)
-
-    @currentCPUtime.setter
-    def currentCPUtime(self, currentCPUtime):
-        self._currentCPUtime = self.strToTimedelta(currentCPUtime)
-    
-    @property
-    def fractionDone(self):
-        if self.done():
-            self._fractionDone = 100
-        return "{:.0f} %".format(self._fractionDone)
-
-    @fractionDone.setter
-    def fractionDone(self, fractionDone):
-        self._fractionDone = float(fractionDone)*100
-    
-    @property
-    def remainingCPUtime(self):
-        return self.timedeltaToStr(self._remainingCPUtime)
-
-    @remainingCPUtime.setter
-    def remainingCPUtime(self, remainingCPUtime):
-        self._remainingCPUtime = self.strToTimedelta(remainingCPUtime)
-
-    @property
-    def granted(self):
-        return self._granted
-
-    @granted.setter
-    def granted(self, granted):
-        if hasattr(granted, 'replace'):
-            granted = granted.replace(',', '')
-            granted = granted.replace('---', '0')
-
-        try:
-            self._granted = float(granted)
+            return float(value)
         except ValueError:
-            self._claimed = granted
+            return 0
+
+    #
+    # Setters and <>_str
+    #
+    @property
+    def nameShort_str(self):
+        if len(self.name) > 15:
+            return self.name[:15] + '...'
+        else:
+            return self.name
+    
+    def setName(self, value):
+        self.name = value.replace(' ', '')
 
     @property
-    def claimed(self):
-        return self._claimed
+    def device_str(self):
+        return self.device
 
-    @claimed.setter
-    def claimed(self, claimed):
-        if hasattr(claimed, 'replace'):
-            claimed = claimed.replace(',', '')
-            claimed = claimed.replace('---', '0')
-
-        try:
-            self._claimed = float(claimed)
-        except ValueError:
-            self._claimed = claimed
-
-class WebTask_worldcommunitygrid(Task):
-    desc_state = ['in progress', 'aborted', 'detached', 'error', 'no reply', 'pending validation', 'pending verification', 'valid', 'invalid', 'inconclusive', 'too late', 'waiting to send', 'other']
-    def strToTimedelta(self, hours):
-        timedelta = datetime.timedelta(hours=float(hours))
-        return timedelta
-
-    def __init__(self, lst):
-        Task.__init__(self)
-        
-        self.fmt_date = '%m/%d/%y %H:%M:%S'
-        # example lst: ['Human Proteome Folding - Phase 2', 'qn391_ 00116_ 3--', '1x-193-157-192-27.uio.no', 'Valid', '2/25/13 16:05:58', '2/26/13 15:03:24', '5.43 / 5.62', '89.2/127.7']
-        
-        assert len(lst) == 8, 'Error, could not recognized task {0}'.format(lst)
-        self.projectName = lst[0]
-        self.name = lst[1].replace('--', '').replace(' ', '')
-        
-        self.device = lst[2]
-        self.state = lst[3]
-
-        self.sent = lst[4]
-        self.deadline = lst[5]
-
-        split = lst[6].split('/')
-        self.finalCPUtime = split[0]
-        self.timeHours = split[1]
-
-        split = lst[7].split('/')
-        self.claimed = split[0]
-        self.granted = split[1]
-
-        self._currentCPUtime = self._finalCPUtime
-        self.remainingCPUtime = 0
-
-        # We need to override these
-        self.schedularState = -1
-        self.active = 0
-        self.fractionDone = 0
-
-class WebTask(Task):
-    desc_state = ['in progress', 'validation pending', 'validation inconclusive', 'valid', 'invalid', 'error']
-    def __init__(self, name, workunit, device, sent, deadline, state, finaltime, finalCPUtime, granted, projectName, claimed=0):
-        Task.__init__(self)
-        
-        self.fmt_date = r'%d %b %Y %H:%M:%S UTC'
-        # example lst: ['MindModeling-433-51616f73ef41a_0', '5649272', '35054', '7 Apr 2013, 13:13:03 UTC', '8 Apr 2013, 20:13:03 UTC', 'In progress', '---', '---', '---', 'Native Python v2.7 Application v1.02 (sse2)']
-        #assert len(lst) == 10, 'Error, could not recognized task {0}'.format(lst)
-
-        self.name = name
-
-        self.workunit = workunit
-
+    def setDevice(self, device):
         self.device = device
 
-        self.sent = sent              # TODO: add this to print?
+    @property
+    def state_str(self):
+        state = self.desc_state[self.state]
+        return state
 
-        self.deadline = deadline.replace(',', '').replace('|', '') # some write: '%d %b %Y[,|] %H:%M:%S UTC'
+    def setState(self, state):
+        try:
+            self.state = int(state)
+        except ValueError: # lets hope its a string representing the state
+            try:
+                self.state = self.desc_state.index(state.lower())
+            except:                     # guess not
+                self.desc_state.append(state.lower()) # now it is!
+                self.state = self.desc_state.index(state.lower())
 
-        # Hack!
+    @property
+    def fractionDone_str(self):
+        if self.done():
+            self.fractionDone = 100
+        return "{:.0f} %".format(self.fractionDone)
+
+    def setFractionDone(self, fractionDone):
+        self.fractionDone = float(fractionDone)*100
+
+    @property
+    def elapsedCPUtime_str(self):
+        return self.timedeltaToStr(self.elapsedCPUtime)
+
+    def setElapsedCPUtime(self, elapsedCPUtime):
+        if elapsedCPUtime == '---':
+            elapsedCPUtime = '0'
+        self.elapsedCPUtime = self.strToTimedelta(elapsedCPUtime)
+
+    @property
+    def remainingCPUtime_str(self):
+        return self.timedeltaToStr(self.remainingCPUtime)
+
+    def setRemainingCPUtime(self, remainingCPUtime):
+        self.remainingCPUtime = self.strToTimedelta(remainingCPUtime)
+
+    @property
+    def deadline_str(self):
+        """ Time until deadline
+        """
+        if self.deadline is not None:
+            now = datetime.datetime.today()
+            delta = self.deadline - now
+            s = self.timedeltaToStr(delta)
+            if delta.days < 0:
+                delta = now - self.deadline
+                s = '-' + self.timedeltaToStr(delta)
+        else:
+            return '-'
+        return s
+
+    def setDeadline(self, deadline):
+        """ Store deadline as datetime object
+        """
+        if deadline is not None:
+            deadline = deadline.replace('|', '')
+            deadline = deadline.replace(',', '')
+            self.deadline = datetime.datetime.strptime(deadline, self.fmt_date)
+        else:
+            self.deadline = None
+
+class Task_local(Task):
+    desc_schedularState = ['ready to start', 'suspended', 'running', 'unknown']
+    # Based on common_defs.h
+    desc_active = ['paused', 'running',                      # 0, 1
+                   'exited', 'was signaled', 'exit unknown', # 2, 3, 4
+                   'abort pending', 'aborted', 'unable to start', # 5, 6, 7
+                   'waiting to quit', 'suspended', 'waiting for copy', # 8, 9, 10
+                   'unknown']   # -1
+    def __init__(self, schedularState=-1, active=-1, memUsage=0, **kwargs):
+        self.setSchedularState(schedularState)
+        self.setActive(active)
+        self.memUsage = float(memUsage)
+        Task.__init__(self, **kwargs)
+
+    @staticmethod
+    def createFromXML(xml):
+        """
+        Expects the result block:
+        <result>
+        ...
+        </result>
+        from the boinc rpc
+        """
+        try:
+            soup = BeautifulSoup(xml, "xml")
+            kwargs = dict(name = soup.wu_name,
+                          state = soup.state or -1,
+                          fractionDone = soup.fraction_done or 0,
+                          elapsedCPUtime = soup.elapsed_time or soup.final_elapsed_time or 0,
+                          remainingCPUtime = soup.estimated_cpu_time_remaining or 0,
+                          deadline = soup.report_deadline,
+                          schedularState = soup.schedular_state or -1,
+                          active = soup.active_task_state or -1,
+                          memUsage = soup.working_set_size_smoothed or 0)
+
+            for key in kwargs:
+                try:
+                    kwargs[key] = kwargs[key].text # ok if soup stuff
+                except AttributeError:
+                    pass
+            
+            return Task_local(**kwargs)
+        except Exception as e:
+            logger.exception('Trying to create task out of {}, got'.format(xml))
+
+
+    def done(self):
+        return self.remainingCPUtime_str == '0:00:00'
+
+    def toString(self):
+        s = super(Task_local, self).toString()
+        s.extend([self.memUsage_str])
+        return s
+
+    @property
+    def memUsage_str(self):
+        if self.memUsage == 0:
+            return ''
+        else:
+            mem = self.memUsage/1e6
+            suffix = 'MB'
+            if mem > 1000:
+                mem /= 1e3
+                suffix = 'GB'
+            return '{:.3g} {}'.format(mem, suffix)
+
+    def setDeadline(self, deadline):
+        if deadline is not None:
+            self.deadline = datetime.datetime.fromtimestamp(float(deadline))
+        else:
+            self.deadline = None
+
+    @Task.state_str.getter
+    def state_str(self):
+        state = self.desc_state[self.state]
+        # Hack
+        # The current state seems to be determined by 3 numbers: state, active and schedularState.
+        # I have been unable to determine their exact meaning, so the following is based on comparision with the boincManager.
+        if self.done(): # done
+            #self.currentCPUtime = self.finalCPUtime
+            state = 'ready to report'
+        elif self.schedularState == -1 and self.active == -1: # Very strange hack
+            state = 'ready to run'
+        elif state == 'computation completed':
+            state = 'completed'
+        elif self.schedularState_str == 'suspended':
+            state = self.schedularState_str
+        elif self.schedularState_str == 'ready to start':
+            state = 'ready to run'
+        elif self.active in (2, 9):
+            state = self.active_str
+        logger.debug('infered state %s, flags %s %s %s', state, 
+                     self.state, self.schedularState, self.active)
+        return state
+
+    @property
+    def schedularState_str(self):
+        state = self.desc_schedularState[self.schedularState]
+        return state
+
+    def setSchedularState(self, state):
+        self.schedularState = int(state)
+
+    @property
+    def active_str(self):
+        state = self.desc_active[self.active]
+        return state
+
+    def setActive(self, state):
+        self.active = int(state)
+
+    def pendingTime(self):
+        """Returns seconds for pending, started
+        and task waiting for validation.
+        """
+        def getSeconds(task):
+            ret = task.remainingCPUtime + task.elapsedCPUtime
+            return ret.total_seconds()
+
+        logger.debug('pendingTime, task = %s', self)
+        if self.done():
+            logger.debug('adding to validation')
+            return (0, 0, getSeconds(self))
+        elif self.elapsedCPUtime != datetime.timedelta(0):
+            logger.debug('adding to running')
+            return (0, getSeconds(self), 0)
+        else:
+            logger.debug('adding to pending')
+            return (getSeconds(self), 0, 0)
+
+
+class Task_web(Task):
+    fmt_date = '%d %b %Y %H:%M:%S UTC'
+
+    def __init__(self, claimedCredit='0', grantedCredit='0', **kwargs):
+        self.setGrantedCredit(grantedCredit) # stored as float
+        self.setClaimedCredit(claimedCredit) # stored as float
+        super(Task_web, self).__init__(**kwargs)
+
+    @staticmethod
+    def createFromHTML(data):
+        logger.debug('creating from %s', data)
+        assert len(data) == 9, 'vops, data not recognized %s, len = %s' % (data, len(data))
+        name = data[0]
+        workUnitId = data[1]    # not used
+        device = data[2]
+        sentTime = data[3]      # not used
+        deadline = data[4]
+        state = data[5]
+        clockTime = data[6]     # not used
+        CPUtime = data[7]
+        grantedCredit = data[8]
+        return Task_web(name=name, device=device,
+                        deadline=deadline, state=state,
+                        elapsedCPUtime=CPUtime, grantedCredit=grantedCredit)
+
+    def toString(self):
+        s = super(Task_web, self).toString()
+        s.extend([self.claimedCredit_str, self.grantedCredit_str])
+        return s
+
+    @property
+    def grantedCredit_str(self):
+        return str(self.grantedCredit)
+
+    def setGrantedCredit(self, grantedCredit):
+        if grantedCredit == 'pending':
+            grantedCredit = '0'
+        self.grantedCredit = self.toFloat(grantedCredit)
+
+    @property
+    def claimedCredit_str(self):
+        return str(self.claimedCredit)
+
+    def setClaimedCredit(self, claimedCredit):
+        self.claimedCredit = self.toFloat(claimedCredit)
+
+    def setState(self, state):
         if state.lower() == 'completed and validated':
             state = 'valid'
         elif state.lower() == 'over success done':
@@ -295,57 +372,89 @@ class WebTask(Task):
             state = 'in progress'
         if 'error' in state.lower():
             state = 'error'
-        self.state = state
 
-        self.finaltime = finaltime
+        super(Task_web, self).setState(state)
 
-        if finalCPUtime == '---':
-            finalCPUtime = '0'
-        else:
-            finalCPUtime = finalCPUtime.replace(',', '') # used as thousand seperator
-        self.finalCPUtime = finalCPUtime
+class Task_web_worldcommunitygrid(Task_web):
+    fmt_date = '%m/%d/%y %H:%M:%S'
+    @staticmethod
+    def createFromHTML(data):
+        assert len(data) == 7, 'vops, data not recognized %s' % data
 
-        self.granted = granted
-        self.claimed = claimed
+        name = data[0]
+        device = data[1]
+        state = data[2]
+        sentTime = data[3]      # not used
+        deadline = data[4]
+        
+        time = data[5].encode('ascii', errors='ignore').split('/')
+        CPUtime = time[0]
+        clockTime = time[1]     # not used
+        
+        credit = data[6].encode('ascii', errors='ignore').split('/')
+        claimedCredit = credit[0]
+        grantedCredit = credit[1]
+        return Task_web_worldcommunitygrid(name=name, device=device,
+                                           state=state, 
+                                           elapsedCPUtime=CPUtime, deadline=deadline,
+                                           claimedCredit=claimedCredit, grantedCredit=grantedCredit)
 
-        self.projectName = projectName
+class Task_web_yoyo(Task_web):
+    @staticmethod
+    def createFromHTML(data):
+        assert len(data) == 9, 'vops, data not recognized %s' % data
 
-        # We need to override these
-        self.remainingCPUtime = 0
-        self._currentCPUtime = self._finalCPUtime        
-        self.schedularState = -1
-        self.active = 0
-        self.fractionDone = 0
+        name = data[0]
+        sentTime = data[1]      # Not used
+        deadline = data[2]
+        state = " ".join(data[3:6])
+        CPUtime = data[6]
+        
+        claimedCredit = data[7]
+        grantedCredit = data[8]
+        return Task_web_yoyo(name=name, device='',
+                             state=state, 
+                             elapsedCPUtime=CPUtime, deadline=deadline,
+                             claimedCredit=claimedCredit, grantedCredit=grantedCredit)
 
-class BoincCMD(object):
-    # tiny layer on top of subprocess Popen for calling boinccmd and getting stdout
-    def __init__(self, argument='--get_state', boinc_dir=None):
-        if boinc_dir == None:
-            self.boinc_dir = config.BOINC_DIR
-        else:
-            self.boinc_dir = boinc_dir
+class Task_jobLog(Task):
+    """
+    Represents a task from the job_log, with the following fields:
+        ue - estimated_runtime_uncorrected
+        ct - final_cpu_time, cpu time to finish
+        fe - rsc_fpops_est, estimated flops
+        et - final_elapsed_time, clock time to finish    
+    """
+    def __init__(self, time, name, 
+                 ue, ct, fe, et):
+        super(Task_jobLog, self).__init__(name=name, fractionDone='100',
+                                          elapsedCPUtime=ct, remainingCPUtime='0')
+        self.setTime(time)
+        # Lets just keep it simple, float already has a sane str() version
+        self.estimated_runtime_uncorrected = float(ue)
+        self.final_cpu_time = float(ct)
+        self.rsc_fpops_est = float(fe)
+        self.final_elapsed_time = float(et)
 
-        cmd = [os.path.join(self.boinc_dir, 'boinccmd')]
-        #cmd.append(argument)
-        cmd.extend(argument.split(' '))        
-        logger.info('cmd: %s', cmd)
-        try:
-            self.process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=self.boinc_dir)
-        except Exception as e:
-            logger.error('Error when running %s, e = "%s"', cmd, e)
-            self.process = None
+    @staticmethod
+    def createFromJobLog(line):
+        """
+        Expects a single line from the job log file
+        """
+        s = line.split()
+        assert len(s) == 11, 'Line in job log not recognized {0} "{1}" -> "{2}"'.format(len(s), line, s)
+        return Task_jobLog(time=s[0], name=s[8],
+                           ue=s[2], ct=s[4], fe=s[6], et=s[10])
 
-    def communicate(self):
-        if self.process != None:
-            stdout, stderr = self.process.communicate()
-            if stderr != '':
-                print "Error: {}".format(stderr)
-                return ''
-            return stdout
+    def setTime(self, value):
+        t = int(value)
+        self.time = datetime.datetime.fromtimestamp(t)
 
-if __name__ == '__main__':
-    loggerSetup(logging.INFO)
-    p1 = Boinccmd('--get_cc_status')
-    p2 = boinccmd('--get_state')    
-    print p1.communicate()
-    print p2.communicate()
+def adjustColumnSpacing(tasks):
+    """
+    Not Thread safe, modifies the Task.columnSpacing for equal columns.
+    Call this before printing list of tasks
+    """
+    for t in tasks:
+        for ix, item in enumerate(t.toString()):
+            Task.columnSpacing['col%d' % ix] = max(Task.columnSpacing['col%d' % ix], len(item))

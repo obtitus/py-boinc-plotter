@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-__version_info__ = (0, 2, 4)
+__version_info__ = (0, 3, 0)
 __version__ = '.'.join(map(str, __version_info__))
 appName = 'pyBoincPlotter'
 appAuthor = 'obtitus'                   # [at] gmail.com
@@ -30,6 +30,7 @@ if __name__ == '__main__':
             "matplotlib",
             "numpy",
             "PIL",
+            "lxml",
             "beautifulsoup4",
             "appdirs"
         ],
