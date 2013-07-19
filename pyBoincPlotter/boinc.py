@@ -95,7 +95,7 @@ def main(parser, args=None, namespace=None):
 
     return args
 
-if __name__ == '__main__':
+def run():
     parser = argparse.ArgumentParser(description='Boinc statistics')
     parser.add_argument('-p', '--plot', action='store_true', help='Use matplotlib to plot statistics and progress')
     parser.add_argument('-dmacosx', action='store_true', help='Use the macosx backend for plotting')    
@@ -114,3 +114,6 @@ if __name__ == '__main__':
 
         main(parser, 
              args=user_input.split(), namespace=namespace)
+
+if __name__ == '__main__':
+    run()
