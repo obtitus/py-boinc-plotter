@@ -38,7 +38,7 @@ if __name__ == '__main__':
     #parser.add_argument('-s', '--save', action='store_true', help='Use in combination with --plot, saves the figures to disk in the current working directory')
     parser.add_argument('--verbose', '-v', action='store_true', help='Sets logging level to DEBUG')
     parser.add_argument('--silent', '-s', action='store_true', help='Sets logging level to ERROR')    
-    parser.add_argument('--add', help='Add webpage that pyBoinc should track, example: "--add wuprop.boinc-af.org/"')
+    parser.add_argument('--add', help='Add webpage that pyBoinc should track, example: --add wuprop.boinc-af.org/')
     parser.add_argument('args', nargs=argparse.REMAINDER, 
                         help='Remaining args are passed to the command line boinccmd if available, pass "--help " (with quotes for help)')
     args, boinccmd_args = parser.parse_known_args()

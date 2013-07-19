@@ -11,7 +11,9 @@ from project import Project, pretty_print
 
 class CallBoinccmd(object):
     """ tiny layer on top of subprocess Popen for calling boinccmd and getting stdout """
-    def __init__(self, boinc_dir, arguments=('--get_state', )):
+    def __init__(self, boinc_dir, arguments='--get_state'):
+        if isinstance(arguments, basestring):
+            arguments = (arguments, )
 
         cmd = [os.path.join(boinc_dir, 'boinccmd')]
         cmd.extend(arguments)

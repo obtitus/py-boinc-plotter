@@ -20,8 +20,8 @@
 import os
 import xml.etree.ElementTree
 
-import task
 import config
+import boinccmd
 
 import argparse
 import logging
@@ -30,11 +30,8 @@ logger = logging.getLogger('boinc.changePrefs')
 from loggerSetup import loggerSetup
 
 class Prefs(object):
-    def __init__(self, boincDir=None):
-        if boincDir == None:
-            self.boincDir = config.BOINC_DIR
-        else:
-            self.boincDir = boincDir
+    def __init__(self, boincDir):
+        self.boincDir = boincDir
 
         self.filename = os.path.join(self.boincDir, 'global_prefs_override.xml')
         with open(self.filename, 'r') as f:
@@ -66,24 +63,24 @@ def toggleCPUusage():
         p = Prefs()
         p.toggleCPUusage()
 
-        p = task.BoincCMD('--read_global_prefs_override')
+        p = boinccmd.CallBoinccmd(BOINC_DIR, '--read_global_prefs_override')
     except IOError as e:
         logger.error('Could not open prefs file due to {0}'.format(e))
         
-def changePrefs(a, value=None):
+def changePrefs(BOINC_DIR, a, value=None):
     # Convenient function for changing a preference
     # If value is None simply return current value
     prefs = Prefs()
     if value != None:
         prefs.changePrefsFile(a, value)
-        p = task.BoincCMD('--read_global_prefs_override')
+        p = boinccmd.CallBoinccmd(BOINC_DIR, '--read_global_prefs_override')
         p.communicate()
     return prefs.tree.find(a).text
 
 def run():
-    config.set_globals()
+    CONFIG, CACHE_DIR, BOINC_DIR = config.set_globals()
 
-    p = Prefs()
+    p = Prefs(BOINC_DIR)
 
     parser = argparse.ArgumentParser(description='Toggle boinc preferences by changing the global_prefs_override.xml file')
     #parser.add_argument('--cpu_usage_limit', type=int)
@@ -103,7 +100,7 @@ def run():
 
     if changed:
         # Upate
-        task.BoincCMD('--read_global_prefs_override').communicate()
+        boinccmd.CallBoinccmd(BOINC_DIR, '--read_global_prefs_override').communicate()
     #toggleCPUusage().communicate()
     
 if __name__ == '__main__':
