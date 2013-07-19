@@ -23,6 +23,7 @@ def figure(name=None):
     fig.clf()
     return fig
 
+import badge
 import credits
 import dailyTransfer
 import deadline
