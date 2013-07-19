@@ -90,7 +90,7 @@ def run():
     #parser.add_argument('--cpu_usage_limit', type=int)
     for key, value in p.listOptions():
         name = key.replace('_', ' ').capitalize()
-        parser.add_argument('--' + key, type=int, help="{name}, current value is {value}".format(name=name, value=value))
+        parser.add_argument('--' + key, type=float, help="{name}, current value is {value}".format(name=name, value=value))
         
     args = parser.parse_args()
 
