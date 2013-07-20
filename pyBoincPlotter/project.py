@@ -216,6 +216,7 @@ def mergeProject(local_project, web_project):
 
     web_project.appendStatistics(local_project.statistics)
     web_project.name = local_project.name
+    web_project.settings = local_project.settings
 
 def mergeWuprop(wuprop_projects,
                 local_projects):
