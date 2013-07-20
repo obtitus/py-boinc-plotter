@@ -398,6 +398,9 @@ class Task_web(Task):
 
 class Task_web_worldcommunitygrid(Task_web):
     fmt_date = '%m/%d/%y %H:%M:%S'
+    def strToTimedelta(self, hours):
+        return datetime.timedelta(hours=self.toFloat(hours))
+
     @staticmethod
     def createFromHTML(data):
         assert len(data) == 7, 'vops, data not recognized %s' % data

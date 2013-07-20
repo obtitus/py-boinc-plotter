@@ -44,6 +44,7 @@ class Project(object):
 
         self._appNames = dict() # key is task name and value is application name
         self._badges = list()
+        self.show_empty = False
 
     # 
     # XML related
@@ -181,8 +182,8 @@ class Project(object):
                 ret.append(str(prop))
 
         for key in sorted(self.applications):
-            #if len(self.applications[key]) != 0:
-            ret.append(str(self.applications[key]))
+            if len(self.applications[key]) != 0 or self.show_empty:
+                ret.append(str(self.applications[key]))
 
         return "\n".join(ret)
 
@@ -278,5 +279,6 @@ def pretty_print(projects, show_empty=False):
             adjustColumnSpacing(tasks)
 
     for key, p in sorted(projects.items()):
+        p.show_empty = show_empty # hack
         if len(p) != 0 or show_empty:
             print str(p) + '\n'
