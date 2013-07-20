@@ -18,3 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # END LICENCE
 import boinc
+import changePrefs
+import boinccmd
+import browser
+import plot

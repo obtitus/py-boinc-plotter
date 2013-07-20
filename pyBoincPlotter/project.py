@@ -26,7 +26,7 @@ from bs4 import BeautifulSoup
 # This project:
 from application import Application, mergeApplications
 from task import Task_local, adjustColumnSpacing
-from statistics import ProjectStatistics
+from statistics import ProjectStatistics, StatisticsList
 from settings import Settings
 
 class Project(object):
@@ -127,9 +127,9 @@ class Project(object):
         # TODO: consider keeping a reference to the object
         logger.debug('Appending statistics "%s"', statistics)
         if self.statistics is None:
-            self.statistics = str(statistics)
+            self.statistics = StatisticsList([statistics])
         else:
-            self.statistics += '\n' + str(statistics)
+            self.statistics.append(statistics)
         
     def setName(self, name):
         if name == None: 

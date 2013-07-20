@@ -100,8 +100,7 @@ class HTMLParser(object):
     def findNextPage(self, soup):
         """Finds links to additional pages of tasks"""
         reg_compiled = re.compile('offset=(\d+)')
-        offset = soup.find('a', href=reg_compiled)
-        if offset is not None:
+        for offset in soup.find_all('a', href=reg_compiled):
             offset_str = re.search(reg_compiled, offset['href']).group(1)
             offset_int = int(offset_str)
             if offset_int != 0:

@@ -24,7 +24,10 @@ import logging
 logger = logging.getLogger('boinc.plot.pipeline')
 # This project
 from importMatplotlib import *
-from ..task import Task
+try:
+    from ..task import Task
+except ValueError:
+    from task import Task
 
 def plot(fig, projects):
     states = list(Task.desc_state)
@@ -74,6 +77,8 @@ def plot(fig, projects):
 
     ax.set_ylabel('Count')
     ax.legend()
+
+    fig.suptitle("Showing state of {:.0f} tasks".format(sum(bottom)))
 
 if __name__ == '__main__':
     from loggerSetup import loggerSetup

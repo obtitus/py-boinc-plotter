@@ -23,6 +23,7 @@ Main file
 # Standard python
 import argparse
 import time
+from multiprocessing import Pool
 import logging
 logger = logging.getLogger('boinc')
 # This project
@@ -84,6 +85,8 @@ def main(parser, args=None, namespace=None):
     if args.plot:
         b = browser.BrowserSuper(cache)
         import plot
+        # If python was sensible we could do this in parallel, 
+        # but multiprocessing fails since the objects are not pickable and threads gives a warning about memory release.
         
         plot.plot_credits(web_projects, b)
         plot.plot_dailyTransfer(BOINC_DIR, limitDays=15)
