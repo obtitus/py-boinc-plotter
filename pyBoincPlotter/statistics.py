@@ -40,7 +40,7 @@ class StatisticsList(list):
 
     def __str__(self):
         ret = [str(item) for item in self]
-        return " ".join(ret)
+        return "".join(ret)
 
 class ProjectStatistics(object):
     def __init__(self, user_total_credit, user_expavg_credit,
@@ -82,8 +82,8 @@ class ProjectStatistics(object):
                                                                        per,
                                                                        u = length_user,
                                                                        h = length_host)
-        return "{}\n{}".format(line('Total credit, ', 0), 
-                               line('Avg credit,   ', 1))
+        return "{}\n{} ".format(line('Total credit, ', 0), 
+                                line('Avg credit,   ', 1))
 
 class ProjectStatistics_worldcommunitygrid(object):
     def __init__(self, lastResult, runtime, runtimeRank, runtimePerDay, points, 
@@ -110,7 +110,7 @@ class ProjectStatistics_worldcommunitygrid(object):
         res = 'Results  {0:>20} total (#{2}), {1:>10} per day'.format(util.fmtNumber(self.results), 
                                                                       util.fmtNumber(self.resultsPerDay, '.1f'), 
                                                                       util.fmtNumber(self.resultsRank))
-        s += '{:>10}\n{:>10}\n{:>10}'.format(run, p, res)
+        s += '{:>10}\n{:>10}\n{:>10}\n'.format(run, p, res)
         return s
 
 class ApplicationStatistics(object):
@@ -128,7 +128,7 @@ class ApplicationStatistics(object):
 
     def __str__(self):
         return ("{s.results_str} results returned, "
-                "{s.credit_str} credit.").format(s=self)
+                "{s.credit_str} credits. ").format(s=self)
 
 class ApplicationStatistics_worldcommunitygrid(ApplicationStatistics):
     def __init__(self, runtime, credit, results):
@@ -140,9 +140,9 @@ class ApplicationStatistics_worldcommunitygrid(ApplicationStatistics):
         return util.timedeltaToStr(self.runtime)
 
     def __str__(self):
-        sup = ApplicationStatistics.__str__(self)
-        return "{sup}, runtime of {s.runtime_str}.".format(sup=sup[:-1],
-                                                           s=self)
+        sup = ApplicationStatistics.__str__(self)[:-2]
+        return "{sup}, runtime of {s.runtime_str}. ".format(sup=sup[:-1],
+                                                            s=self)
 
 class ApplicationStatistics_wuprop(object):
     def __init__(self, runtime, pending):
@@ -162,9 +162,9 @@ class ApplicationStatistics_wuprop(object):
         return util.timedeltaToStr(self.wuPending)
 
     def __str__(self):
-        ret = "WuProp runtime {}".format(self.wuRuntime_str)
+        ret = "WuProp runtime {} ".format(self.wuRuntime_str)
         if self.wuPending != datetime.timedelta(0):
-            ret += " (+{})".format(self.wuPending_str)
+            ret += "(+{}) ".format(self.wuPending_str)
         return ret
     
 class ProjectStatistics_primegrid(dict):
