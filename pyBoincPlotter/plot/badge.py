@@ -221,3 +221,27 @@ class Badge_primegrid(Badge):
             return self.reg.group(1)
         else:
             return 'Unknown'
+
+class Badge_numberfields(Badge):
+    badges = [[10000, 'Bronze'],
+              [100000, 'Silver'],
+              [500000, 'Gold'],
+              [1000000, 'Sapphire'],
+              [10000000, 'Ruby'],
+              [50000000, 'Emerald'],
+              [100000000, 'Diamond']]
+
+    @Badge.name.setter
+    def name(self, name):
+        self._name = name
+        # 'Bronze Medal- 10k credits. (Next badge is Silver at 100k)'
+        reg = re.search('(\w+) Medal[-\s]*(\d+)(\w) credits', name)
+        if reg:
+            self.color = Badge.badgeToColor(reg.group(1))
+            self.value = float(reg.group(2))
+            if reg.group(3) == 'k':
+                self.value *= 1000
+            elif reg.group(3) == 'm':
+                self.value *= 1000000
+            else:
+                logger.warning('Unknown numbersfields badge suffix %s, "%s"', reg.group(3), name)

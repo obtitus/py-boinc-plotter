@@ -172,11 +172,11 @@ class TestPrimegrid(unittest.TestCase):
 
     def test_badge(self):
         p = self.browser.parse()
-        self.assertEqual(len(p.badge), 2)
-        self.assertEqual(str(p.badge[1]), 'Woodall LLR Bronze: More than 10,000 credits (17,517)')
-        self.assertEqual(str(p.badge[0]), 'PPS Sieve Bronze: More than 20,000 credits (30,339)')
-        self.assertEqual(p.badge[1].url, 'http://www.primegrid.com/img/badges/woo_bronze.png')
-        self.assertEqual(p.badge[0].url, 'http://www.primegrid.com/img/badges/sr2sieve_pps_bronze.png')
+        self.assertEqual(len(p.badges), 2)
+        self.assertEqual(str(p.badges[1][1]), 'Woodall LLR Bronze: More than 10,000 credits (17,517)')
+        self.assertEqual(str(p.badges[0][1]), 'PPS Sieve Bronze: More than 20,000 credits (30,339)')
+        self.assertEqual(p.badges[1][1].url, 'http://www.primegrid.com/img/badges/woo_bronze.png')
+        self.assertEqual(p.badges[0][1].url, 'http://www.primegrid.com/img/badges/sr2sieve_pps_bronze.png')
 
     def test_stats(self):
         project = self.browser.parse()
@@ -263,7 +263,14 @@ class TestNumbersFields(unittest.TestCase):
         project = self.browser.parse()
         print project
         self.assertEqual(len(project), 61)
-    
+
+    def test_badge(self):
+        project = self.browser.parse()
+        print project
+        self.assertEqual(len(project.badges), 1)
+        self.assertEqual(str(project.badges[0][1]),
+                         'Bronze Medal- 10k credits. (Next badge is Silver at 100k)')
+                         
 if __name__ == '__main__':
     import logging
     from loggerSetup import loggerSetup

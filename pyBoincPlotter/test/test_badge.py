@@ -108,6 +108,17 @@ class TestBadge(unittest.TestCase):
                        '#8C7853', 10000)
         self.primegrid('PPS Sieve Bronze: More than 20,000 credits (30,339)',
                        '#8C7853', 20000)
+
+    def numberfields(self, name, color, value, url=''):
+        self.badge = badge.Badge_numberfields(name, '')
+        self.assertEqual(self.badge.name, name)
+        self.assertEqual(self.badge.url, url)
+        self.assertEqual(self.badge.color, color)
+        self.assertEqual(self.badge.value, value)
+    
+    def test_numberfields(self):
+        self.numberfields('Bronze Medal- 10k credits. (Next badge is Silver at 100k)',
+                          '#8C7853', 10000)
         
 if __name__ == '__main__':
     loggerSetup.loggerSetup(logging.INFO)

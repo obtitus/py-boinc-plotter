@@ -144,7 +144,7 @@ class Application(object):
         """
         return len(self.tasks)
 
-    def pendingTime(self):
+    def pendingTime(self, include_elapsedCPUtime=True):
         """Returns total seconds for
         pending,
         started
@@ -155,7 +155,7 @@ class Application(object):
         validation = 0
         for task in self.tasks:
             try:
-                (p, r, v) = task.pendingTime()
+                (p, r, v) = task.pendingTime(include_elapsedCPUtime=include_elapsedCPUtime)
                 pending    += p
                 running    += r
                 validation += v 
