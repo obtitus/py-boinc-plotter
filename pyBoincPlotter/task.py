@@ -310,12 +310,14 @@ class Task_local(Task):
     def setActive(self, state):
         self.active = int(state)
 
-    def pendingTime(self):
+    def pendingTime(self, include_elapsedCPUtime=True):
         """Returns seconds for pending, started
         and task waiting for validation.
         """
         def getSeconds(task):
-            ret = task.remainingCPUtime + task.elapsedCPUtime
+            ret = task.remainingCPUtime
+            if include_elapsedCPUtime:
+                ret += task.elapsedCPUtime
             return ret.total_seconds()
 
         logger.debug('pendingTime, task = %s', self)

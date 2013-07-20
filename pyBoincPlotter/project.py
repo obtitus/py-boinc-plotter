@@ -43,6 +43,7 @@ class Project(object):
         self.settings = settings
 
         self._appNames = dict() # key is task name and value is application name
+        self._badges = list()
 
     # 
     # XML related
@@ -108,21 +109,26 @@ class Project(object):
 
         return self.applications[name_long]
 
-    def appendBadge(self, app_name, badge):
-        app = self.appendApplication(app_name)
-        logger.debug('Appending badge %s, to %s', badge, app_name)
-        app.badge = badge
-        return app
+    def appendBadge(self, app_name='', badge=''):
+        # Normally badges are associated with an application, but numbersfields associates with project instead.
+        if app_name != '':
+            app = self.appendApplication(app_name)
+            logger.debug('Appending badge %s, to %s', badge, app_name)
+            app.badge = badge
+            return app
+        else:
+            self._badges.append((self, badge))
 
     @property
-    def badge(self):
+    def badges(self):
         ret = list()
-        for key in sorted(self.applications):
-            b = self.applications[key].badge
+        for key, app in sorted(self.applications.items()):
+            b = app.badge
             if b != '':
-                ret.append(b)
+                ret.append((app, b))
+        ret.extend(self._badges)
         return ret
-
+        
     def appendStatistics(self, statistics):
         # TODO: consider keeping a reference to the object
         logger.debug('Appending statistics "%s"', statistics)

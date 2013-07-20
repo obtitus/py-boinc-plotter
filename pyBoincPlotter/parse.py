@@ -55,6 +55,9 @@ class HTMLParser(object):
         elif section == 'www.primegrid.com':
             logger.debug('getting primegrid parser')
             parser = HTMLParser_primegrid(**kwargs)
+        elif section == 'numberfields.asu.edu/NumberFields':
+            logger.debug('getting NumberFields parser')
+            parser = HTMLParser_numberfields(**kwargs)
         else:                   # Lets try the generic
             logger.debug('getting generic parser, name = %s', section)
             parser = HTMLParser(**kwargs)
@@ -370,3 +373,30 @@ class HTMLParser_wuprop(HTMLParser):
                 #self.project = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
 
         return projects
+
+class HTMLParser_numberfields(HTMLParser):
+    def getBadges(self):
+        page = self.browser.visitHome()
+        self.parseHome(page)
+        
+    def parseHome(self, html): 
+        soup = BeautifulSoup(html)
+        for first_td in soup.find_all('td', class_='fieldname'):
+            fieldname = first_td.text.strip()
+            if fieldname == 'Badges':
+                b = first_td.find_next_sibling('td', class_='fieldvalue')
+                img = b.find('img')
+                if img is None:
+                    continue
+                
+                try:
+                    url = img['src']
+                    name = img['title']
+                    b = badge.Badge_numberfields(name=name, url=url)
+                    self.project.appendBadge(badge=b)
+                except KeyError as e:
+                    continue
+            elif fieldname == 'Total credit':
+                v = first_td.find_next_sibling('td', class_='fieldvalue').text
+                v = v.replace(',', '')
+                self.project.credit = float(v)
