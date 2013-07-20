@@ -175,7 +175,6 @@ class Project(object):
                 self.url = http + name
 
     def __str__(self):
-        endl = '\n'
         ret = ["== {} ==".format(self.name.title())]
         for prop in [self.settings, self.statistics]:
             if prop != None:
