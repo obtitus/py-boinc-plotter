@@ -26,10 +26,16 @@ logger = logging.getLogger('boinc.plot.jobLog')
 # Non standard
 # Project imports
 import projectColors
-from .. import task
-from ..project import Project
+try:
+    from .. import task
+    from ..project import Project
+    from .. import util
+except ValueError:
+    import task
+    from project import Project
+    import util
+
 from importMatplotlib import *
-from .. import util
 
 def createFromFilename(cls, filename, limitMonths=None, label=''):
     """ Returns a JobLog instance from a given filename

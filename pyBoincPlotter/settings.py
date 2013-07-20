@@ -27,16 +27,23 @@ class Settings(collections.namedtuple('Settings', ['resource_share', 'dont_reque
     """
     @staticmethod
     def createFromSoup(soup):
-        resource_share = float(soup.resource_share.text)
+        res = dict(resource_share = soup.resource_share,
+                   sched_priority = soup.sched_priority)
+        for key in res:
+            if res[key] != None:
+                res[key] = float(res[key].text)
+                
         dont_request_more_work = soup.dont_request_more_work != None
-        sched_priority = float(soup.sched_priority.text)
-        return Settings(resource_share=resource_share,
-                        dont_request_more_work=dont_request_more_work,
-                        sched_priority=sched_priority)
+
+        return Settings(dont_request_more_work=dont_request_more_work, **res)
 
     def __str__(self):
-        ret = 'Resource share {:.3g}%, sched. priority {}'.format(self.resource_share,
-                                                                  self.sched_priority)
+        ret = ''
+        if self.resource_share is not None:
+            ret += 'Resource share {:.3g}%'.format(self.resource_share)
+        if self.sched_priority is not None:
+            ret += ', sched. priority {}'.format(self.sched_priority)
         if self.dont_request_more_work:
             ret += ", Don't request more work"
+            
         return ret

@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 # This file is part of the py-boinc-plotter,
 # which provides parsing and plotting of boinc statistics and
 # badge information.
@@ -144,6 +144,10 @@ class TestPrimegrid(unittest.TestCase):
                                            url='www.primegrid.com',
                                            section='www.primegrid.com')
     
+    def ignoreSpaces(self, s1, s2):
+        self.assertEqual(s1.replace(' ', '').replace('\n', ''),
+                         s2.replace(' ', '').replace('\n', ''))
+
     def test_rows(self):
         with open(parse_input.html_primegrid, 'r') as content:
             rows = list(self.parser.getRows(content))
@@ -176,7 +180,8 @@ class TestPrimegrid(unittest.TestCase):
 
     def test_stats(self):
         project = self.browser.parse()
-        self.assertEqual(str(project.statistics), """321 Prime Search tasks (LLR), 4 results returned, 6,259.83 credits
+        print str(project.statistics)
+        self.ignoreSpaces(str(project.statistics), """321 Prime Search tasks (LLR), 4 results returned, 6,259.83 credits
 LLR Woodall tests, 4 results returned, 17,517.29 credits
 Proth Prime Search (sieve) tasks, 9 results returned, 30,339.00 credits, Factors found 25 (avg. 2.7778/task)
 Proth Prime Search (PPS & PPSE) tasks, 23 results returned, 1,120.97 credits
@@ -257,13 +262,13 @@ class TestNumbersFields(unittest.TestCase):
     def test_parse(self):
         project = self.browser.parse()
         print project
-        self.assertEqual(len(project), 1)
+        self.assertEqual(len(project), 61)
     
 if __name__ == '__main__':
     import logging
     from loggerSetup import loggerSetup
-    loggerSetup(logging.INFO)
+    loggerSetup(logging.DEBUG)
 
-    for t in [TestNumbersFields]:#[TestYoyo, TestPrimegrid, TestWorldcommunitygrid, TestWuprop]:
+    for t in [TestNumbersFields, TestYoyo, TestPrimegrid, TestWorldcommunitygrid, TestWuprop]:
         suite = unittest.TestLoader().loadTestsFromTestCase(t)
         unittest.TextTestRunner(verbosity=2).run(suite)

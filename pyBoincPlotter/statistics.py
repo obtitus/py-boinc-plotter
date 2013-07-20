@@ -196,4 +196,4 @@ class ProjectStatistics_primegrid(dict):
                 pass
 
             ret.append("{} {}".format(key, self[key]))
-        return ", ".join(ret)
+        return ", ".join(ret) + '\n'
