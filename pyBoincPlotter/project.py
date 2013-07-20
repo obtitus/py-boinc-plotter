@@ -131,9 +131,14 @@ class Project(object):
         
     def appendStatistics(self, statistics):
         # TODO: consider keeping a reference to the object
+        if statistics is None:
+            return
+
         logger.debug('Appending statistics "%s"', statistics)
         if self.statistics is None:
             self.statistics = StatisticsList([statistics])
+        elif isinstance(statistics, list):
+            self.statistics.extend(statistics)
         else:
             self.statistics.append(statistics)
         
@@ -208,6 +213,9 @@ def mergeProject(local_project, web_project):
     local_apps = dict(local_project.applications)
     web_apps = web_project.applications
     mergeDicts(local_apps, web_apps, mergeApplications, 'name_long')
+
+    web_project.appendStatistics(local_project.statistics)
+    web_project.name = local_project.name
 
 def mergeWuprop(wuprop_projects,
                 local_projects):
