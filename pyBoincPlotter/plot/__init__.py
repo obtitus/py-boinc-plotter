@@ -47,10 +47,11 @@ def plot_deadline(local_projects):
 
 def plot_jobLog(web_projects, BOINC_DIR):
     fig1 = figure('JobLog Daily')
-    fig2 = figure('JobLog Monthly')
+    fig2 = figure('JobLog FoM')
+    fig3 = figure('JobLog Monthly')
 
-    jobLog.plotAll(fig1, fig2, web_projects, 
-                        BOINC_DIR)
+    jobLog.plotAll(fig1, fig2, fig3, 
+                   web_projects, BOINC_DIR)
 
 def plot_pipeline(web_projects):
     fig = figure('Pipeline')
