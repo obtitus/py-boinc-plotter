@@ -25,6 +25,7 @@ logger = logging.getLogger('boinc.plot.runtime')
 # This project
 from importMatplotlib import *
 from badge import Badge_wuprop
+import util
 
 def parse_worldcommunitygrid(projects):
     try:
@@ -99,7 +100,10 @@ def plot_worldcommunitygrid(fig, browser, data):
     ax.set_ylabel('Runtime')
     ax.yaxis.set_major_formatter(formatter_timedelta)
 
-    fig.suptitle('Stats for {} worlcommunitygrid applications, total runtime {}'.format(len(labels), totalRuntime))
+    totalRuntime = datetime.timedelta(seconds=totalRuntime)
+    totalRuntime = util.timedeltaToStr(totalRuntime)
+    fig.suptitle('{} worlcommunitygrid applications, total runtime {}'.format(len(labels), 
+                                                                              totalRuntime))
 
 def plot_wuprop(fig, projects, browser):
     ax = fig.add_subplot(111)
@@ -161,7 +165,7 @@ def plot_wuprop(fig, projects, browser):
 
     ax.yaxis.set_major_formatter(formatter_timedelta)
 
-    fig.suptitle('Stats for {} applications, total runtime {}'.format(len(labels), totalRuntime))
+    fig.suptitle('{} applications, total runtime {}'.format(len(labels), totalRuntime))
 
     for mark in pos[::20][1:]:
         ax.axvline(mark)
