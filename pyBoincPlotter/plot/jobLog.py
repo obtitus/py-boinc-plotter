@@ -269,12 +269,10 @@ class JobLog(list):
         kwargs = dict(ls='none', marker='o', 
                       color=self.color, label=self.label)
 
-        gs = gridspec.GridSpec(N, 3)
-
-        ax = fig.add_subplot(gs[0, :-1])
+        ax = fig.add_subplot(N, 1, 1)
         for ix in range(N):
             if ix != 0:
-                ax = fig.add_subplot(gs[ix, :-1], sharex=ax)
+                ax = fig.add_subplot(N, 1, ix+1, sharex=ax)
             ax.plot(self.time, data[ix], **kwargs)
             ax.set_ylabel(labels[ix])
             if ix != N-1: # last axes
@@ -407,7 +405,7 @@ def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
 
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
-    loggerSetup(logging.DEBUG)
+    loggerSetup(logging.INFO)
     
     import config
     import boinccmd
