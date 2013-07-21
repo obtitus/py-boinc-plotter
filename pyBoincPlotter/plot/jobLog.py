@@ -397,11 +397,11 @@ def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
             tasks.merge(project)
 
         tasks.plot(fig=fig1)
-        tasks.plot_FoM(fig=fig3)
+        tasks.plot_FoM(fig=fig2)
 
         tasks = createFromFilename(JobLog_Months, filename, 
                                    label=label, limitMonths=120)
-        tasks.plot(fig=fig2)
+        tasks.plot(fig=fig3)
 
 if __name__ == '__main__':
     from loggerSetup import loggerSetup

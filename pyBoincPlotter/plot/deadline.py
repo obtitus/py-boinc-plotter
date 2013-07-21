@@ -23,6 +23,7 @@ import logging
 logger = logging.getLogger('boinc.plot.deadline')
 # This project
 from importMatplotlib import *
+import util
 
 def plot(fig, projects):
     ax = fig.add_subplot(111)
@@ -60,7 +61,7 @@ def plot(fig, projects):
     ax = plt.gca()
     ax.xaxis.set_major_formatter(formatter_timedelta)
 
-    fig.suptitle('Time until deadline\nTotal work remaining %s' % totalRemaining)
+    fig.suptitle('Time until deadline\nTotal work remaining %s' % util.timedeltaToStr(totalRemaining))
     ax.set_xlabel('Time')
     ax.set_ylabel('Task')
 

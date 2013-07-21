@@ -94,7 +94,7 @@ def main(parser, args=None, namespace=None):
         plot.plot_credits(web_projects, b)
         plot.plot_dailyTransfer(BOINC_DIR, limitDays=15)
         plot.plot_deadline(local_projects)
-        plot.plot_jobLog(local_projects, BOINC_DIR)
+        plot.plot_jobLog(web_projects, BOINC_DIR)
         plot.plot_pipeline(web_projects)
         plot.plot_runtime(web_projects, b)
         plot.plot_timeStats(BOINC_DIR)
