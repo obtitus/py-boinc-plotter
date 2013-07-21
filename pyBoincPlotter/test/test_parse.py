@@ -40,6 +40,11 @@ def _setUp(Browser, Parser, url, **kwargs):
     parser = Parser(browser=b, project=p)
     return b, parser
 
+    
+def ignoreSpaces(self, s1, s2):
+    self.assertEqual(s1.replace(' ', '').replace('\n', ''),
+                     s2.replace(' ', '').replace('\n', ''))
+
 class TestWorldcommunitygrid(unittest.TestCase):
     def setUp(self):
         self.browser, self.parser = _setUp(browser.Browser_worldcommunitygrid,
@@ -92,13 +97,13 @@ class TestWorldcommunitygrid(unittest.TestCase):
     def test_stats(self):
         project = self.browser.parse()
         apps = project.applications
-        self.assertEqual(str(apps['Computing for Clean Water'].statistics),
+        ignoreSpaces(self, str(apps['Computing for Clean Water'].statistics),
                          '51 results returned, 20 708 credit, runtime of 5 days, 19:54:04.')
-        self.assertEqual(str(apps['Computing for Clean Water'].badge), '')
+        ignoreSpaces(self, str(apps['Computing for Clean Water'].badge), '')
 
-        self.assertEqual(str(apps['GO Fight Against Malaria'].statistics),
+        ignoreSpaces(self, str(apps['GO Fight Against Malaria'].statistics),
                          '317 results returned, 227 151 credit, runtime of 54 days, 13:01:58.')
-        self.assertEqual(str(apps['GO Fight Against Malaria'].badge),
+        ignoreSpaces(self, str(apps['GO Fight Against Malaria'].badge),
                          'Silver Level Badge (45 days) for GO Fight Against Malaria')
 
 class TestYoyo(unittest.TestCase):
@@ -132,10 +137,10 @@ class TestYoyo(unittest.TestCase):
         #     print app
 
         apps = project.applications
-        self.assertEqual(str(apps['ecm'].statistics),
-                         '19 results returned, 13 754 credit.')
-        self.assertEqual(str(apps['ecm'].badge),
-                         'bronze badge')
+        ignoreSpaces(self, str(apps['ecm'].statistics),
+                     '19 results returned, 13 754 credits.')
+        ignoreSpaces(self, str(apps['ecm'].badge),
+                     'bronze badge')
 
 class TestPrimegrid(unittest.TestCase):
     def setUp(self):
@@ -143,10 +148,6 @@ class TestPrimegrid(unittest.TestCase):
                                            parse.HTMLParser_primegrid,
                                            url='www.primegrid.com',
                                            section='www.primegrid.com')
-    
-    def ignoreSpaces(self, s1, s2):
-        self.assertEqual(s1.replace(' ', '').replace('\n', ''),
-                         s2.replace(' ', '').replace('\n', ''))
 
     def test_rows(self):
         with open(parse_input.html_primegrid, 'r') as content:
@@ -173,15 +174,15 @@ class TestPrimegrid(unittest.TestCase):
     def test_badge(self):
         p = self.browser.parse()
         self.assertEqual(len(p.badges), 2)
-        self.assertEqual(str(p.badges[1][1]), 'Woodall LLR Bronze: More than 10,000 credits (17,517)')
-        self.assertEqual(str(p.badges[0][1]), 'PPS Sieve Bronze: More than 20,000 credits (30,339)')
-        self.assertEqual(p.badges[1][1].url, 'http://www.primegrid.com/img/badges/woo_bronze.png')
-        self.assertEqual(p.badges[0][1].url, 'http://www.primegrid.com/img/badges/sr2sieve_pps_bronze.png')
+        ignoreSpaces(self, str(p.badges[1][1]), 'Woodall LLR Bronze: More than 10,000 credits (17,517)')
+        ignoreSpaces(self, str(p.badges[0][1]), 'PPS Sieve Bronze: More than 20,000 credits (30,339)')
+        ignoreSpaces(self, p.badges[1][1].url, 'http://www.primegrid.com/img/badges/woo_bronze.png')
+        ignoreSpaces(self, p.badges[0][1].url, 'http://www.primegrid.com/img/badges/sr2sieve_pps_bronze.png')
 
     def test_stats(self):
         project = self.browser.parse()
         print str(project.statistics)
-        self.ignoreSpaces(str(project.statistics), """321 Prime Search tasks (LLR), 4 results returned, 6,259.83 credits
+        ignoreSpaces(self, str(project.statistics), """321 Prime Search tasks (LLR), 4 results returned, 6,259.83 credits
 LLR Woodall tests, 4 results returned, 17,517.29 credits
 Proth Prime Search (sieve) tasks, 9 results returned, 30,339.00 credits, Factors found 25 (avg. 2.7778/task)
 Proth Prime Search (PPS & PPSE) tasks, 23 results returned, 1,120.97 credits
@@ -209,13 +210,13 @@ class TestWuprop(unittest.TestCase):
 
         p = projects['World Community Grid'] # Vops, note that key is not url
         app = p.applications['Drug Search for Leishmaniasis']
-        self.assertTrue(str(app.statistics),
-                        'WuProp runtime 70 days, 18:30:00')
+        ignoreSpaces(self, str(app.statistics),
+                     'WuProp runtime 70 days, 18:30:00')
 
         p = projects['MindModeling@Beta'] # Vops, note that key is not url
         app = p.applications['Native Pypy Application']
-        self.assertTrue(str(app.statistics),
-                        'WuProp runtime 3:58:48')
+        ignoreSpaces(self, str(app.statistics),
+                     'WuProp runtime 3:58:48')
 
     def test_merge(self):
         # todo: avoid duplicate
@@ -268,8 +269,8 @@ class TestNumbersFields(unittest.TestCase):
         project = self.browser.parse()
         print project
         self.assertEqual(len(project.badges), 1)
-        self.assertEqual(str(project.badges[0][1]),
-                         'Bronze Medal- 10k credits. (Next badge is Silver at 100k)')
+        ignoreSpaces(self, str(project.badges[0][1]),
+                     'Bronze Medal- 10k credits. (Next badge is Silver at 100k)')
                          
 if __name__ == '__main__':
     import logging
