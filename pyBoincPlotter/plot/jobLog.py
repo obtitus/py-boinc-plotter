@@ -257,7 +257,7 @@ class JobLog(list):
         estimate_accuracy = self.ct/self.ue # estimated/cpu
         efficiency = self.ct/self.et        # cpu/clock
         credits_ = np.where(self.credit != 0, 
-                            self.credit/(self.ct/3600), np.nan)  # [credit/cpu] = credits/hour
+                            self.credit/(self.et/3600), np.nan)  # [credit/cpu] = credits/hour
         data = (estimate_accuracy,
                 efficiency,
                 credits_)

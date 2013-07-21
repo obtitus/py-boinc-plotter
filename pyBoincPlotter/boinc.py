@@ -21,6 +21,8 @@
 Main file
 """    
 # Standard python
+import os
+import sys
 import argparse
 import time
 from multiprocessing import Pool
@@ -90,7 +92,7 @@ def main(parser, args=None, namespace=None):
         import plot
         # If python was sensible we could do this in parallel, 
         # but multiprocessing fails since the objects are not pickable and threads gives a warning about memory release.
-        
+
         plot.plot_credits(web_projects, b)
         plot.plot_dailyTransfer(BOINC_DIR, limitDays=15)
         plot.plot_deadline(local_projects)
