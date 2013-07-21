@@ -42,7 +42,7 @@ class Settings(collections.namedtuple('Settings', ['resource_share', 'dont_reque
         if self.resource_share is not None:
             ret += 'Resource share {:.3g}%'.format(self.resource_share)
         if self.sched_priority is not None:
-            ret += ', sched. priority {}'.format(self.sched_priority)
+            ret += ', sched. priority {:.3g}'.format(self.sched_priority)
         if self.dont_request_more_work:
             ret += ", Don't request more work"
             

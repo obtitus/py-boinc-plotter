@@ -215,8 +215,13 @@ def mergeProject(local_project, web_project):
     mergeDicts(local_apps, web_apps, mergeApplications, 'name_long')
 
     web_project.appendStatistics(local_project.statistics)
+    logger.debug('web_project.name "%s", local_project.name "%s"', 
+                 web_project.name, local_project.name)
     web_project.name = local_project.name
-    web_project.settings = local_project.settings
+    logger.debug('web_project.settings "%s", local_project.settings "%s"', 
+                 web_project.settings, local_project.settings)
+    if local_project.settings is not None:
+        web_project.settings = local_project.settings
 
 def mergeWuprop(wuprop_projects,
                 local_projects):
@@ -267,6 +272,7 @@ def mergeDicts(local_dict, web_dict, merge, name):
             if fuzzyMatch(getattr(remaining, name),
                           getattr(web, name)):
                 merge(remaining, web)
+                del local_dict[remaining_key]
                 break
         else:
             logger.warning('merge with %s failed, remaining local %s, web keys, %s', merge, remaining_key, web_dict.keys())
