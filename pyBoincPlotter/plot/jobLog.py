@@ -67,24 +67,64 @@ class JobLog(list):
         super(JobLog, self).__init__(**kwargs)
         self.label = label
 
+        self._time = list()#self.createArray('time')
+        self._ue = self.createArray('estimated_runtime_uncorrected')
+        self._ct = self.createArray('final_cpu_time')
+        self._fe = self.createArray('rsc_fpops_est')
+        self._et = self.createArray('final_elapsed_time')
+        self._names = list()
+
+    def createArray(self, attr):
+        ret = np.zeros(len(self))
+        for ix, item in enumerate(self):
+            value = getattr(item, attr)
+            ret[ix] = value
+        return ret
+
     @property
     def time(self):
-        return [task.time for task in self]
+        if len(self._time) != len(self):
+            self._time = [task.time for task in self]
+            #self._time = self.createArray('time')
+        return self._time
+
     @property
     def ue(self):
-        return [task.estimated_runtime_uncorrected for task in self]
+        if len(self._ue) != len(self):
+            self._ue = self.createArray('estimated_runtime_uncorrected')
+        return self._ue
+
     @property
     def ct(self):
-        return [task.final_elapsed_time for task in self]
+        if len(self._ct) != len(self):
+            self._ct = self.createArray('final_cpu_time')
+        return self._ct
+
     @property
     def fe(self):
-        return [task.rsc_fpops_est for task in self]
+        if len(self._fe) != len(self):
+            self._fe = self.createArray('rsc_fpops_est')
+        return self._fe
+
     @property
     def et(self):
-        return [task.final_elapsed_time for task in self]
+        if len(self._et) != len(self):
+            self._et = self.createArray('final_elapsed_time')
+        return self._et
+
     @property
     def names(self):
-        return [task.name for task in self]
+        if len(self._names) != len(self):
+            self._names = [task.name for task in self]
+        return self._names
+
+    def setColor(self, ax):
+        try:
+            self.color = projectColors.colors[self.label]
+        except KeyError:
+            logger.debug('Vops, no color found for %s', self.label)
+            self.color = ax._get_lines.color_cycle.next()
+            projectColors.colors[self.label] = self.color
 
     def plot(self, fig):
         """ Plots the job_log to the given figure instance
@@ -104,14 +144,9 @@ class JobLog(list):
             axes.append(barPlotter)
 
         # Plot datapoints and bars, make sure the same colors are used.
-        try:
-            color = projectColors.colors[self.label]
-        except KeyError:
-            logger.debug('Vops, no color found for %s', self.label)
-            color = ax1._get_lines.color_cycle.next()
-            projectColors.colors[self.label] = color
-        self.plot_datapoints(color, axes)
-        self.plot_hist_day(color, axes)
+        self.setColor(ax1)
+        self.plot_datapoints(axes)
+        self.plot_hist_day(axes)
         
         self.formatAxis(axes)
 
@@ -135,19 +170,19 @@ class JobLog(list):
 
             ax.set_ylabel(ylabels[ix])
 
-    def plot_datapoints(self, color, axes):
+    def plot_datapoints(self, axes):
         """
         Let each datapoint be a single dot
         """
         time = self.time
 
-        kwargs = dict(ls='none', marker='o', color=color)
+        kwargs = dict(ls='none', marker='o', color=self.color)
         for ix, data in enumerate([self.ue, self.ct, self.et, self.fe]):
             if ix == 3:
                 data = np.array(data)/1e12
             axes[ix].plot(time, data, **kwargs)
 
-    def plot_hist_day(self, color, axes):
+    def plot_hist_day(self, axes):
         """
         Create a single bar for each day
         """
@@ -163,7 +198,7 @@ class JobLog(list):
             # Plot bars
             kwargs['width'] = 1
             kwargs['alpha'] = 0.75
-            kwargs['color'] = color
+            kwargs['color'] = self.color
             axes[0].bar(x, cumulative[0], **kwargs)
             axes[1].bar(x, cumulative[1], **kwargs)
             axes[2].bar(x, cumulative[2], **kwargs)
@@ -186,15 +221,46 @@ class JobLog(list):
         # plot last day
         myBarPlot(time[-1], cumulative, label=self.label)
 
+    def plot_FoM(self, fig):
+        """Figure of Merits plot"""
+        if len(self.time) == 0:
+            return
+
+        estimate_accuracy = self.ct/self.ue # estimated/cpu
+        efficiency = self.ct/self.et        # cpu/clock
+        credits_ = self.credit/self.ct      # [credit/cpu] = credits/hour
+        data = (estimate_accuracy,
+                efficiency,
+                credits_)
+        labels = ('Estimate accuracy',
+                  'Efficiency',
+                  'Credits per hour')
+        
+        N = 3
+        kwargs = dict(ls='none', marker='o', 
+                      color=self.color, label=self.label)
+        for ix in range(N):
+            ax = fig.add_subplot(N, 1, ix+1)
+            ax.plot(self.time, data[ix], **kwargs)
+            ax.set_ylabel(labels[ix])
+            ax.set_xlabel('Date')
+            dayFormat(ax)
+            if ix != N-1: # last axes
+                plt.setp(ax.get_xticklabels(), visible=False)            
+
+        leg = ax.legend()
+        if leg is not None:
+            leg.draggable()
+        
+
 class JobLog_Months(JobLog):
     """ JobLog focus is on single events summed up to one day, 
     this class focuses on days being summed to months
     """
-    def plot_datapoints(self, color, axes):
-        JobLog.plot_hist_day(self, color, axes)
-        return color
+    def plot_datapoints(self, axes):
+        JobLog.plot_hist_day(self, axes)
 
-    def plot_hist_day(self, color, axes):
+    def plot_hist_day(self, axes):
         """ Replaces hist_day with hist_month
         """
         time, ue, ct, fe, name, et = self.time, self.ue, self.ct, self.fe, self.names, self.et
@@ -212,7 +278,7 @@ class JobLog_Months(JobLog):
                                                  currentDay.month)
             kwargs['width'] = daysInMonth
             kwargs['alpha'] = 0.5
-            kwargs['color'] = color
+            kwargs['color'] = self.color
             axes[0].bar(x, cumulative[0], **kwargs)
             axes[1].bar(x, cumulative[1], **kwargs)
             axes[2].bar(x, cumulative[2], **kwargs)
@@ -275,9 +341,10 @@ class BarPlotter(object):
     # def plot(self, *args, **kwargs):
     #     self.ax.plot(*args, **kwargs)
 
-def plotAll(fig1, fig2, local_projects, BOINC_DIR):
+
+def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
     projects = dict()
-    for p in local_projects.values():
+    for p in web_projects.values():
         url = Project(url=p.url)
         projects[url.name] = p.name
 
@@ -292,6 +359,7 @@ def plotAll(fig1, fig2, local_projects, BOINC_DIR):
         tasks = createFromFilename(JobLog, filename, 
                                    label=label, limitMonths=1)
         tasks.plot(fig=fig1)
+        tasks.plot_FoM(fig=fig3)
 
         tasks = createFromFilename(JobLog_Months, filename, 
                                    label=label, limitMonths=120)
@@ -310,6 +378,7 @@ if __name__ == '__main__':
 
     fig1 = plt.figure()
     fig2 = plt.figure()
-    plotAll(fig1, fig2, local_projects, BOINC_DIR)
+    fig3 = plt.figure()
+    plotAll(fig1, fig2, fig3, local_projects, BOINC_DIR)
 
     raw_input('=== Press enter to exit ===\n')
