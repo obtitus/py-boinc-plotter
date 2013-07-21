@@ -25,22 +25,42 @@ logger = logging.getLogger('boinc.plot.runtime')
 # This project
 from importMatplotlib import *
 from badge import Badge_wuprop
-        
-def plot_worldcommunitygrid(fig, projects, browser):
+
+def parse_worldcommunitygrid(projects):
     try:
         project = projects['http://www.worldcommunitygrid.org']
     except KeyError:
         logger.exception('Vops, boinc.plot.runtime.plot_worldcommunitygrid got dictionary without worldcommunitygrid, got %s',
                          projects.keys())
         return
-
+    
+    data = dict()
+    for key, app in sorted(project.applications.items()):
+        badge = app.badge
+        runtime = app.runtime.total_seconds()
+        pending, running, validation = app.pendingTime()
+        for prev_name in data:
+            # So that "FightAIDS@Home - AutoDock" and "FightAIDS@Home - Vina" are merged with "FightAIDS@Home"
+            if app.name_long.startswith(prev_name):
+                data[prev_name][1] += runtime
+                data[prev_name][2] += pending
+                data[prev_name][3] += running
+                data[prev_name][4] += validation
+                break
+        else:
+            data[app.name_long] = [badge, runtime,
+                                   pending, running, validation]
+    return data
+        
+def plot_worldcommunitygrid(fig, browser, data):
     ax = fig.add_subplot(111)
     width = 0.75
     ix = 0
     labels = list()
-    for key in sorted(project.applications):
-        app = project.applications[key]
-        badge = app.badge
+    totalRuntime = 0
+    for key in sorted(data):
+        badge, runtime, pending, running, validation = data[key]
+
         kwargs = dict(color='k',
                       width=width)
         
@@ -49,7 +69,7 @@ def plot_worldcommunitygrid(fig, projects, browser):
         except:
             pass
 
-        height = app.runtime.total_seconds()
+        height = runtime
         ax.bar(ix, height, **kwargs)
 
         if badge != '':
@@ -60,15 +80,15 @@ def plot_worldcommunitygrid(fig, projects, browser):
             except Exception as e:
                 logger.error('Badge image failed with "%s"', e)
 
-        pending, running, validation = app.pendingTime()
         logger.debug('app %s, pending, running, validation = %s, %s, %s', 
-                     app.name, pending, running, validation)
+                     key, pending, running, validation)
 
         for t, alpha in ((pending, 0.5), (running, 0.25), (validation, 0.125)):
             ax.bar(ix, t, bottom=height, alpha=alpha, **kwargs)
             height += t
 
-        labels.append(str(app.name))
+        totalRuntime += runtime + pending + running + validation
+        labels.append(str(key))
         ix += 1
 
     pos = np.arange(len(labels))
@@ -79,11 +99,7 @@ def plot_worldcommunitygrid(fig, projects, browser):
     ax.set_ylabel('Runtime')
     ax.yaxis.set_major_formatter(formatter_timedelta)
 
-    try:
-        totalRuntime = project.statistics.runtime
-        fig.suptitle('Stats for {} worlcommunitygrid applications, total runtime {}'.format(len(labels), totalRuntime))
-    except Exception as e:
-        logger.exception('Could not write title, missing statistics?')
+    fig.suptitle('Stats for {} worlcommunitygrid applications, total runtime {}'.format(len(labels), totalRuntime))
 
 def plot_wuprop(fig, projects, browser):
     ax = fig.add_subplot(111)
@@ -151,7 +167,8 @@ def plot_wuprop(fig, projects, browser):
         ax.axvline(mark)
 
 def plotAll(fig1, fig2, projects, browser):
-    plot_worldcommunitygrid(fig1, projects, browser)
+    data = parse_worldcommunitygrid(projects)
+    plot_worldcommunitygrid(fig1, browser, data)
     plot_wuprop(fig2, projects, browser)
 
 if __name__ == '__main__':
