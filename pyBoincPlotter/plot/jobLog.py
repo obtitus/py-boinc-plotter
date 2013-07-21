@@ -67,17 +67,39 @@ class JobLog(list):
         super(JobLog, self).__init__(**kwargs)
         self.label = label
 
-        self._time = list()#self.createArray('time')
-        self._ue = self.createArray('estimated_runtime_uncorrected')
-        self._ct = self.createArray('final_cpu_time')
-        self._fe = self.createArray('rsc_fpops_est')
-        self._et = self.createArray('final_elapsed_time')
+        self._time = list()
+        self._ue = np.zeros(0)
+        self._ct = np.zeros(0)
+        self._fe = np.zeros(0)
+        self._et = np.zeros(0)
+        self._credit = np.zeros(0)
         self._names = list()
+
+    def merge(self, web_project):
+        """ Merge tasks from given project into existing list """
+        names = dict()
+        for ix, name in enumerate(self.names):
+            names[name] = self[ix]
+
+        for web_task in web_project.tasks():
+            try:
+                web_name = web_task.name
+                web_name = web_name.replace('--', '') # worldcommunitygrid appends -- at the end
+                names[web_name].credit = web_task.grantedCredit
+            except KeyError:
+                if web_task.state_str != 'in progress':
+                    logger.debug('Unable to find "%s", %s', 
+                                 web_task.name, web_task.state_str)
+            except AttributeError:
+                logger.debug('Not a web task %s', web_task)
 
     def createArray(self, attr):
         ret = np.zeros(len(self))
         for ix, item in enumerate(self):
-            value = getattr(item, attr)
+            try:
+                value = getattr(item, attr)
+            except AttributeError:
+                value = np.nan
             ret[ix] = value
         return ret
 
@@ -111,6 +133,12 @@ class JobLog(list):
         if len(self._et) != len(self):
             self._et = self.createArray('final_elapsed_time')
         return self._et
+
+    @property
+    def credit(self):
+        if len(self._credit) != len(self):
+            self._credit = self.createArray('credit')
+        return self._credit
 
     @property
     def names(self):
@@ -228,7 +256,8 @@ class JobLog(list):
 
         estimate_accuracy = self.ct/self.ue # estimated/cpu
         efficiency = self.ct/self.et        # cpu/clock
-        credits_ = self.credit/self.ct      # [credit/cpu] = credits/hour
+        credits_ = np.where(self.credit != 0, 
+                            self.credit/(self.ct/3600), np.nan)  # [credit/cpu] = credits/hour
         data = (estimate_accuracy,
                 efficiency,
                 credits_)
@@ -239,19 +268,25 @@ class JobLog(list):
         N = 3
         kwargs = dict(ls='none', marker='o', 
                       color=self.color, label=self.label)
+
+        gs = gridspec.GridSpec(N, 3)
+
+        ax = fig.add_subplot(gs[0, :-1])
         for ix in range(N):
-            ax = fig.add_subplot(N, 1, ix+1)
+            if ix != 0:
+                ax = fig.add_subplot(gs[ix, :-1], sharex=ax)
             ax.plot(self.time, data[ix], **kwargs)
             ax.set_ylabel(labels[ix])
-            ax.set_xlabel('Date')
-            dayFormat(ax)
             if ix != N-1: # last axes
                 plt.setp(ax.get_xticklabels(), visible=False)            
+
+        ax.set_xlabel('Date')
+        dayFormat(ax)
 
         leg = ax.legend()
         if leg is not None:
             leg.draggable()
-        
+
 
 class JobLog_Months(JobLog):
     """ JobLog focus is on single events summed up to one day, 
@@ -346,18 +381,23 @@ def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
     projects = dict()
     for p in web_projects.values():
         url = Project(url=p.url)
-        projects[url.name] = p.name
+        projects[url.name] = p
 
     for url, filename in util.getLocalFiles(BOINC_DIR, 'job_log', '.txt'):
         try:
             p = Project(url=url)
-            label = projects[p.name]
+            project = projects[p.name]
+            label = project.name
         except KeyError:
             logger.warning('Could not find url %s in %s', url, projects)
+            project = None
             label = url
 
         tasks = createFromFilename(JobLog, filename, 
                                    label=label, limitMonths=1)
+        if project is not None:
+            tasks.merge(project)
+
         tasks.plot(fig=fig1)
         tasks.plot_FoM(fig=fig3)
 
@@ -371,14 +411,20 @@ if __name__ == '__main__':
     
     import config
     import boinccmd
+    import browser
+    import project
     
-    _, _, BOINC_DIR = config.set_globals()
+    CONFIG, CACHE_DIR, BOINC_DIR = config.set_globals()
+    browser_cache = browser.Browser_file(CACHE_DIR)
 
-    local_projects = boinccmd.get_state(command='get_project_status')
+    local_projects = boinccmd.get_state(command='get_project_status') # Need for names
+    web_projects = browser.getProjectsDict(CONFIG, browser_cache)
+    project.merge(local_projects,
+                  web_projects)
 
     fig1 = plt.figure()
     fig2 = plt.figure()
     fig3 = plt.figure()
-    plotAll(fig1, fig2, fig3, local_projects, BOINC_DIR)
+    plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR)
 
     raw_input('=== Press enter to exit ===\n')
