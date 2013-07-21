@@ -59,18 +59,21 @@ def main(parser, args=None, namespace=None):
 
     # Get data
     local_projects = boinccmd.get_state()
-    # print 'LOCAL'
-    # project.pretty_print(local_projects)
+    if args.verbose:
+        print 'LOCAL'
+        project.pretty_print(local_projects)
 
     cache = browser.Browser_file(CACHE_DIR)
 
     web_projects    = browser.getProjectsDict(CONFIG, cache)
-    # print 'WEB'
-    # project.pretty_print(web_projects, show_empty=True)
+    if args.verbose:
+        print 'WEB'
+        project.pretty_print(web_projects, show_empty=True)
 
     wuprop_projects = browser.getProjects_wuprop(CONFIG, cache)
-    # print 'WUPROP'
-    # project.pretty_print(wuprop_projects, show_empty=True)
+    if args.verbose:
+        print 'WUPROP'
+        project.pretty_print(wuprop_projects, show_empty=True)
     
     project.mergeWuprop(wuprop_projects, local_projects)
     project.merge(local_projects, web_projects)
