@@ -126,7 +126,7 @@ def plot_wuprop(fig, projects, browser):
         ax.bar(ix, h, **kwargs)
 
         pending = stat.wuPending.total_seconds()
-        ax.bar(ix, pending, bottom=h, alpha=0.5, **kwargs)
+        ax.bar(ix, pending, bottom=h, alpha=0.75, **kwargs)
         h += pending
 
         pending, running, validation = app.pendingTime(include_elapsedCPUtime=False)
