@@ -254,10 +254,16 @@ class JobLog(list):
         if len(self.time) == 0:
             return
 
-        estimate_accuracy = self.ue/self.et # estimated/clock
-        efficiency = self.ct/self.et        # cpu/clock
+        # clock/estimated, value of 1 is excellent, larger than 1 means overestimated
+        estimate_accuracy = self.et/self.ue
+        # clock/cpu, value of 1 is efficient, larger than 1 means more cpu time then clock time
+        ct = self.ct
+        ct[np.where(ct == 0)] = np.nan # avoids division by zero
+        efficiency = self.et/ct
+        # [credit/cpu] = credits/hour
         credits_ = np.where(self.credit != 0,
-                            self.credit/(self.et/3600.), np.nan)  # [credit/cpu] = credits/hour
+                            self.credit/(self.et/3600.), np.nan)
+
         data = (estimate_accuracy,
                 efficiency,
                 credits_)
@@ -274,14 +280,15 @@ class JobLog(list):
             if ix != 0:
                 ax = fig.add_subplot(N, 1, ix+1, sharex=ax)
 
-            m = min(data[ix])
-            if m == 0: m = np.nan
+            ax.plot(self.time, data[ix], **kwargs)
 
-            # TODO: what happends if we first plot with plot and then with semilogy?
-            if np.log10(max(data[ix])/m) > 3:
-                ax.semilogy(self.time, data[ix], **kwargs)
-            else:
-                ax.plot(self.time, data[ix], **kwargs)
+            ymin, ymax = ax.get_ylim()
+            ymin = max([min(data[ix]), ymin])
+            if ymin == 0: ymin = 1
+
+            if np.log10(abs(ymax/ymin)) > 3:
+                logger.debug('logarithmic axis for %s', labels[ix])
+                ax.set_yscale('log')
 
             ax.set_ylabel(labels[ix])
             if ix != N-1: # last axes
