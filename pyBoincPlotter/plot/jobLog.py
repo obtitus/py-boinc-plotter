@@ -274,7 +274,11 @@ class JobLog(list):
             if ix != 0:
                 ax = fig.add_subplot(N, 1, ix+1, sharex=ax)
 
-            if np.log10(max(data[ix])/min(data[ix])) > 3:
+            m = min(data[ix])
+            if m == 0: m = np.nan
+
+            # TODO: what happends if we first plot with plot and then with semilogy?
+            if np.log10(max(data[ix])/m) > 3:
                 ax.semilogy(self.time, data[ix], **kwargs)
             else:
                 ax.plot(self.time, data[ix], **kwargs)
