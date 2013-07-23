@@ -254,10 +254,10 @@ class JobLog(list):
         if len(self.time) == 0:
             return
 
-        estimate_accuracy = self.ct/self.ue # estimated/cpu
+        estimate_accuracy = self.ue/self.et # estimated/clock
         efficiency = self.ct/self.et        # cpu/clock
-        credits_ = np.where(self.credit != 0, 
-                            self.credit/(self.et/3600), np.nan)  # [credit/cpu] = credits/hour
+        credits_ = np.where(self.credit != 0,
+                            self.credit/(self.et/3600.), np.nan)  # [credit/cpu] = credits/hour
         data = (estimate_accuracy,
                 efficiency,
                 credits_)
@@ -273,7 +273,12 @@ class JobLog(list):
         for ix in range(N):
             if ix != 0:
                 ax = fig.add_subplot(N, 1, ix+1, sharex=ax)
-            ax.plot(self.time, data[ix], **kwargs)
+
+            if np.log10(max(data[ix])/min(data[ix])) > 3:
+                ax.semilogy(self.time, data[ix], **kwargs)
+            else:
+                ax.plot(self.time, data[ix], **kwargs)
+
             ax.set_ylabel(labels[ix])
             if ix != N-1: # last axes
                 plt.setp(ax.get_xticklabels(), visible=False)            
@@ -284,7 +289,7 @@ class JobLog(list):
         leg = ax.legend()
         if leg is not None:
             leg.draggable()
-
+            leg.draw_frame(False)
 
 class JobLog_Months(JobLog):
     """ JobLog focus is on single events summed up to one day, 
