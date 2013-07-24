@@ -163,9 +163,7 @@ def plot_wuprop(fig, projects, browser):
         days = badgeLine*60*60
         plt.axhline(days, color=color)
 
-    print 'HEllo', badges
     for b in badges:
-        print 'BADGE', b
         for ix, value in enumerate(b.value):
             if value != 0:
                 try:

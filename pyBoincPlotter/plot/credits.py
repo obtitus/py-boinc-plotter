@@ -34,7 +34,7 @@ def plot(fig, projects, browser):
     for key, project in sorted(projects.items()):
         frameon = project.url != 'http://www.primegrid.com'
         for app, badge in project.badges:
-            if not(hasattr(badge, 'value')):
+            if not(hasattr(badge, 'value')) or not(hasattr(badge, 'color')):
                 continue
 
             kwargs = dict(color=badge.color, 
