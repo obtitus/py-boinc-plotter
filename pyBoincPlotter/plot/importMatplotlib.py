@@ -73,16 +73,19 @@ def dayFormat(ax, month=False):
         label.set_ha('right')
 
 def showImage(ax, browser, ix,
-              value, color, url, 
-              frameon=True):
+              value, color='', url='', 
+              frameon=True,
+              box_alignment=(0, 0.5)):
     extension = url[-4:]
 
-    ax.axhline(value, color=color)
+    if color != '':
+        ax.axhline(value, color=color)
     png = browser.visitURL(url, extension=extension)
     png = StringIO(png)
     img = mpimg.imread(png, format=extension)
     # Add image:
     of = matplotlib.offsetbox.OffsetImage(img)
     ab = matplotlib.offsetbox.AnnotationBbox(of, (ix, value), 
-                                             frameon=frameon, box_alignment=(0, 0.5))
+                                             frameon=frameon, 
+                                             box_alignment=box_alignment)
     ax.add_artist(ab)

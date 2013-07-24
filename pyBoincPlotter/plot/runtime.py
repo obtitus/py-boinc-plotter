@@ -109,6 +109,7 @@ def plot_wuprop(fig, projects, browser):
     ax = fig.add_subplot(111)
 
     applications = list()
+    badges = list()             # hmm, well, there is only 1 but one can always dream
     for key, project in sorted(projects.items()):
         for key, app in sorted(project.applications.items()):
             try:
@@ -121,11 +122,14 @@ def plot_wuprop(fig, projects, browser):
             color, value = Badge_wuprop.getColor(runtime_sec)
             applications.append((value, color, app)) # Uses value for sorting
 
+        for _, badge in project.badges:
+            if hasattr(badge, 'isWuprop'):    # isinstance failed, see http://mail.python.org/pipermail/python-bugs-list/2005-August/029861.html
+                badges.append(badge)
+
     applications.sort(reverse=True)
 
     labels = list()
     width = 0.75
-    badges = Badge_wuprop.badges # list of levels
 
     totalRuntime = datetime.timedelta(0)
     # for key, project in sorted(projects.items()):
@@ -159,6 +163,19 @@ def plot_wuprop(fig, projects, browser):
         days = badgeLine*60*60
         plt.axhline(days, color=color)
 
+    print 'HEllo', badges
+    for b in badges:
+        print 'BADGE', b
+        for ix, value in enumerate(b.value):
+            if value != 0:
+                try:
+                    showImage(ax, browser, (ix+1)*20,
+                              value=value*3600, url=badge.url,
+                              frameon=False,
+                              box_alignment=(0.5, 0.5))
+                except Exception as e:
+                    logger.error('Badge image failed with "%s"', e)
+                    
     pos = np.arange(len(labels))
     ax.set_xticks(pos+width/2)
     ax.set_xticklabels(labels, rotation=17, horizontalalignment='right')
@@ -192,9 +209,10 @@ if __name__ == '__main__':
     cache = browser.Browser_file(CACHE_DIR)
     b = browser.BrowserSuper(cache)
 
-    web_p = browser.getProject('worldcommunitygrid.org', CONFIG, cache)
-    web_projects = dict()
-    web_projects[web_p.url] = web_p
+    # web_p = browser.getProject('worldcommunitygrid.org', CONFIG, cache)
+    # web_projects = dict()
+    # web_projects[web_p.url] = web_p
+    web_projects = browser.getProjectsDict(CONFIG, cache)
 
     wuprop_projects = browser.getProjects_wuprop(CONFIG, cache)
     print 'WUPROP'

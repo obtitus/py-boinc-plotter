@@ -111,7 +111,7 @@ class Project(object):
         return self.applications[name_long]
 
     def appendBadge(self, app_name='', badge=''):
-        # Normally badges are associated with an application, but numbersfields associates with project instead.
+        # Normally badges are associated with an application, but numbersfields and wuprop associates with project instead.
         if app_name != '':
             app = self.appendApplication(app_name)
             logger.debug('Appending badge %s, to %s', badge, app_name)
@@ -180,6 +180,9 @@ class Project(object):
         for prop in [self.settings, self.statistics]:
             if prop != None:
                 ret.append(str(prop))
+
+        for _, badge in self._badges:
+            ret.append(str(badge))
 
         for key in sorted(self.applications):
             if len(self.applications[key]) != 0 or self.show_empty:

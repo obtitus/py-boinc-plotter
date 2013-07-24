@@ -274,7 +274,12 @@ class TestWuprop(unittest.TestCase):
         self.assertTrue('http://www.worldcommunitygrid.org' in local_projects)
         self.assertEqual(len(local_projects['http://www.worldcommunitygrid.org']), 28)
         p(local_projects)
-        
+
+    def test_badge(self):
+        project = self.browser.parse()
+        self.assertEqual(len(project.badges), 1)
+        self.assertEqual(str(project.badges[0][1]), 'Badge: 20 applications: 100 hours')
+
 
 class TestMindmodeling(unittest.TestCase):
     def setUp(self):
