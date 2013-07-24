@@ -98,46 +98,57 @@ class Boinccmd(socket):
                 self.previous_data += data[line_ix][:ix]
 
 def get_state(command='get_state', printRaw=False):
-    projects = dict()
+    parser = Parse_state()
     with Boinccmd() as s:
-        currentBlock = []
-        inBlock = False
-        appNames = dict()       
         for line in s.request(command):
             if printRaw:
                 print line
 
-            if line.strip() in ('<project>', '<app>', '<workunit>', '<result>'):
-                inBlock = True
+            parser.feed(line)
 
-            reset = True
-            if '</project>' in line:
-                project = Project.createFromXML("\n".join(currentBlock))
-                projects[project.url] = project
-                logger.debug('project %s', project)
-            elif '</app>' in line:
-                application = project.appendApplicationFromXML("\n".join(currentBlock))
-                logger.debug('application %s', application)
-            elif '</workunit>' in line:
-                workunit = project.appendWorkunitFromXML("\n".join(currentBlock))
-                logger.debug('workunit, %s', workunit)
-            elif '</result>' in line:
-                try:
-                    t = project.appendResultFromXML("\n".join(currentBlock))
-                    logger.debug('result, %s', t)
-                except KeyError:
-                    logging.exception('Could not append task to application:')
-            else:
-                reset = False
+    return parser.projects
 
-            if reset:
-                inBlock = False
-                currentBlock = []                
+class Parse_state(object):
+    def __init__(self):
+        self.currentBlock = []
+        self.inBlock = False
+        self.projects = dict()
 
-            if inBlock:
-                currentBlock.append(line.strip())
+        # Current state:
+        self.c_proj = None
+        self.c_app  = None
+        self.c_task = None
 
-    return projects
+    def feed(self, line):
+        if line.strip() in ('<project>', '<app>', '<workunit>', '<result>'):
+            self.inBlock = True
+
+        reset = True
+        if '</project>' in line:
+            self.c_proj = Project.createFromXML("\n".join(self.currentBlock))
+            self.projects[self.c_proj.url] = self.c_proj
+            logger.debug('project %s', self.c_proj)
+        elif '</app>' in line:
+            self.c_app = self.c_proj.appendApplicationFromXML("\n".join(self.currentBlock))
+            logger.debug('application %s', self.c_app)
+        elif '</workunit>' in line:
+            self.c_task = self.c_proj.appendWorkunitFromXML("\n".join(self.currentBlock))
+            logger.debug('task, %s', self.c_task)
+        elif '</result>' in line:
+            try:
+                t = self.c_proj.appendResultFromXML("\n".join(self.currentBlock))
+                logger.debug('result, %s', t)
+            except KeyError:
+                logging.exception('Could not append task to application:')
+        else:
+            reset = False
+
+        if reset:
+            self.inBlock = False
+            self.currentBlock = []                
+
+        if self.inBlock:
+            self.currentBlock.append(line.strip())
 
 if __name__ == '__main__':
     import argparse

@@ -21,6 +21,7 @@ import os
 thisFolder = os.path.abspath(os.path.dirname(__file__))
 dataFolder = os.path.join(thisFolder, 'data')
 
+boinccmd = os.path.join(dataFolder, 'boinccmd.out')
 html_worldcommunitygrid = os.path.join(dataFolder, 
                                        'httpwwwworldcommunitygridorgmsviewBoincResultsdofilterDevice0filterStatus1projectId1pageNum1sortBysentTime.html')
 xml_worldcommunitygrid = os.path.join(dataFolder, 

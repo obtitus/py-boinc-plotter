@@ -219,28 +219,62 @@ class TestWuprop(unittest.TestCase):
                      'WuProp runtime 3:58:48')
 
     def test_merge(self):
+        """A bloody mess"""
         # todo: avoid duplicate
         CONFIG = config.setupConfigFile() # TODO: remove this requirement, write browser so that this can be None
         dir = parse_input.dataFolder
         browser_cache = browser.Browser_file(dir, removeOld=False)
 
         wuprop_projects = browser.getProjects_wuprop(CONFIG, browser_cache)
+        self.assertEqual(len(wuprop_projects), 8)
         #web_projects    = browser.getProjectsDict(CONFIG, browser_cache)
-        local_projects = boinccmd.get_state() # TODO: must replace this with file based
+        #local_projects = boinccmd.get_state() # TODO: must replace this with file based
+        # out = 'test/data/boinccmd.out'
+        # f = open(out, 'w')
+        # with boinccmd.Boinccmd() as s:
+        #     for line in s.request('get_state'):
+        #         f.write(line + '\n')
+        # f.close()
+        
+        parser = boinccmd.Parse_state()
+        with open(parse_input.boinccmd) as f:
+            for line in f:
+                parser.feed(line)
+        local_projects = parser.projects
+        self.assertEqual(len(local_projects), 8)
 
         p = project.pretty_print
-        # print 'Before merge'
-        # print 'WU:', 
-        # p(wuprop_projects)
-        # print 'WEB:', 
-        # p(local_projects)
+        print 'Before merge'
+        print 'WU:', 
+        print wuprop_projects
+        p(wuprop_projects)
+        print 'LOCAL:', 
+        print local_projects
+        p(local_projects)
         
+        self.assertTrue('World Community Grid' in wuprop_projects)
+        prj = wuprop_projects['World Community Grid']
+        self.assertEqual(len(prj), 0)
+        apps = prj.applications
+        self.assertEqual(len(apps), 8)
+        self.assertEqual(str(apps['The Clean Energy Project - Phase 2'].badge), '')
+
+        self.assertTrue('http://www.worldcommunitygrid.org' in local_projects)
+        prj = local_projects['http://www.worldcommunitygrid.org']
+        self.assertEqual(len(prj), 28)
+        apps = prj.applications
+        self.assertEqual(len(apps), 8)
+        self.assertEqual(str(apps['The Clean Energy Project - Phase 2'].badge), '')
+
         project.mergeWuprop(wuprop_projects,
                             local_projects)
         print 'After merge'
+        print p
+        self.assertEqual(len(local_projects), 9)
+        self.assertTrue('http://www.worldcommunitygrid.org' in local_projects)
+        self.assertEqual(len(local_projects['http://www.worldcommunitygrid.org']), 28)
         p(local_projects)
-
-        assert False            # not done
+        
 
 class TestMindmodeling(unittest.TestCase):
     def setUp(self):

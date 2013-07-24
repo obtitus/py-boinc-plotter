@@ -7,3 +7,4 @@ syntax:glob
 *.coverage
 *.pickle
 dist/
+doc/build
