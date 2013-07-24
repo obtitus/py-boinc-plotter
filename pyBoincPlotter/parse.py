@@ -117,6 +117,17 @@ class HTMLParser(object):
                 app_name = first_td.find_next_sibling('td', class_='fieldvalue')
                 return app_name.text
 
+    def fieldvalue(self, soup, fieldname):
+        """yields fieldvalue for given fieldname"""
+        for row in soup.find_all('tr'):
+            if row.td is None:
+                continue
+
+            first_td = row.td
+            _class = first_td.get('class', [''])
+            if _class == ['fieldname'] and first_td.text.strip() == fieldname:
+                return first_td.find_next_sibling('td')
+
 class HTMLParser_worldcommunitygrid(HTMLParser):
     def __init__(self, *args, **kwargs):
         super(HTMLParser_worldcommunitygrid, self).__init__(*args, **kwargs)
@@ -296,16 +307,8 @@ class HTMLParser_primegrid(HTMLParser):
 
     def parseHome(self, soup):
         """yields app name and Badge object"""
-        for row in soup.find_all('tr'):
-            if row.td is None:
-                continue
-                
-            first_td = row.td
-            _class = first_td.get('class', [''])
-
-            if _class == ['fieldname'] and first_td.text == 'Badges':
-                for badge in first_td.find_next_sibling('td').find_all('a'):
-                    yield self.parseBadge(badge)
+        for fieldvalue in self.fieldvalue(soup, 'Badges'):
+            yield self.parseBadge(fieldvalue)
 
     def parseBadge(self, soup):
         """
@@ -351,6 +354,27 @@ class HTMLParser_primegrid(HTMLParser):
         # assert False
 
 class HTMLParser_wuprop(HTMLParser):
+    def getBadges(self):
+        page = self.browser.visitHome()
+        soup = BeautifulSoup(page)
+        for b in self.fieldvalue(soup, 'Badge'):
+            badge = self.parseBadge(b)
+            self.project.appendBadge(badge=badge)
+
+    def parseBadge(self, soup):
+        """
+        Expects something like this:
+        <img src="img/badge/100_0_0_0_0.png"/>
+        """
+        url = str(self.browser.name).replace('www.', '') + '/' # http://wuprop.boinc-af.org/
+        name = soup.get('src')
+        url += name
+        b = badge.Badge_wuprop(name=name,
+                               url=url)
+        self.logger.debug('Badge %s', b)
+        return b
+    
+
     def projectTable(self, html):
         """ Extracts projects table from wuprop.boinc-af.org/home.php"""
         projects = dict()       # Key is user_friendly_name!

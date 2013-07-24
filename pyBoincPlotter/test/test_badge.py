@@ -55,10 +55,9 @@ class TestBadge(unittest.TestCase):
                                 '#8C7853', 14*DAYS)
 
     def wuprop(self, runtime, color, value):
-        self.badge = badge.Badge_wuprop(runtime)
-        self.assertEqual(self.badge.runtime, runtime)
-        self.assertEqual(self.badge.color, color)
-        self.assertEqual(self.badge.value, value)
+        c, v = badge.Badge_wuprop.getColor(runtime)
+        self.assertEqual(c, color)
+        self.assertEqual(v, value)
         
     def test_wuprop(self):
         self.wuprop(0, 'k', 0)

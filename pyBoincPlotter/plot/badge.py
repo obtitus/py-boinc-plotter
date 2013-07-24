@@ -124,18 +124,31 @@ class Badge_wuprop(Badge):
               [1000, 'Ruby'],
               [2500, 'Emerald'],
               [5000, 'Sapphire']]
-    def __init__(self, runtime, name='', url=''):
-        self.runtime = runtime
+    def __init__(self, name='', url=''):
         self.name = name
         self.url = url
+        self.isWuprop = True    # isinstance failed, see http://mail.python.org/pipermail/python-bugs-list/2005-August/029861.html
 
     @property
-    def runtime(self):
-        return self._runtime
-    @runtime.setter
-    def runtime(self, value):
-        self._runtime = value
-        self.color, self.value = Badge_wuprop.getColor(self.runtime)
+    def url(self):
+        return self._url
+
+    @url.setter
+    def url(self, url):
+        self._url = url
+
+    @Badge.name.setter
+    def name(self, url):
+        reg = re.search('(\d+)_(\d+)_(\d+)_(\d+)_(\d+)', url)
+        if reg:
+            name = 'Badge: '
+            for ix, group in enumerate(reg.groups()):
+                if group != '0':
+                    name += "{} applications: {} hours, ".format((ix+1)*20, group)
+            self._name = name[:-2]
+            self.value = map(int, reg.groups())
+        else:
+            self._name = url
 
     @staticmethod
     def getColor(runtime):
