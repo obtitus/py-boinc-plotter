@@ -25,7 +25,10 @@ logger = logging.getLogger('boinc.plot.runtime')
 # This project
 from importMatplotlib import *
 from badge import Badge_wuprop
-import util
+try:
+    from .. import util
+except ValueError:
+    import util
 
 def parse_worldcommunitygrid(projects):
     try:
