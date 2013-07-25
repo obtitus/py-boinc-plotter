@@ -23,7 +23,10 @@ import logging
 logger = logging.getLogger('boinc.plot.deadline')
 # This project
 from importMatplotlib import *
-import util
+try:
+    from .. import util
+except ValueError:
+    import util
 
 def plot(fig, projects):
     ax = fig.add_subplot(111)
