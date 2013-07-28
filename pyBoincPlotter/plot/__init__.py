@@ -35,11 +35,13 @@ def plot_credits(projects, browser):
     fig = figure('Credits')
     credits.plot(fig, projects, browser)
 
-def plot_dailyTransfer(BOINC_DIR, limitDays):
-    fig = figure('DailyTransfer')
-    filename = dailyTransfer.getFilename(BOINC_DIR)
-    data = dailyTransfer.parse(filename, limitDays=limitDays)
-    dailyTransfer.plot(fig, data)
+def plot_dailyTransfer(BOINC_DIR):
+    fig1 = figure('DailyTransfer Daily')
+    fig2 = figure('DailyTransfer Monthly')
+    dailyTransfer.plotAll(fig1, fig2, BOINC_DIR)
+    # filename = dailyTransfer.getFilename(BOINC_DIR)
+    # data = dailyTransfer.parse(filename)
+    # dailyTransfer.plot(fig, data)
 
 def plot_deadline(local_projects):
     fig = figure('Deadline')

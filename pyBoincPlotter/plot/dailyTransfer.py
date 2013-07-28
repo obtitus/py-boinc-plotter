@@ -116,6 +116,16 @@ def plotMonths(fig, data):
 def getFilename(BOINC_DIR):
     return os.path.join(BOINC_DIR, 'daily_xfer_history.xml')
 
+def plotAll(fig1, fig2, BOINC_DIR):
+    filename = getFilename(BOINC_DIR)
+
+    data = parse(filename, limitMonths=1)
+    plot(fig1, data)
+
+    data = parse(filename, limitMonths=12)
+    plot(fig2, data)
+    plotMonths(fig2, data)
+    
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
     loggerSetup(logging.INFO)
@@ -125,13 +135,6 @@ if __name__ == '__main__':
     _, _, BOINC_DIR = config.set_globals()
     fig1 = plt.figure()
     fig2 = plt.figure()
-    filename = getFilename(BOINC_DIR)
-
-    data = parse(filename, limitMonths=1)
-    plot(fig1, data)
-
-    data = parse(filename, limitMonths=12)
-    plot(fig2, data)
-    plotMonths(fig2, data)
+    plotAll(fig1, fig2, BOINC_DIR)
 
     raw_input('=== Press enter to exit ===\n')
