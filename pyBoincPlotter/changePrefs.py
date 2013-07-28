@@ -59,19 +59,11 @@ class Prefs(object):
             logger.info('Setting cpu limit to %d', 100)
             self.changePrefsFile(name, 100)
 
-def toggleCPUusage():
-    try:
-        p = Prefs()
-        p.toggleCPUusage()
-
-        p = boinccmd.CallBoinccmd(BOINC_DIR, '--read_global_prefs_override')
-    except IOError as e:
-        logger.error('Could not open prefs file due to {0}'.format(e))
         
 def changePrefs(BOINC_DIR, a, value=None):
     # Convenient function for changing a preference
     # If value is None simply return current value
-    prefs = Prefs()
+    prefs = Prefs(BOINC_DIR)
     if value != None:
         prefs.changePrefsFile(a, value)
         p = boinccmd.CallBoinccmd(BOINC_DIR, '--read_global_prefs_override')

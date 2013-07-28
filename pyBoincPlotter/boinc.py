@@ -102,7 +102,7 @@ def main(parser, args=None, namespace=None):
         # but multiprocessing fails since the objects are not pickable and threads gives a warning about memory release.
 
         plot.plot_credits(web_projects, b)
-        plot.plot_dailyTransfer(BOINC_DIR, limitDays=15)
+        plot.plot_dailyTransfer(BOINC_DIR)
         plot.plot_deadline(local_projects)
         plot.plot_jobLog(web_projects, BOINC_DIR)
         plot.plot_pipeline(web_projects)
