@@ -36,6 +36,13 @@ import project
 import boinccmd
 
 def main(parser, args=None, namespace=None):
+    if namespace is not None:
+        oldNamespace = argparse.Namespace
+        for key in vars(namespace):
+            if key not in ('add', 'args'):
+                setattr(oldNamespace, key, getattr(namespace, key))
+        namespace = oldNamespace
+
     args, boinccmd_args = parser.parse_known_args(args=args,
                                                   namespace=namespace)
     boinccmd_args.extend(args.args)
@@ -51,7 +58,8 @@ def main(parser, args=None, namespace=None):
 
     # Add account
     if args.add:
-        CONFIG.addAccount(args.add)
+        name = config.cleanSectionName(args.add)
+        CONFIG.addAccount(name)
         time.sleep(1)           # give boinc a chance to catch up
 
     # Call boinccmd

@@ -163,3 +163,10 @@ def set_globals():
 #     setupPassword('mindmodeling.org', ['userid'])
 #     setupPassword('wuprop.boinc-af.org', ['userid'])
 
+def cleanSectionName(name):
+    """Tryies to give a more lenient user input of urls to add. The form
+    http://boinc.ucd.ie/fmah should be translated to boinc.ucd.ie/fmah/"""
+    name = name.replace('http://', '')
+    if not(name.endswith('/')):
+        name += '/'
+    return name
