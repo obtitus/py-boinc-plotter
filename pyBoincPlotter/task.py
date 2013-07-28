@@ -146,6 +146,7 @@ class Task(object):
             try:
                 self.state = self.desc_state.index(state.lower())
             except:                     # guess not
+                logger.debug('Adding state %s', state.lower())
                 self.desc_state.append(state.lower()) # now it is!
                 self.state = self.desc_state.index(state.lower())
 
@@ -391,6 +392,8 @@ class Task_web(Task):
             state = 'invalid'
         elif state.lower().startswith('in progress'):
             state = 'in progress'
+        elif state.lower().startswith('aborted'):
+            state = 'aborted'
         if 'error' in state.lower():
             state = 'error'
 

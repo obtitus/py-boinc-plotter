@@ -174,7 +174,7 @@ def mergeApplications(local_app, web_app):
         logger.debug('looking for %s', local_tasks[ix].name)
         #if local_task[ix] in web_app.tasks:
         for jx in range(len(web_tasks)):
-            logger.debug('is it %s', web_tasks[jx].name)
+            #logger.debug('is it %s', web_tasks[jx].name)
             if web_tasks[jx].name.startswith(local_tasks[ix].name):
                 logger.debug('Found it, replacing %s', web_tasks[ix])
                 web_tasks[jx] = local_tasks[ix] # Local has more info then web
