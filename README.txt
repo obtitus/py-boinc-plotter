@@ -22,7 +22,7 @@ Uses both the boinc rpc and the command line version to communicate with boinc. 
   * Climatepredication.net: climateapps2.oerc.ox.ac.uk/cpdnboinc
   * FightMalaria@home: boinc.ucd.ie/fmah/
 
-Others may work, but these are the ones I have tested. Let me know how it works on other projects! Proper support for badges will be added if I ever get one.
+Others may work, but these are the ones I have tested. Let me know how it works on other projects!
 
 = Requirements =
 This project should be viewed as pre-alpha, currently being developed on a mac with python2.7. Other python versions or operating systems may require some modifications. The following libraries are used:
