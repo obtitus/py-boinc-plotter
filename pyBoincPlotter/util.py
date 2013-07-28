@@ -23,6 +23,36 @@ import datetime
 import logging
 logger = logging.getLogger('boinc.util')
 
+from math import log10
+
+unit = {12: 'T',
+        9: 'G',
+        6: 'M',
+        3: 'k',
+        0: '',        
+        -3: 'm',
+        -6: 'mu',
+        -9: 'n',
+        -12: 'p',
+        -15: 'f',
+        -18: 'a',
+        -21: 'z'}
+
+def engineeringUnit(n):
+    try:
+        x = int(log10(abs(n))//3)*3
+    except ValueError:
+        x = 0
+    try:
+        u = unit[x]
+    except KeyError:
+        x = 0
+    return x, unit[x]
+
+def fmtSi(n):
+    scale, si = engineeringUnit(n)
+    return '{:.3g} {}'.format(n/10**scale, si)
+
 def fmtNumber(x, fmt='.0f'):
     """ Formats large numbers
     """
