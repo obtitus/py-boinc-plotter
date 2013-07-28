@@ -72,6 +72,10 @@ def dayFormat(ax, month=False):
         label.set_rotation(45)
         label.set_ha('right')
 
+def siFormatter(ax, scale):
+    func = lambda y, pos: '{0:g}'.format(y/10**scale)
+    ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(func))
+    
 def showImage(ax, browser, ix,
               value, color='', url='', 
               frameon=True,
