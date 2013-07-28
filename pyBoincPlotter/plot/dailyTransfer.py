@@ -75,12 +75,11 @@ def plot(fig, data):
 
     y_min, y_max = ax.get_ybound()
     y_max = max(abs(y_min), abs(y_max))
-    y_scale, y_si = util.engineeringUnit(y_max)
-    func = lambda y, pos: '{0:g}'.format(y/10**y_scale)
-    ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(func))
+    scale, si = util.engineeringUnit(y_max)
+    siFormatter(ax, scale)
 
     ax.set_xlabel('Date')
-    ax.set_ylabel('upload/-download {}B'.format(y_si))
+    ax.set_ylabel('upload/-download {}B'.format(si))
     dayFormat(ax)
 
 def getFilename(BOINC_DIR):

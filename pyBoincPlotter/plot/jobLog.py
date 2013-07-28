@@ -189,10 +189,15 @@ class JobLog(list):
         if leg is not None:
             leg.draggable()
 
-        ylabels = ['Estimated time', 'Final CPU time', 'Final clock time', 'Tflops']
+        ylabels = ['Estimated time', 'Final CPU time', 'Final clock time', 'flops']
         for ix, ax in enumerate(axes):
             ax.set_xlabel('Date')
-            if ix != len(axes)-1: # last axes
+            if ix == len(axes)-1: # last axes
+                y_min, y_max = ax.get_ybound()
+                scale, si = util.engineeringUnit(y_max)
+                ylabels[ix] = si + ylabels[ix]
+                siFormatter(ax, scale)
+            else:
                 ax.yaxis.set_major_formatter(formatter_timedelta)
                 plt.setp(ax.get_xticklabels(), visible=False)
 
@@ -206,8 +211,6 @@ class JobLog(list):
 
         kwargs = dict(ls='none', marker='o', color=self.color)
         for ix, data in enumerate([self.ue, self.ct, self.et, self.fe]):
-            if ix == 3:
-                data = np.array(data)/1e12
             axes[ix].plot(time, data, **kwargs)
 
     def plot_hist_day(self, axes):
@@ -230,7 +233,7 @@ class JobLog(list):
             axes[0].bar(x, cumulative[0], **kwargs)
             axes[1].bar(x, cumulative[1], **kwargs)
             axes[2].bar(x, cumulative[2], **kwargs)
-            axes[3].bar(x, cumulative[3]/1e12, **kwargs)
+            axes[3].bar(x, cumulative[3], **kwargs)
 
         for ix in range(len(time)):
             # If new day, plot and null out cumulative
@@ -331,7 +334,7 @@ class JobLog_Months(JobLog):
             axes[0].bar(x, cumulative[0], **kwargs)
             axes[1].bar(x, cumulative[1], **kwargs)
             axes[2].bar(x, cumulative[2], **kwargs)
-            axes[3].bar(x, cumulative[3]/1e12, **kwargs)
+            axes[3].bar(x, cumulative[3], **kwargs)
 
         for ix in range(len(time)):
             # If new month, plot and null out cumulative

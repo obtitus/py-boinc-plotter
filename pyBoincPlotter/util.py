@@ -25,7 +25,11 @@ logger = logging.getLogger('boinc.util')
 
 from math import log10
 
-unit = {12: 'T',
+unit = {24: 'Y',
+        21: 'Z',
+        18: 'E',
+        15: 'P',
+        12: 'T',
         9: 'G',
         6: 'M',
         3: 'k',
