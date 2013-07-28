@@ -120,7 +120,9 @@ def run():
     parser.add_argument('--silent', '-s', action='store_true', help='Sets logging level to ERROR')    
     parser.add_argument('--add', help='Add webpage that pyBoinc should track, example: --add wuprop.boinc-af.org/')
     parser.add_argument('args', nargs=argparse.REMAINDER, 
-                        help='Remaining args are passed to the command line boinccmd if available, pass "--help " (with quotes for help)')
+                        help=('Remaining args are passed'
+                              'to the command line boinccmd '
+                              'if available, pass "--help " (with quotes) for help'))
     namespace = main(parser)
 
     while True:
