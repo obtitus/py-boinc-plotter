@@ -29,6 +29,10 @@ import logging
 logger = logging.getLogger('boinc.plot.dailyTransfer')
 # This project
 from importMatplotlib import *
+try:
+    from ..util import util
+except ValueError:
+    import util
 
 def parse(page, limitDays):
     """
@@ -57,17 +61,26 @@ def parse(page, limitDays):
 
 def plot(fig, data):
     day = data['when']
-    up, down = data['up']/1e6, data['down']/1e6
+    up, down = data['up'], data['down']
 
-    fig.suptitle('Total upload/download = {0:.3g} MB/{1:.3g} MB'.format(sum(up), sum(down)))
+    s_up, s_down = sum(up), sum(down)
+    fig.suptitle('Total upload/download = {}B/{}B'.format(util.fmtSi(s_up),
+                                                          util.fmtSi(s_down)))
+    
     ax = fig.add_subplot(111)
     kwargs = dict(align='center')
     for ix in range(len(day)):
         ax.bar(day[ix], up[ix], color='b', **kwargs)
         ax.bar(day[ix], -down[ix], color='r', **kwargs)
 
+    y_min, y_max = ax.get_ybound()
+    y_max = max(abs(y_min), abs(y_max))
+    y_scale, y_si = util.engineeringUnit(y_max)
+    func = lambda y, pos: '{0:g}'.format(y/10**y_scale)
+    ax.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(func))
+
     ax.set_xlabel('Date')
-    ax.set_ylabel('upload/-download MB')
+    ax.set_ylabel('upload/-download {}B'.format(y_si))
     dayFormat(ax)
 
 def getFilename(BOINC_DIR):
