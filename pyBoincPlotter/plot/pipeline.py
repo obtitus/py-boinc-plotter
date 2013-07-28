@@ -30,14 +30,11 @@ except ValueError:
     from task import Task
 
 def plot(fig, projects):
-    states = list(Task.desc_state)
-    for s in ['in progress', 
-              'aborted', 'detached', 'error', 'no reply', 
+    states = ['in progress', 
+              'downloading', 'ready to run', 'running', 'suspended', 'paused', 
+              'computation completed', 'uploading', 'ready to report', 
               'pending validation', 'pending verification', 
-              'valid', 'invalid', 'inconclusive', 'too late', 
-              'waiting to send']:
-        if s not in states:
-            states.append(s)
+              'valid', 'invalid', 'inconclusive', 'too late', 'unknown']
 
     apps = list()
     for p in projects.values():
@@ -46,8 +43,8 @@ def plot(fig, projects):
 
             for task in app.tasks:
                 if task.state_str not in states:
+                    logger.debug('Adding state %s', task.state_str)
                     states.append(task.state_str)
-
 
     colormap = matplotlib.cm.get_cmap('Set1')
     colors = [colormap(i) for i in np.linspace(0, 1, len(apps))]
