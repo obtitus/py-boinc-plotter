@@ -23,6 +23,7 @@ Plots the daily_xfer_history.xml file
 # Standard python
 import os
 import datetime
+import calendar
 import xml.etree.ElementTree
 from collections import defaultdict
 import logging
@@ -34,7 +35,7 @@ try:
 except ValueError:
     import util
 
-def parse(page, limitDays):
+def parse(page, limitMonths):
     """
     Returns a dictionary which should contain a list of 'when', 'up' and 'down'
     """
@@ -46,8 +47,8 @@ def parse(page, limitDays):
             if child.tag == 'when':
                 item = float(child.text)
                 item = datetime.datetime.fromtimestamp(item*60*60*24)
-                if limitDays == None or (now - item).days < limitDays:
-                    data[child.tag].append(plt.date2num(item))
+                if limitMonths == None or util.diffMonths(item, now) < limitMonths:
+                    data[child.tag].append(item)
                 else:
                     break
             else:
@@ -59,19 +60,22 @@ def parse(page, limitDays):
 
     return data
 
-def plot(fig, data):
-    day = data['when']
-    up, down = data['up'], data['down']
-
+def setTitle(fig, up, down):
     s_up, s_down = sum(up), sum(down)
     fig.suptitle('Total upload/download = {}B/{}B'.format(util.fmtSi(s_up),
                                                           util.fmtSi(s_down)))
     
+def plot(fig, data):
+    day = data['when']
+    up, down = data['up'], data['down']
+    
+    setTitle(fig, up, down)
+
     ax = fig.add_subplot(111)
-    kwargs = dict(align='center')
+    kwargs = dict(align='center', width=1)
     for ix in range(len(day)):
-        ax.bar(day[ix], up[ix], color='b', **kwargs)
-        ax.bar(day[ix], -down[ix], color='r', **kwargs)
+        ax.bar(plt.date2num(day[ix]), up[ix], color='b', **kwargs)
+        ax.bar(plt.date2num(day[ix]), -down[ix], color='r', **kwargs)
 
     y_min, y_max = ax.get_ybound()
     y_max = max(abs(y_min), abs(y_max))
@@ -81,6 +85,33 @@ def plot(fig, data):
     ax.set_xlabel('Date')
     ax.set_ylabel('upload/-download {}B'.format(si))
     dayFormat(ax)
+
+def plotMonths(fig, data):
+    day = data['when']
+    day.sort()
+    up, down = data['up'], data['down']
+
+    setTitle(fig, up, down)
+    ax = fig.add_subplot(111)
+
+    kwargs = dict(alpha=0.5)
+    for day, data in cumulativeMonth(day, (up, down)):
+        day = day.replace(day=1, hour=0, minute=0, 
+                          second=0, microsecond=0)
+        _, daysInMonth = calendar.monthrange(day.year, day.month)
+
+        kwargs['width'] = daysInMonth
+        ax.bar(plt.date2num(day), data[0], color='b', **kwargs)
+        ax.bar(plt.date2num(day), -data[0], color='r', **kwargs)
+
+    y_min, y_max = ax.get_ybound()
+    y_max = max(abs(y_min), abs(y_max))
+    scale, si = util.engineeringUnit(y_max)
+    siFormatter(ax, scale)
+
+    ax.set_xlabel('Date')
+    ax.set_ylabel('upload/-download {}B'.format(si))
+    dayFormat(ax, month=True)
 
 def getFilename(BOINC_DIR):
     return os.path.join(BOINC_DIR, 'daily_xfer_history.xml')
@@ -93,8 +124,14 @@ if __name__ == '__main__':
     
     _, _, BOINC_DIR = config.set_globals()
     fig1 = plt.figure()
-    
-    data = parse(getFilename(BOINC_DIR), limitDays=15)
+    fig2 = plt.figure()
+    filename = getFilename(BOINC_DIR)
+
+    data = parse(filename, limitMonths=1)
     plot(fig1, data)
+
+    data = parse(filename, limitMonths=12)
+    plot(fig2, data)
+    plotMonths(fig2, data)
 
     raw_input('=== Press enter to exit ===\n')

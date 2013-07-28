@@ -93,3 +93,20 @@ def showImage(ax, browser, ix,
                                              frameon=frameon, 
                                              box_alignment=box_alignment)
     ax.add_artist(ab)
+
+def cumulativeMonth(day, data):
+    currentDay = day[0]
+    cumulative = np.zeros(len(data))
+
+    for ix in range(len(day)):
+        # If new month, plot and null out cumulative
+        if currentDay.month != day[ix].month:
+            yield currentDay, cumulative
+            # prepare for next loop
+            currentDay = day[ix]
+            cumulative = np.zeros(len(data))
+        
+        for jx in range(len(data)):
+            cumulative[jx] += data[jx][ix]
+        
+    yield day[-1], cumulative

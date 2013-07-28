@@ -323,7 +323,8 @@ class JobLog_Months(JobLog):
         cumulative = np.zeros(4) # [ue, ct, et, fe]
 
         def myBarPlot(currentDay, cumulative, **kwargs):
-            d = currentDay.replace(day=1, hour=0, minute=0, second=1, microsecond=0) # Reset to 0:00:00 this month for alignment of bars
+            d = currentDay.replace(day=1, hour=0, minute=0, 
+                                   second=1, microsecond=0) # Reset to 0:00:00 this month for alignment of bars
             x = plt.date2num(d)
             # Plot bars
             _, daysInMonth = calendar.monthrange(currentDay.year,
