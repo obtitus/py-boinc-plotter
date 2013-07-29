@@ -40,6 +40,7 @@ def main(parser, args=None, namespace=None):
         oldNamespace = argparse.Namespace
         for key in vars(namespace):
             if key not in ('add', 'args'):
+                logger.debug('transferring key "{}"'.format(key))
                 setattr(oldNamespace, key, getattr(namespace, key))
         namespace = oldNamespace
 

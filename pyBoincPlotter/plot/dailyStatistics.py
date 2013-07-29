@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Standard python
 import datetime
 import xml.etree.ElementTree
@@ -50,7 +51,9 @@ def plotStatistics(fig, data, name):
     ax2.plot(data['day'], data['user_expavg_credit'], label='{0}'.format(name), **kwargs)
 
     ax2.plot(data['day'], data['host_expavg_credit'], **kwargsHost)
-    ax2.legend(loc='best').draggable()
+    leg = ax2.legend(loc='best')
+    leg.draggable()
+    leg.draw_frame(False)
 
     ax2.set_xlabel('Date')
     ax2.set_ylabel('Average boinc credit')
