@@ -31,7 +31,7 @@ logger = logging.getLogger('boinc.plot.dailyTransfer')
 # This project
 from importMatplotlib import *
 try:
-    from ..util import util
+    from .. import util
 except ValueError:
     import util
 

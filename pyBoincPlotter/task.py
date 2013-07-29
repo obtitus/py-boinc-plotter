@@ -173,6 +173,7 @@ class Task(object):
         return self.timedeltaToStr(self.remainingCPUtime)
 
     def setRemainingCPUtime(self, remainingCPUtime):
+        self.__state = None
         self.remainingCPUtime = self.strToTimedelta(remainingCPUtime)
 
     @property
@@ -209,6 +210,8 @@ class Task_local(Task):
                    'waiting to quit', 'suspended', 'waiting for copy', # 8, 9, 10
                    'unknown']   # -1
     def __init__(self, schedularState=-1, active=-1, memUsage=0, **kwargs):
+        self.__state = None      # cache
+
         self.setSchedularState(schedularState)
         self.setActive(active)
         self.memUsage = float(memUsage)
@@ -274,25 +277,30 @@ class Task_local(Task):
 
     @Task.state_str.getter
     def state_str(self):
-        state = self.desc_state[self.state]
-        # Hack
-        # The current state seems to be determined by 3 numbers: state, active and schedularState.
-        # I have been unable to determine their exact meaning, so the following is based on comparision with the boincManager.
-        if self.done(): # done
-            #self.currentCPUtime = self.finalCPUtime
-            state = 'ready to report'
-        elif self.schedularState == -1 and self.active == -1: # Very strange hack
-            state = 'ready to run'
-        elif state == 'computation completed':
-            state = 'completed'
-        elif self.schedularState_str == 'suspended':
-            state = self.schedularState_str
-        elif self.schedularState_str == 'ready to start':
-            state = 'ready to run'
-        elif self.active in (2, 9):
-            state = self.active_str
-        logger.debug('infered state %s, flags %s %s %s', state, 
-                     self.state, self.schedularState, self.active)
+        if self.__state is None:
+            state = self.desc_state[self.state]
+            # Hack
+            # The current state seems to be determined by 3 numbers: state, active and schedularState.
+            # I have been unable to determine their exact meaning, so the following is based on comparision with the boincManager.
+            if self.done(): # done
+                #self.currentCPUtime = self.finalCPUtime
+                state = 'ready to report'
+            elif self.schedularState == -1 and self.active == -1: # Very strange hack
+                state = 'ready to run'
+            elif state == 'computation completed':
+                state = 'completed'
+            elif self.schedularState_str == 'suspended':
+                state = self.schedularState_str
+            elif self.schedularState_str == 'ready to start':
+                state = 'ready to run'
+            elif self.active in (2, 9):
+                state = self.active_str
+            logger.debug('infered state %s, flags %s %s %s', state, 
+                         self.state, self.schedularState, self.active)
+            self.__state = state
+        else:
+            state = self.__state
+
         return state
 
     @property
@@ -301,6 +309,7 @@ class Task_local(Task):
         return state
 
     def setSchedularState(self, state):
+        self.__state = None
         self.schedularState = int(state)
 
     @property
@@ -309,6 +318,7 @@ class Task_local(Task):
         return state
 
     def setActive(self, state):
+        self.__state = None
         self.active = int(state)
 
     def pendingTime(self, include_elapsedCPUtime=True):
