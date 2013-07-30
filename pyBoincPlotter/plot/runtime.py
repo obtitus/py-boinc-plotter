@@ -108,9 +108,7 @@ def plot_worldcommunitygrid(fig, browser, data):
     fig.suptitle('{} worlcommunitygrid applications, total runtime {}'.format(len(labels), 
                                                                               totalRuntime))
 
-def plot_wuprop(fig, projects, browser):
-    ax = fig.add_subplot(111)
-
+def parse_wuprop(projects):
     applications = list()
     badges = list()             # hmm, well, there is only 1 but one can always dream
     for key, project in sorted(projects.items()):
@@ -129,14 +127,23 @@ def plot_wuprop(fig, projects, browser):
             if hasattr(badge, 'isWuprop'):    # isinstance failed, see http://mail.python.org/pipermail/python-bugs-list/2005-August/029861.html
                 badges.append(badge)
 
-    applications.sort(reverse=True)
+    def my_cmp(app1, app2):
+        """This shouldn't be needed"""
+        if app1[0] != app2[0]:
+            return cmp(app1[0], app2[0])
+        else:
+            return cmp(app1[2].name, app2[2].name)
+
+    applications.sort(reverse=True, cmp=my_cmp)
+    return applications, badges
+
+def plot_wuprop(fig, applications, badges, browser):
+    ax = fig.add_subplot(111)
 
     labels = list()
     width = 0.75
 
     totalRuntime = datetime.timedelta(0)
-    # for key, project in sorted(projects.items()):
-    #     for key, app in sorted(project.applications.items()):
     for ix, data in enumerate(applications):
         badgeLine = data[0]
         color = data[1]
@@ -191,7 +198,9 @@ def plot_wuprop(fig, projects, browser):
 def plotAll(fig1, fig2, projects, browser):
     data = parse_worldcommunitygrid(projects)
     plot_worldcommunitygrid(fig1, browser, data)
-    plot_wuprop(fig2, projects, browser)
+
+    applications, badges = parse_wuprop(projects)
+    plot_wuprop(fig2, applications, badges, browser)
 
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
