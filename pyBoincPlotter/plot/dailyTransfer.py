@@ -102,7 +102,7 @@ def plotMonths(fig, data):
 
         kwargs['width'] = daysInMonth
         ax.bar(plt.date2num(day), data[0], color='b', **kwargs)
-        ax.bar(plt.date2num(day), -data[0], color='r', **kwargs)
+        ax.bar(plt.date2num(day), -data[1], color='r', **kwargs)
 
     y_min, y_max = ax.get_ybound()
     y_max = max(abs(y_min), abs(y_max))
