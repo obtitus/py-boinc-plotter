@@ -178,7 +178,7 @@ def plot_wuprop(fig, applications, badges, browser):
             if value != 0:
                 try:
                     showImage(ax, browser, (ix+1)*20,
-                              value=value*3600, url=badge.url,
+                              value=value*3600, url=b.url,
                               frameon=False,
                               box_alignment=(0.5, 0.5))
                 except Exception as e:
