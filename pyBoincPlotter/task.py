@@ -285,6 +285,8 @@ class Task_local(Task):
             if self.done(): # done
                 #self.currentCPUtime = self.finalCPUtime
                 state = 'ready to report'
+            elif self.state == 2 and self.active == 0: # Shows up as 'Waiting to run'
+                state = 'suspended'
             elif self.schedularState == -1 and self.active == -1: # Very strange hack
                 state = 'ready to run'
             elif state == 'computation completed':

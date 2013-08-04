@@ -108,5 +108,5 @@ def cumulativeMonth(day, data):
         
         for jx in range(len(data)):
             cumulative[jx] += data[jx][ix]
-        
+
     yield day[-1], cumulative
