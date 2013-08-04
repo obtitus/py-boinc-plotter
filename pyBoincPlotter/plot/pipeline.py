@@ -31,7 +31,7 @@ except ValueError:
 
 def plot(fig, projects):
     states = ['in progress', 
-              'downloading', 'ready to run', 'running', 'suspended', 'paused', 
+              'downloading', 'ready to run', 'suspended', 'paused', 'running',
               'computation completed', 'uploading', 'ready to report', 
               'pending validation', 'pending verification', 
               'valid', 'invalid', 'inconclusive', 'too late', 'unknown']
