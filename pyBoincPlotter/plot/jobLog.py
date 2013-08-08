@@ -20,6 +20,7 @@
 
 # Standard python
 import calendar
+import time
 from collections import namedtuple
 import logging
 logger = logging.getLogger('boinc.plot.jobLog')
@@ -36,6 +37,33 @@ except ValueError:
     import util
 
 from importMatplotlib import *
+
+def decay_average(t, y, now=0):
+    """Modified from http://boinc.berkeley.edu/trac/wiki/CreditStats
+function decay_average($avg, $avg_time, $now = 0) {
+   $M_LN2 = 0.693147180559945309417;
+   $credit_half_life = 86400 * 7;
+   if ($now == 0) {
+       $now = time();
+   }
+   $diff = $now - $avg_time;
+   $weight = exp(-$diff * $M_LN2/$credit_half_life);
+   $avg *= $weight;
+   return $avg;
+}
+    """
+    M_LN2 = 0.693147180559945309417
+    credit_half_life = 7#86400 * 7, matplotlib deals in days
+    if now == 0:
+        now = datetime.datetime.now()
+        now = plt.date2num(now)
+
+    diff = now - t
+    weight = np.exp(-diff*M_LN2/credit_half_life)
+    # print 't, y', t, y
+    # print '-diff', -diff, M_LN2, credit_half_life
+    # print 'weight', weight
+    return sum(y*weight)/sum(weight)
 
 def createFromFilename(cls, filename, limitMonths=None, label=''):
     """ Returns a JobLog instance from a given filename
@@ -161,38 +189,38 @@ class JobLog(list):
             return
 
         N = 4                               # Number of subplots
-        axes = list()
+        self.axes = list()
         ax1 = fig.add_subplot(N, 1, 1)
         for ix in range(N):
             if ix != 3:
-                ax = fig.add_subplot(N, 1, ix+1, sharey=ax1)
+                ax = fig.add_subplot(N, 1, ix+1)#, sharey=ax1)
             else:
                 ax = fig.add_subplot(N, 1, ix+1)
             barPlotter = BarPlotter(ax)
-            axes.append(barPlotter)
+            self.axes.append(barPlotter)
 
         # Plot datapoints and bars, make sure the same colors are used.
         self.setColor(ax1)
-        self.plot_datapoints(axes)
-        self.plot_hist_day(axes)
+        self.plot_datapoints()
+        self.plot_hist_day()
         
-        self.formatAxis(axes)
+        self.formatAxis()
 
     def formatXAxis(self, ax):
         dayFormat(ax)
 
-    def formatAxis(self, axes):
-        for ax in axes:
+    def formatAxis(self):
+        for ax in self.axes:
             self.formatXAxis(ax)
 
-        leg = axes[3].legend()
+        leg = self.axes[3].legend()
         if leg is not None:
             leg.draggable()
 
         ylabels = ['Estimated time', 'Final CPU time', 'Final clock time', 'flops']
-        for ix, ax in enumerate(axes):
+        for ix, ax in enumerate(self.axes):
             ax.set_xlabel('Date')
-            if ix == len(axes)-1: # last axes
+            if ix == len(self.axes)-1: # last axes
                 y_min, y_max = ax.get_ybound()
                 scale, si = util.engineeringUnit(y_max)
                 ylabels[ix] = si + ylabels[ix]
@@ -203,7 +231,7 @@ class JobLog(list):
 
             ax.set_ylabel(ylabels[ix])
 
-    def plot_datapoints(self, axes):
+    def plot_datapoints(self):
         """
         Let each datapoint be a single dot
         """
@@ -211,9 +239,9 @@ class JobLog(list):
 
         kwargs = dict(ls='none', marker='o', color=self.color)
         for ix, data in enumerate([self.ue, self.ct, self.et, self.fe]):
-            axes[ix].plot(time, data, **kwargs)
+            self.axes[ix].plot(time, data, **kwargs)
 
-    def plot_hist_day(self, axes):
+    def plot_hist_day(self):
         """
         Create a single bar for each day
         """
@@ -230,10 +258,10 @@ class JobLog(list):
             kwargs['width'] = 1
             kwargs['alpha'] = 0.75
             kwargs['color'] = self.color
-            axes[0].bar(x, cumulative[0], **kwargs)
-            axes[1].bar(x, cumulative[1], **kwargs)
-            axes[2].bar(x, cumulative[2], **kwargs)
-            axes[3].bar(x, cumulative[3], **kwargs)
+            self.axes[0].bar(x, cumulative[0], **kwargs)
+            self.axes[1].bar(x, cumulative[1], **kwargs)
+            self.axes[2].bar(x, cumulative[2], **kwargs)
+            self.axes[3].bar(x, cumulative[3], **kwargs)
 
         for ix in range(len(time)):
             # If new day, plot and null out cumulative
@@ -305,14 +333,28 @@ class JobLog(list):
             leg.draggable()
             leg.draw_frame(False)
 
+    def appendAverage(self):
+        for ax in self.axes:
+            N = len(ax.bottom)
+            time, value = np.zeros(N), np.zeros(N)
+            ix = 0
+            for t, y in ax.bottom.items(): # we could sort, but we don't need to
+                time[ix], value[ix] = t, y
+                ix += 1
+            
+            avg = decay_average(time, value)
+            logger.debug('AVG %s', avg)
+            ax.axhline(avg, color='k', ls='--')
+            #ax.annotate("{}".format(avg), (max(time)+1, avg))
+
 class JobLog_Months(JobLog):
     """ JobLog focus is on single events summed up to one day, 
     this class focuses on days being summed to months
     """
-    def plot_datapoints(self, axes):
-        JobLog.plot_hist_day(self, axes)
+    def plot_datapoints(self):
+        JobLog.plot_hist_day(self)
 
-    def plot_hist_day(self, axes):
+    def plot_hist_day(self):
         """ Replaces hist_day with hist_month
         """
         time, ue, ct, fe, name, et = self.time, self.ue, self.ct, self.fe, self.names, self.et
@@ -332,10 +374,10 @@ class JobLog_Months(JobLog):
             kwargs['width'] = daysInMonth
             kwargs['alpha'] = 0.5
             kwargs['color'] = self.color
-            axes[0].bar(x, cumulative[0], **kwargs)
-            axes[1].bar(x, cumulative[1], **kwargs)
-            axes[2].bar(x, cumulative[2], **kwargs)
-            axes[3].bar(x, cumulative[3], **kwargs)
+            self.axes[0].bar(x, cumulative[0], **kwargs)
+            self.axes[1].bar(x, cumulative[1], **kwargs)
+            self.axes[2].bar(x, cumulative[2], **kwargs)
+            self.axes[3].bar(x, cumulative[3], **kwargs)
 
         for ix in range(len(time)):
             # If new month, plot and null out cumulative
@@ -360,7 +402,7 @@ class JobLog_Months(JobLog):
 
 class BarPlotter(object):
     # Bar plotter that remembers bottom
-    # and automatically plots bars stacked in stead of on top of each other
+    # and automatically plots bars stacked instead of on top of each other
     # Assumes that bar is called with only a single bar at a time
     def __init__(self, ax):
         self.ax = ax
@@ -411,17 +453,20 @@ def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
             project = None
             label = url
 
-        tasks = createFromFilename(JobLog, filename, 
+        tasks_daily = createFromFilename(JobLog, filename, 
                                    label=label, limitMonths=1)
         if project is not None:
-            tasks.merge(project)
+            tasks_daily.merge(project)
 
-        tasks.plot(fig=fig1)
-        tasks.plot_FoM(fig=fig2)
+        tasks_daily.plot(fig=fig1)
+        tasks_daily.plot_FoM(fig=fig2)
 
-        tasks = createFromFilename(JobLog_Months, filename, 
+        task_monthly = createFromFilename(JobLog_Months, filename, 
                                    label=label, limitMonths=120)
-        tasks.plot(fig=fig3)
+        task_monthly.plot(fig=fig3)
+
+    tasks_daily.appendAverage()
+    #task_monthly.appendAverage() # vops modificatin needed for this to work. Data is stored twice
 
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
