@@ -33,10 +33,14 @@ import statistics
 import project
 
 class HTMLParser(object):
-    def __init__(self, browser, project=None):
+    def __init__(self, browser, p=None):
         self.Task = task.Task_web
         self.browser = browser
-        self.project = project
+        if p != None:
+            self.project = p
+        else:
+            self.project = project.Project(url=self.browser.section)
+
         self.name = browser.name
         self.logger = logging.getLogger('boinc.browser.{}'.format(self.__class__.__name__))
 
