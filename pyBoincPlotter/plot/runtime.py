@@ -121,20 +121,20 @@ def parse_wuprop(projects):
 
             runtime_sec = runtime.total_seconds()
             color, value = Badge_wuprop.getColor(runtime_sec)
-            applications.append((value, color, app)) # Uses value for sorting
+            applications.append((value, color, '{} {}'.format(project.name, app.name), app))
 
         for _, badge in project.badges:
             if hasattr(badge, 'isWuprop'):    # isinstance failed, see http://mail.python.org/pipermail/python-bugs-list/2005-August/029861.html
                 badges.append(badge)
 
-    def my_cmp(app1, app2):
-        """This shouldn't be needed"""
-        if app1[0] != app2[0]:
-            return cmp(app1[0], app2[0])
-        else:
-            return cmp(app1[2].name, app2[2].name)
+    # def my_cmp(app1, app2):
+    #     """This shouldn't be needed"""
+    #     if app1[0] != app2[0]:
+    #         return cmp(app1[0], app2[0])
+    #     else:
+    #         return cmp(app1[2].name, app2[2].name)
 
-    applications.sort(reverse=True, cmp=my_cmp)
+    applications.sort(reverse=True)#, cmp=my_cmp)
     return applications, badges
 
 def plot_wuprop(fig, applications, badges, browser):
@@ -147,7 +147,8 @@ def plot_wuprop(fig, applications, badges, browser):
     for ix, data in enumerate(applications):
         badgeLine = data[0]
         color = data[1]
-        app = data[2]
+        label = data[2]
+        app = data[3]
         stat = app.statistics
 
         h = stat.wuRuntime.total_seconds()
@@ -168,7 +169,7 @@ def plot_wuprop(fig, applications, badges, browser):
             ax.bar(ix, t, bottom=h, alpha=alpha, **kwargs)
             h += t
 
-        labels.append(app.name)
+        labels.append(label)
 
         days = badgeLine*60*60
         plt.axhline(days, color=color)
