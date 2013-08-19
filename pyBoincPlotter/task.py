@@ -473,7 +473,8 @@ class Task_web_climateprediction(Task_web):
         grantedCredit = data[9]
         return Task_web(name=name, device=device,
                         deadline=deadline, state=state,
-                        elapsedCPUtime=CPUtime, grantedCredit=grantedCredit)
+                        elapsedCPUtime=CPUtime, 
+                        claimedCredit=claimedCredit, grantedCredit=grantedCredit)
 
 class Task_jobLog(Task):
     """
