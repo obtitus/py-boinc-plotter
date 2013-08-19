@@ -456,6 +456,25 @@ class Task_web_yoyo(Task_web):
                              elapsedCPUtime=CPUtime, deadline=deadline,
                              claimedCredit=claimedCredit, grantedCredit=grantedCredit)
 
+class Task_web_climateprediction(Task_web):
+    @staticmethod
+    def createFromHTML(data):
+        logger.debug('creating from %s', data)
+        assert len(data) == 10, 'vops, data not recognized %s, len = %s' % (data, len(data))
+        name = data[0]
+        workUnitId = data[1]    # not used
+        device = data[2]
+        sentTime = data[3]      # not used
+        deadline = data[4]
+        state = data[5]
+        clockTime = data[6]     # not used
+        CPUtime = data[7]
+        claimedCredit = data[8]
+        grantedCredit = data[9]
+        return Task_web(name=name, device=device,
+                        deadline=deadline, state=state,
+                        elapsedCPUtime=CPUtime, grantedCredit=grantedCredit)
+
 class Task_jobLog(Task):
     """
     Represents a task from the job_log, with the following fields:

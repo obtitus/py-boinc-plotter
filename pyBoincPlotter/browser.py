@@ -353,7 +353,7 @@ def getProjectsDict(CONFIG, browser_cache):
 
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
-    loggerSetup(logging.INFO)
+    loggerSetup(logging.DEBUG)
     
     import config
     
@@ -374,4 +374,4 @@ if __name__ == '__main__':
         p = getProject(section, CONFIG=CONFIG, browser_cache=browser_cache)
         projects = dict(section=p)
 
-    pretty_print(projects)
+    pretty_print(projects, show_empty=True)
