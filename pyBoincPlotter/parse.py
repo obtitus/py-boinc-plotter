@@ -35,6 +35,7 @@ import project
 class HTMLParser(object):
     def __init__(self, browser, p=None):
         self.Task = task.Task_web
+        self.wantedLength = 10  # wanted length of task data
         self.browser = browser
         if p != None:
             self.project = p
@@ -62,6 +63,9 @@ class HTMLParser(object):
         elif section == 'numberfields.asu.edu/NumberFields':
             logger.debug('getting NumberFields parser')
             parser = HTMLParser_numberfields(**kwargs)
+        elif section == 'climateapps2.oerc.ox.ac.uk/cpdnboinc':
+            logger.debug('getting climateprediction parser')
+            parser = HTMLParser_climateprediction(**kwargs)
         else:                   # Lets try the generic
             logger.debug('getting generic parser, name = %s', section)
             parser = HTMLParser(**kwargs)
@@ -88,7 +92,7 @@ class HTMLParser(object):
             if len(ret) != 0:
                 self.logger.debug('in parseTable, got %s, len = %s', ret, len(ret))
 
-            if len(ret) == 10 and ret[0].strip() != '':
+            if len(ret) == self.wantedLength and ret[0].strip() != '':
                 yield ret
 
     def getRows(self, html):
@@ -298,6 +302,12 @@ class HTMLParser_yoyo(HTMLParser_worldcommunitygrid):
 
                             self.project.appendBadge(name, badge.Badge_yoyo(b, url))
 
+class HTMLParser_climateprediction(HTMLParser):
+    """Same as web but length is 11"""
+    def __init__(self, *args, **kwargs):
+        super(HTMLParser_climateprediction, self).__init__(*args, **kwargs)
+        self.Task = task.Task_web_climateprediction
+        self.wantedLength = 11
 
 class HTMLParser_primegrid(HTMLParser):
     def getBadges(self):
