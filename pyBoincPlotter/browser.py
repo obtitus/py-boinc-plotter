@@ -26,6 +26,7 @@ import time
 import os
 import sys
 import re
+import argparse
 import logging
 logger = logging.getLogger('boinc.browser')
 # Non-standard python
@@ -178,10 +179,11 @@ class BrowserSuper(object):
         if len(request.history) != 0:
             return True
         
-        ix = request.content.find('\n')
-        firstLine = request.content[:ix]
-        logger.debug('First line "%s"', firstLine)
-        return 'Please log in' in firstLine
+        # ix = request.content.find('\n')
+        # firstLine = request.content[:ix]
+        # logger.debug('First line "%s"', firstLine)
+        # return 'Please log in' in firstLine
+        return 'Please log in' in request.content
 
     def visitURL(self, URL, recursionCall=False, extension='.html'):
         """ RecursionCall is used to limit recursion to 1 step
@@ -265,7 +267,7 @@ class Browser_worldcommunitygrid(BrowserSuper):
         url = self.name + "/verifyMember.do?name={0}&code={1}"
         page = self.visitURL(url.format(username, code), extension='.xml')
         return page
-
+        
 class Browser(BrowserSuper):
     def __init__(self, section, browser_cache, CONFIG):
         self.section = section
@@ -355,9 +357,21 @@ if __name__ == '__main__':
     
     import config
     
+    parser = argparse.ArgumentParser(description='Web portion of pyBoincPlotter')
+    parser.add_argument('section', default='all', help='Section name to visit, see config file for details.')
+    args = parser.parse_args()
+    
     CONFIG, CACHE_DIR, _ = config.set_globals()
     browser_cache = Browser_file(CACHE_DIR)
     
-    projects = getProjectsDict(CONFIG, browser_cache)
+    if args.section == 'all':
+        projects = getProjectsDict(CONFIG, browser_cache)
+    else:
+        valid_sections = CONFIG.projects()
+        section = args.section
+        if not(section in valid_sections):
+            print 'Invalid section name, either add to config file or use one of: "%s"' % valid_sections
+        p = getProject(section, CONFIG=CONFIG, browser_cache=browser_cache)
+        projects = dict(section=p)
 
     pretty_print(projects)
