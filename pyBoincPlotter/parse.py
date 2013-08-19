@@ -39,7 +39,7 @@ class HTMLParser(object):
         if p != None:
             self.project = p
         else:
-            self.project = project.Project(url=self.browser.section)
+            self.project = project.Project(url=self.browser.name)
 
         self.name = browser.name
         self.logger = logging.getLogger('boinc.browser.{}'.format(self.__class__.__name__))

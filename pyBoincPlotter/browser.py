@@ -220,14 +220,11 @@ class BrowserSuper(object):
         return content
 
     def parse(self, project=None):
-        if project == None:
-            project = Project(url=self.name)
-
         taskPage = self.visit()
         if taskPage == '':
             return project
 
-        parser = HTMLParser.getParser(self.section, browser=self, project=project)
+        parser = HTMLParser.getParser(self.section, browser=self, p=project)
         try:
             parser.parse(taskPage)
             
@@ -238,7 +235,7 @@ class BrowserSuper(object):
         except Exception as e:
             logger.exception('Uncaught parse exception %s', e)
 
-        return project
+        return parser.project
 
     @property
     def name(self):
