@@ -222,11 +222,12 @@ class BrowserSuper(object):
         return content
 
     def parse(self, project=None):
+        parser = HTMLParser.getParser(self.section, browser=self, p=project)
+
         taskPage = self.visit()
         if taskPage == '':
-            return project
+            return parser.project # empty project
 
-        parser = HTMLParser.getParser(self.section, browser=self, p=project)
         try:
             parser.parse(taskPage)
             
