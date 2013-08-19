@@ -35,82 +35,97 @@ import browser
 import project
 import boinccmd
 
-def main(parser, args=None, namespace=None):
-    if namespace is not None:
-        oldNamespace = argparse.Namespace
-        for key in vars(namespace):
-            if key not in ('add', 'args'):
-                logger.debug('transferring key "{}"'.format(key))
-                setattr(oldNamespace, key, getattr(namespace, key))
-        namespace = oldNamespace
+class Boinc(object):
+    def __init__(self, parser):
+        self.CONFIG, self.CACHE_DIR, self.BOINC_DIR = config.set_globals()
+        self.cache = browser.Browser_file(self.CACHE_DIR)
+        self.parse_args(parser)
 
-    args, boinccmd_args = parser.parse_known_args(args=args,
-                                                  namespace=namespace)
-    boinccmd_args.extend(args.args)
+    def parse_args(self, parser, *args, **kwargs):
+        args, boinccmd_args = parser.parse_known_args(*args, **kwargs)
+        self.args = args
+        self.args.args.extend(boinccmd_args)
 
-    ### Make global variables ###
-    CONFIG, CACHE_DIR, BOINC_DIR = config.set_globals()
+    def verbosePrintProject(self, name, proj):
+        """Only print proj if verbose setting is True"""
+        if self.args.verbose:
+            print name
+            project.pretty_print(proj, show_empty=True)
 
-    # configure logger
-    loggerLevel = logging.INFO
-    if args.verbose: loggerLevel = logging.DEBUG
-    if args.silent: loggerLevel = logging.ERROR    
-    loggerSetup(loggerLevel)    
+    def updateLocalProjects(self):
+        if not(self.args.nlocal):
+            self.local_projects = boinccmd.get_state()
+            self.verbosePrintProject('LOCAL', self.local_projects)
 
-    # Add account
-    if args.add:
-        name = config.cleanSectionName(args.add)
-        CONFIG.addAccount(name)
-        time.sleep(1)           # give boinc a chance to catch up
+    def updateWebProjects(self):
+        if not(self.args.nweb):
+            self.cache.update() # throw out the old stuff
+            self.web_projects = browser.getProjectsDict(self.CONFIG, self.cache)
+            self.verbosePrintProject('WEB', self.web_projects)
+            project.merge(self.local_projects, self.web_projects)
 
-    # Call boinccmd
-    if len(boinccmd_args) != 0:
-        boinccmd_responce = boinccmd.CallBoinccmd(BOINC_DIR, boinccmd_args)
-        time.sleep(1)           # give boinc a chance to catch up
+    def updateWupropProjects(self):
+        # todo: what if wuprop is not present?
+        if not(self.args.nweb):
+            self.cache.update() # throw out the old stuff
+            self.wuprop_projects = browser.getProjects_wuprop(self.CONFIG, self.cache)
+            self.verbosePrintProject('WUPROP', self.wuprop_projects)
+            project.mergeWuprop(self.wuprop_projects, 
+                                self.local_projects)
+
+    def plot(self):
+        if self.args.plot:
+            b = browser.BrowserSuper(self.cache)
+            import plot
+            # If python was sensible we could do this in parallel, 
+            # but multiprocessing fails since the objects are not pickable and threads gives a warning about memory release.
+
+            plot.plot_credits(self.web_projects, b)
+            plot.plot_dailyTransfer(self.BOINC_DIR)
+            plot.plot_deadline(self.local_projects)
+            plot.plot_jobLog(self.web_projects, self.BOINC_DIR)
+            plot.plot_pipeline(self.web_projects)
+            plot.plot_runtime(self.web_projects, b)
+            plot.plot_timeStats(self.BOINC_DIR)
+            
+    def setLoggingLevel(self, verbose, silent):
+        # configure logger
+        loggerLevel = logging.INFO
+        if verbose: loggerLevel = logging.DEBUG
+        if silent: loggerLevel = logging.ERROR    
+        loggerSetup(loggerLevel)    
+
+    def addAccount(self):
+        if self.args.add:
+            name = config.cleanSectionName(self.args.add)
+            self.CONFIG.addAccount(name)
+            self.args.add = None
+
+    def callBoinccmd(self):
+        if len(self.args.args) != 0:
+            ret = boinccmd.CallBoinccmd(self.BOINC_DIR, 
+                                        self.args)
+            self.args.args = list()
+            return ret
+        
+def main(b):
+    
+    b.addAccount()
+    boinccmd_responce = b.callBoinccmd()
 
     # Get data
-    local_projects = boinccmd.get_state()
-    if args.verbose:
-        print 'LOCAL'
-        project.pretty_print(local_projects)
+    b.updateLocalProjects()
+    b.updateWupropProjects()
+    b.updateWebProjects()
 
-    cache = browser.Browser_file(CACHE_DIR)
-
-    web_projects    = browser.getProjectsDict(CONFIG, cache)
-    if args.verbose:
-        print 'WEB'
-        project.pretty_print(web_projects, show_empty=True)
-
-    wuprop_projects = browser.getProjects_wuprop(CONFIG, cache)
-    if args.verbose:
-        print 'WUPROP'
-        project.pretty_print(wuprop_projects, show_empty=True)
-    
-    project.mergeWuprop(wuprop_projects, local_projects)
-    project.merge(local_projects, web_projects)
     # print 'MERGED'
-    project.pretty_print(web_projects, 
-                         show_empty=args.verbose)
+    project.pretty_print(b.web_projects, 
+                         show_empty=b.args.verbose)
 
-    if len(boinccmd_args) != 0:
+    if boinccmd_responce is not None:
         print boinccmd_responce.communicate()
 
-
-    if args.plot:
-        b = browser.BrowserSuper(cache)
-        import plot
-        # If python was sensible we could do this in parallel, 
-        # but multiprocessing fails since the objects are not pickable and threads gives a warning about memory release.
-
-        plot.plot_credits(web_projects, b)
-        plot.plot_dailyTransfer(BOINC_DIR)
-        plot.plot_deadline(local_projects)
-        plot.plot_jobLog(web_projects, BOINC_DIR)
-        plot.plot_pipeline(web_projects)
-        plot.plot_runtime(web_projects, b)
-        plot.plot_timeStats(BOINC_DIR)
-
-    return args
+    b.plot()
 
 def run():
     parser = argparse.ArgumentParser(description='Boinc statistics')
@@ -120,19 +135,24 @@ def run():
     parser.add_argument('--verbose', '-v', action='store_true', help='Sets logging level to DEBUG')
     parser.add_argument('--silent', '-s', action='store_true', help='Sets logging level to ERROR')    
     parser.add_argument('--add', help='Add webpage that pyBoinc should track, example: --add wuprop.boinc-af.org/')
+    parser.add_argument('--batch', help='Do not prompt for user input', action='store_true')
+    parser.add_argument('--nweb', help='Do not connect to the internet', action='store_true')
+    parser.add_argument('--nlocal', help='Do not connect to the local boinc client', action='store_true')
     parser.add_argument('args', nargs=argparse.REMAINDER, 
                         help=('Remaining args are passed'
                               'to the command line boinccmd '
                               'if available, pass "--help " (with quotes) for help'))
-    namespace = main(parser)
+    b = Boinc(parser)
+    main(b)
 
     while True:
         user_input = raw_input('=== Enter q, quit, e or exit to exit ===\n')
         if user_input in ('q', 'quit', 'e', 'exit'):
             break
-
-        main(parser, 
-             args=user_input.split(), namespace=namespace)
+        
+        args=user_input.split()
+        b.parse_args(parser, args=args, namespace=b.args)
+        main(b)
 
 if __name__ == '__main__':
     run()
