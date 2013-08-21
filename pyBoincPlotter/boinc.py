@@ -88,11 +88,11 @@ class Boinc(object):
             plot.plot_runtime(self.web_projects, b)
             plot.plot_timeStats(self.BOINC_DIR)
             
-    def setLoggingLevel(self, verbose, silent):
+    def setLoggingLevel(self):
         # configure logger
         loggerLevel = logging.INFO
-        if verbose: loggerLevel = logging.DEBUG
-        if silent: loggerLevel = logging.ERROR    
+        if self.args.verbose: loggerLevel = logging.DEBUG
+        if self.args.silent: loggerLevel = logging.ERROR    
         loggerSetup(loggerLevel)    
 
     def addAccount(self):
@@ -111,6 +111,7 @@ class Boinc(object):
 def main(b):
     
     b.addAccount()
+    b.setLoggingLevel()
     boinccmd_responce = b.callBoinccmd()
 
     # Get data
