@@ -53,12 +53,12 @@ class Boinc(object):
             project.pretty_print(proj, show_empty=True)
 
     def updateLocalProjects(self):
-        if not(self.args.nlocal):
+        if self.args.local:
             self.local_projects = boinccmd.get_state()
             self.verbosePrintProject('LOCAL', self.local_projects)
 
     def updateWebProjects(self):
-        if not(self.args.nweb):
+        if self.args.web:
             self.cache.update() # throw out the old stuff
             self.web_projects = browser.getProjectsDict(self.CONFIG, self.cache)
             self.verbosePrintProject('WEB', self.web_projects)
@@ -66,7 +66,7 @@ class Boinc(object):
 
     def updateWupropProjects(self):
         # todo: what if wuprop is not present?
-        if not(self.args.nweb):
+        if self.args.web:
             self.cache.update() # throw out the old stuff
             self.wuprop_projects = browser.getProjects_wuprop(self.CONFIG, self.cache)
             self.verbosePrintProject('WUPROP', self.wuprop_projects)
@@ -128,17 +128,37 @@ def main(b):
 
     b.plot()
 
+def add_switch(parser, shortName, longName, help_on, help_off=''):
+    if help_off == '': help_off = help_on
+
+    exclusive = parser.add_mutually_exclusive_group()
+    exclusive.add_argument('-'+shortName, '--'+longName, 
+                           action='store_true', dest=longName,
+                           default=True, help=help_on)
+    exclusive.add_argument('-n'+shortName, '--no-'+longName, 
+                           action='store_false', dest=longName,
+                           help=help_off)
+
 def run():
+    argparse.ArgumentParser.add_switch = add_switch # isn't it neat that we can change the implementation of argumentparser?
     parser = argparse.ArgumentParser(description='Boinc statistics')
-    parser.add_argument('-p', '--plot', action='store_true', help='Use matplotlib to plot statistics and progress')
+    parser.add_switch('p', 'plot',
+                      help_on='Use matplotlib to plot statistics and progress',
+                      help_off='Disable plotting')
     parser.add_argument('-dmacosx', action='store_true', help='Use the macosx backend for plotting')    
     #parser.add_argument('-s', '--save', action='store_true', help='Use in combination with --plot, saves the figures to disk in the current working directory')
-    parser.add_argument('--verbose', '-v', action='store_true', help='Sets logging level to DEBUG')
-    parser.add_argument('--silent', '-s', action='store_true', help='Sets logging level to ERROR')    
-    parser.add_argument('--add', help='Add webpage that pyBoinc should track, example: --add wuprop.boinc-af.org/')
-    parser.add_argument('--batch', help='Do not prompt for user input', action='store_true')
-    parser.add_argument('--nweb', help='Do not connect to the internet', action='store_true')
-    parser.add_argument('--nlocal', help='Do not connect to the local boinc client', action='store_true')
+    exclusive = parser.add_mutually_exclusive_group()
+    exclusive.add_argument('-v', '--verbose', action='store_true', help='Sets logging level to DEBUG')
+    exclusive.add_argument('-s', '--silent', action='store_true', help='Sets logging level to ERROR')    
+    parser.add_argument('--add', help='Add webpage that pyBoincPlotter should track, example: --add wuprop.boinc-af.org/')
+    parser.add_argument('--batch', help='Do not prompt for user input', action='store_false')
+    parser.add_switch('w', 'web', 
+                      help_on='Allow pyBoincPlotter to connect to the internet',
+                      help_off='Do not connect to the internet')
+    parser.add_switch('l', 'local', 
+                      help_on='Allow pyBoincPlotter to connect to local boinc client',
+                      help_off='Do not connect to the local boinc client')
+
     parser.add_argument('args', nargs=argparse.REMAINDER, 
                         help=('Remaining args are passed'
                               'to the command line boinccmd '
@@ -146,7 +166,7 @@ def run():
     b = Boinc(parser)
     main(b)
 
-    while True:
+    while b.args.batch:
         user_input = raw_input('=== Enter q, quit, e or exit to exit ===\n')
         if user_input in ('q', 'quit', 'e', 'exit'):
             break
