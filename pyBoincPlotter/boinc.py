@@ -128,13 +128,13 @@ def main(b):
 
     b.plot()
 
-def add_switch(parser, shortName, longName, help_on, help_off=''):
+def add_switch(parser, shortName, longName, help_on, help_off='', default=True):
     if help_off == '': help_off = help_on
 
     exclusive = parser.add_mutually_exclusive_group()
     exclusive.add_argument('-'+shortName, '--'+longName, 
                            action='store_true', dest=longName,
-                           default=True, help=help_on)
+                           default=default, help=help_on)
     exclusive.add_argument('-n'+shortName, '--no-'+longName, 
                            action='store_false', dest=longName,
                            help=help_off)
