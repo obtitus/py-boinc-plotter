@@ -26,6 +26,7 @@ import sys
 import argparse
 import time
 from multiprocessing import Pool
+import readline
 import logging
 logger = logging.getLogger('boinc')
 # This project
@@ -40,6 +41,7 @@ class Boinc(object):
     def __init__(self, parser):
         self.CONFIG, self.CACHE_DIR, self.BOINC_DIR = config.set_globals()
         self.cache = browser.Browser_file(self.CACHE_DIR)
+        configureReadline(self.CONFIG.path)
         self.parse_args(parser)
 
     def parse_args(self, parser, *args, **kwargs):
@@ -124,14 +126,23 @@ class Boinc(object):
                     except IndexError:
                         print "Usage error: please supply preferences as key value pairs. got %s" % prefs
             self.args.prefs = None
-            p = boinccmd.CallBoinccmd(BOINC_DIR, '--read_global_prefs_override')
-            p.communicate()
+            p = boinccmd.CallBoinccmd(self.BOINC_DIR, '--read_global_prefs_override')
+            return p
+
+    # def completer(self, text, state):
+    #     COMMANDS = vars(self.args).keys()
+    #     for cmd in COMMANDS:
+    #         if cmd.startswith(text):
+    #             if not state:
+    #                 return cmd
+    #             else:
+    #                 state -= 1
 
 def main(b):
     
     b.addAccount()
     b.setLoggingLevel()
-    print b.changePrefs()       # todo: use the async one
+    prefs_responce = b.changePrefs()
     boinccmd_responce = b.callBoinccmd()
 
     # Get data
@@ -145,6 +156,8 @@ def main(b):
 
     if boinccmd_responce is not None:
         print boinccmd_responce.communicate()
+    if prefs_responce is not None:
+        print prefs_responce.communicate()
 
     b.plot()
 
@@ -158,6 +171,24 @@ def add_switch(parser, shortName, longName, help_on, help_off='', default=True):
     exclusive.add_argument('-n'+shortName, '--no-'+longName, 
                            action='store_false', dest=longName,
                            help=help_off)
+    
+
+def configureReadline(configDir):
+    # Configure readline
+    # History:
+    histFile = os.path.join(configDir, ".py-bpinc-plotter.hist")
+    try: readline.read_history_file(histFile)
+    except IOError: pass
+    readline.set_history_length(1000)
+    # Keyboard:
+    # See: http://superuser.com/a/373631
+    if 'libedit' in readline.__doc__:
+        readline.parse_and_bind("bind -e")
+        readline.parse_and_bind("bind '\t' rl_complete")
+    else:
+        readline.parse_and_bind("tab: complete")
+
+    #readline.set_completer(completer)
 
 def run():
     argparse.ArgumentParser.add_switch = add_switch # isn't it neat that we can change the implementation of argumentparser?
