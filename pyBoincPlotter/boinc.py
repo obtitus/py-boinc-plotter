@@ -26,7 +26,7 @@ import sys
 import argparse
 import time
 import atexit
-from multiprocessing import Pool
+import subprocess
 import readline
 import shlex
 import logging
@@ -47,10 +47,7 @@ class Boinc(object):
         self.parse_args(parser)
 
     def parse_args(self, parser, *args, **kwargs):
-        try:
-            self.args = parser.parse_args(*args, **kwargs)
-        except SystemExit:
-            pass
+        self.args = parser.parse_args(*args, **kwargs)
 
     def verbosePrintProject(self, name, proj):
         """Only print proj if verbose setting is True"""
@@ -134,6 +131,21 @@ class Boinc(object):
             p = boinccmd.CallBoinccmd(self.BOINC_DIR, '--read_global_prefs_override')
             return p
 
+    def startBoinc(self):
+        if self.args.boinc != None:
+            if self.args.boinc:
+                cmd = [os.path.join(self.BOINC_DIR, 'boinc')]
+                logger.info('%s', cmd)
+                self.boinc = subprocess.Popen(cmd, cwd=self.BOINC_DIR)
+                time.sleep(1)
+                atexit.register(self.boinc.terminate)
+            else:               # is false
+                try:
+                    self.boinc.terminate()
+                except Exception as e:
+                    print e
+            self.args.boinc = None
+        
     # def completer(self, text, state):
     #     COMMANDS = vars(self.args).keys()
     #     for cmd in COMMANDS:
@@ -147,13 +159,18 @@ def main(b):
     
     b.addAccount()
     b.setLoggingLevel()
+    # These do nothing if the user does ask for them
     prefs_responce = b.changePrefs()
     boinccmd_responce = b.callBoinccmd()
+    b.startBoinc()
 
     # Get data
-    b.updateLocalProjects()
-    b.updateWupropProjects()
-    b.updateWebProjects()
+    try:
+        b.updateLocalProjects()
+        b.updateWupropProjects()
+        b.updateWebProjects()
+    except Exception as e:
+        logger.exception('Uncaught exception when getting data')
 
     # print 'MERGED'
     project.pretty_print(b.web_projects, 
@@ -221,6 +238,12 @@ def run():
                                                     'which changes the global_prefs_override.xml'
                                                     'and issues a read_global_prefs_override when done.'
                                                     'Pass --prefs=--help for more info'))
+    parser.add_switch('b', 'boinc', 
+                      help_on=('Initiate the command line version of boinc, ' 
+                               'the process will be killed when py-boinc-plotter exits, '
+                               'so combining with --batch makes no sense.'),
+                      help_off='Kill any command line version of boinc controlled by py-boinc-plotter', 
+                      default=False)
 
     b = Boinc(parser)
     main(b)
@@ -231,7 +254,11 @@ def run():
             break
         
         args = shlex.split(user_input)
-        b.parse_args(parser, args=args, namespace=b.args)
+        try:
+            b.parse_args(parser, args=args, namespace=b.args)
+        except SystemExit:
+            pass
+
         main(b)
 
 if __name__ == '__main__':
