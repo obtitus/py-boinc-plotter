@@ -70,17 +70,20 @@ def changePrefs(BOINC_DIR, a, value=None):
         p.communicate()
     return prefs.tree.find(a).text
 
-def run():
-    CONFIG, CACHE_DIR, BOINC_DIR = config.set_globals()
-
-    p = Prefs(BOINC_DIR)
-
+def getParser(p):
     parser = argparse.ArgumentParser(description='Toggle boinc preferences by changing the global_prefs_override.xml file')
     #parser.add_argument('--cpu_usage_limit', type=int)
     for key, value in p.listOptions():
         name = key.replace('_', ' ').capitalize()
         parser.add_argument('--' + key, type=int, help="{name}, current value is {value}".format(name=name, value=value))
-        
+    return parser
+
+def run():
+    CONFIG, CACHE_DIR, BOINC_DIR = config.set_globals()
+
+    p = Prefs(BOINC_DIR)
+
+    parser = getParser(p)
     args = parser.parse_args()
 
     # For each argument:

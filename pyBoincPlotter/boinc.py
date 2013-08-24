@@ -34,6 +34,7 @@ import config
 import browser
 import project
 import boinccmd
+import changePrefs
 
 class Boinc(object):
     def __init__(self, parser):
@@ -106,10 +107,31 @@ class Boinc(object):
             self.args.boinccmd = None
             return ret
         
+    def changePrefs(self):
+        if self.args.prefs:
+            prefs = self.args.prefs.split()
+            p = changePrefs.Prefs(self.BOINC_DIR)
+            for ix in range(0, len(prefs), 2): # preferences comes in pair of key, value
+                prefs[ix] = prefs[ix].replace('--', '') # remove leading '--' if any
+                
+                if prefs[ix] == 'help':
+                    parser = changePrefs.getParser(p)
+                    parser.print_help() # this is slightly odd help text, but ok.
+                else:
+                    try:
+                        logger.info('prefs %s, %s', prefs[ix], prefs[ix+1])
+                        p.changePrefsFile(prefs[ix], prefs[ix+1])
+                    except IndexError:
+                        print "Usage error: please supply preferences as key value pairs. got %s" % prefs
+            self.args.prefs = None
+            p = boinccmd.CallBoinccmd(BOINC_DIR, '--read_global_prefs_override')
+            p.communicate()
+
 def main(b):
     
     b.addAccount()
     b.setLoggingLevel()
+    print b.changePrefs()       # todo: use the async one
     boinccmd_responce = b.callBoinccmd()
 
     # Get data
@@ -156,9 +178,13 @@ def run():
     parser.add_switch('l', 'local', 
                       help_on='Allow pyBoincPlotter to connect to local boinc client',
                       help_off='Do not connect to the local boinc client')
-    
     parser.add_argument('--boinccmd', nargs='?', help=('Passed to the command line boinccmd'
                                                        'if available, pass --boinccmd=--help for more info'))
+    parser.add_argument('--prefs', nargs='?', help=('Passed to the py-boinc-prefs utility'
+                                                    'which changes the global_prefs_override.xml'
+                                                    'and issues a read_global_prefs_override when done.'
+                                                    'Pass --prefs=--help for more info'))
+
     b = Boinc(parser)
     main(b)
 
