@@ -25,8 +25,10 @@ import os
 import sys
 import argparse
 import time
+import atexit
 from multiprocessing import Pool
 import readline
+import shlex
 import logging
 logger = logging.getLogger('boinc')
 # This project
@@ -45,7 +47,10 @@ class Boinc(object):
         self.parse_args(parser)
 
     def parse_args(self, parser, *args, **kwargs):
-        self.args = parser.parse_args(*args, **kwargs)
+        try:
+            self.args = parser.parse_args(*args, **kwargs)
+        except SystemExit:
+            pass
 
     def verbosePrintProject(self, name, proj):
         """Only print proj if verbose setting is True"""
@@ -176,7 +181,7 @@ def add_switch(parser, shortName, longName, help_on, help_off='', default=True):
 def configureReadline(configDir):
     # Configure readline
     # History:
-    histFile = os.path.join(configDir, ".py-bpinc-plotter.hist")
+    histFile = os.path.join(configDir, "history.txt")
     try: readline.read_history_file(histFile)
     except IOError: pass
     readline.set_history_length(1000)
@@ -189,6 +194,7 @@ def configureReadline(configDir):
         readline.parse_and_bind("tab: complete")
 
     #readline.set_completer(completer)
+    atexit.register(lambda histFile=histFile: readline.write_history_file(histFile))
 
 def run():
     argparse.ArgumentParser.add_switch = add_switch # isn't it neat that we can change the implementation of argumentparser?
@@ -224,7 +230,7 @@ def run():
         if user_input in ('q', 'quit', 'e', 'exit'):
             break
         
-        args=user_input.split()
+        args = shlex.split(user_input)
         b.parse_args(parser, args=args, namespace=b.args)
         main(b)
 

@@ -32,7 +32,7 @@ class MyConfigParser(ConfigParser.ConfigParser):
     # Simpler config parser which automatically calls write after each key change
     def __init__(self, filename):
         self.filename = filename
-        self.path = os.path.basename(filename)
+        self.path = os.path.dirname(filename)
         ConfigParser.ConfigParser.__init__(self)
         self.read()
 
