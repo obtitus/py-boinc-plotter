@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-__version_info__ = (0, 3, 5)
+__version_info__ = (0, 3, 6)
 __version__ = '.'.join(map(str, __version_info__))
 appName = 'pyBoincPlotter'
 appAuthor = 'obtitus'                   # [at] gmail.com
