@@ -21,6 +21,7 @@
 # Standard python
 import os
 import subprocess
+import shlex
 from socket import socket
 import logging
 logger = logging.getLogger('boinc.boinccmd')
@@ -31,7 +32,7 @@ class CallBoinccmd(object):
     """ tiny layer on top of subprocess Popen for calling boinccmd and getting stdout """
     def __init__(self, boinc_dir, arguments='--get_state'):
         if isinstance(arguments, basestring):
-            arguments = (arguments, )
+            arguments = shlex.split(arguments)
 
         cmd = [os.path.join(boinc_dir, 'boinccmd')]
         cmd.extend(arguments)

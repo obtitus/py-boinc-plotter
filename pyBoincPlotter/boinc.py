@@ -42,9 +42,7 @@ class Boinc(object):
         self.parse_args(parser)
 
     def parse_args(self, parser, *args, **kwargs):
-        args, boinccmd_args = parser.parse_known_args(*args, **kwargs)
-        self.args = args
-        self.args.args.extend(boinccmd_args)
+        self.args = parser.parse_args(*args, **kwargs)
 
     def verbosePrintProject(self, name, proj):
         """Only print proj if verbose setting is True"""
@@ -102,10 +100,10 @@ class Boinc(object):
             self.args.add = None
 
     def callBoinccmd(self):
-        if len(self.args.args) != 0:
+        if self.args.boinccmd:
             ret = boinccmd.CallBoinccmd(self.BOINC_DIR, 
-                                        self.args)
-            self.args.args = list()
+                                        self.args.boinccmd)
+            self.args.boinccmd = None
             return ret
         
 def main(b):
@@ -158,11 +156,9 @@ def run():
     parser.add_switch('l', 'local', 
                       help_on='Allow pyBoincPlotter to connect to local boinc client',
                       help_off='Do not connect to the local boinc client')
-
-    parser.add_argument('args', nargs=argparse.REMAINDER, 
-                        help=('Remaining args are passed'
-                              'to the command line boinccmd '
-                              'if available, pass "--help " (with quotes) for help'))
+    
+    parser.add_argument('--boinccmd', nargs='?', help=('Passed to the command line boinccmd'
+                                                       'if available, pass --boinccmd=--help for more info'))
     b = Boinc(parser)
     main(b)
 
