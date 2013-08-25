@@ -46,6 +46,10 @@ class Boinc(object):
         configureReadline(self.CONFIG.path)
         self.parse_args(parser)
 
+        self.local_projects = dict()
+        self.web_projects = dict()
+        self.wuprop_projects = dict()
+
     def parse_args(self, parser, *args, **kwargs):
         self.args = parser.parse_args(*args, **kwargs)
 
@@ -57,8 +61,11 @@ class Boinc(object):
 
     def updateLocalProjects(self):
         if self.args.local:
-            self.local_projects = boinccmd.get_state()
-            self.verbosePrintProject('LOCAL', self.local_projects)
+            try:
+                self.local_projects = boinccmd.get_state()
+                self.verbosePrintProject('LOCAL', self.local_projects)
+            except Exception as e:
+                logging.error('Could not get local state, %s. Is boinc running?', e)
 
     def updateWebProjects(self):
         if self.args.web:
@@ -66,6 +73,8 @@ class Boinc(object):
             self.web_projects = browser.getProjectsDict(self.CONFIG, self.cache)
             self.verbosePrintProject('WEB', self.web_projects)
             project.merge(self.local_projects, self.web_projects)
+        else:
+            self.web_projects = self.local_projects # so that it gets printed
 
     def updateWupropProjects(self):
         # todo: what if wuprop is not present?
@@ -142,6 +151,8 @@ class Boinc(object):
             else:               # is false
                 try:
                     self.boinc.terminate()
+                except AttributeError:
+                    pass
                 except Exception as e:
                     print e
             self.args.boinc = None
@@ -234,9 +245,9 @@ def run():
                       help_off='Do not connect to the local boinc client')
     parser.add_argument('--boinccmd', nargs='?', help=('Passed to the command line boinccmd'
                                                        'if available, pass --boinccmd=--help for more info'))
-    parser.add_argument('--prefs', nargs='?', help=('Passed to the py-boinc-prefs utility'
-                                                    'which changes the global_prefs_override.xml'
-                                                    'and issues a read_global_prefs_override when done.'
+    parser.add_argument('--prefs', nargs='?', help=('Passed to the py-boinc-prefs utility '
+                                                    'which changes the global_prefs_override.xml '
+                                                    'and issues a read_global_prefs_override when done. '
                                                     'Pass --prefs=--help for more info'))
     parser.add_switch('b', 'boinc', 
                       help_on=('Initiate the command line version of boinc, ' 
