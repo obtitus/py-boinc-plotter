@@ -27,8 +27,8 @@ if __name__ == '__main__':
         install_requires=[
             "requests",
             "keyring",
-            "matplotlib",
             "numpy",
+            "matplotlib",
             "PIL",
             "lxml",
             "beautifulsoup4",
