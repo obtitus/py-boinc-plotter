@@ -20,6 +20,7 @@
 
 # Standard python
 import calendar
+import itertools
 import time
 from collections import namedtuple
 import logging
@@ -65,20 +66,20 @@ function decay_average($avg, $avg_time, $now = 0) {
     # print 'weight', weight
     return sum(y*weight)/sum(weight)
 
-def createFromFilename(cls, filename, limitMonths=None, label=''):
+def createFromFilename(filename, limitMonths=None):
     """ Returns a JobLog instance from a given filename
     """
     with open(filename, 'r') as f:
-        return createFromFilehandle(cls, f, limitMonths=limitMonths, label=label)
+        return createFromFilehandle(f, limitMonths=limitMonths)
 
-def createFromFilehandle(cls, f, limitMonths=None, label=''):
+def createFromFilehandle(f, limitMonths=None):
     """ Returns a JobLog instance from a given filehandle
     ue - estimated_runtime_uncorrected
     ct - final_cpu_time, cpu time to finish
     fe - rsc_fpops_est, estimated flops
     et - final_elapsed_time, clock time to finish
     """
-    tasks = cls(label=label)
+    tasks = list()
     now = datetime.datetime.now()
     for line in f:
         t = task.Task_jobLog.createFromJobLog(line)
@@ -86,93 +87,45 @@ def createFromFilehandle(cls, f, limitMonths=None, label=''):
             tasks.append(t)
     return tasks
 
-class JobLog(list):
-    """
-    List of Tasks, where additional information is available for tasks still on the web or 'ready to report'.
-    Focus is on plotting as either points or bars
-    """
-    def __init__(self, label, **kwargs):
-        super(JobLog, self).__init__(**kwargs)
+def merge(tasks, web_project):
+    """ Merge tasks from given project into existing list """
+    # Create a dictionary for faster lookup. todo: benchmark
+    names = dict()
+    for ix, task in enumerate(tasks):
+        names[task.name] = tasks[ix]
+
+    for web_task in web_project.tasks():
+        try:
+            web_name = web_task.name
+            web_name = web_name.replace('--', '') # worldcommunitygrid appends -- at the end
+            names[web_name].credit = web_task.grantedCredit
+        except KeyError:
+            if web_task.state_str != 'in progress':
+                logger.debug('Unable to find "%s", %s', 
+                             web_task.name, web_task.state_str)
+        except AttributeError:
+            logger.debug('Not a web task %s', web_task)
+
+def createArray(tasks, attr, dtype=np.float):
+    ret = np.zeros(len(tasks), dtype=dtype)
+    for ix, item in enumerate(tasks):
+        try:
+            value = getattr(item, attr)
+        except AttributeError:
+            value = np.nan
+        ret[ix] = value
+    return ret
+
+class Plot(object):
+    def __init__(self, tasks, label=''):
+        self.time = createArray(tasks, 'time', dtype=datetime.datetime)
+        self.estimated_runtime_uncorrected = createArray(tasks, 'estimated_runtime_uncorrected')
+        self.final_cpu_time = createArray(tasks, 'final_cpu_time')
+        self.final_elapsed_time = createArray(tasks, 'final_elapsed_time')
+        self.rsc_fpops_est = createArray(tasks, 'rsc_fpops_est')
+        self.credit = createArray(tasks, 'credit')
         self.label = label
-
-        self._time = list()
-        self._ue = np.zeros(0)
-        self._ct = np.zeros(0)
-        self._fe = np.zeros(0)
-        self._et = np.zeros(0)
-        self._credit = np.zeros(0)
-        self._names = list()
-
-    def merge(self, web_project):
-        """ Merge tasks from given project into existing list """
-        names = dict()
-        for ix, name in enumerate(self.names):
-            names[name] = self[ix]
-
-        for web_task in web_project.tasks():
-            try:
-                web_name = web_task.name
-                web_name = web_name.replace('--', '') # worldcommunitygrid appends -- at the end
-                names[web_name].credit = web_task.grantedCredit
-            except KeyError:
-                if web_task.state_str != 'in progress':
-                    logger.debug('Unable to find "%s", %s', 
-                                 web_task.name, web_task.state_str)
-            except AttributeError:
-                logger.debug('Not a web task %s', web_task)
-
-    def createArray(self, attr):
-        ret = np.zeros(len(self))
-        for ix, item in enumerate(self):
-            try:
-                value = getattr(item, attr)
-            except AttributeError:
-                value = np.nan
-            ret[ix] = value
-        return ret
-
-    @property
-    def time(self):
-        if len(self._time) != len(self):
-            self._time = [task.time for task in self]
-            #self._time = self.createArray('time')
-        return self._time
-
-    @property
-    def ue(self):
-        if len(self._ue) != len(self):
-            self._ue = self.createArray('estimated_runtime_uncorrected')
-        return self._ue
-
-    @property
-    def ct(self):
-        if len(self._ct) != len(self):
-            self._ct = self.createArray('final_cpu_time')
-        return self._ct
-
-    @property
-    def fe(self):
-        if len(self._fe) != len(self):
-            self._fe = self.createArray('rsc_fpops_est')
-        return self._fe
-
-    @property
-    def et(self):
-        if len(self._et) != len(self):
-            self._et = self.createArray('final_elapsed_time')
-        return self._et
-
-    @property
-    def credit(self):
-        if len(self._credit) != len(self):
-            self._credit = self.createArray('credit')
-        return self._credit
-
-    @property
-    def names(self):
-        if len(self._names) != len(self):
-            self._names = [task.name for task in self]
-        return self._names
+        self.N = 7
 
     def setColor(self, ax):
         try:
@@ -182,259 +135,409 @@ class JobLog(list):
             self.color = ax._get_lines.color_cycle.next()
             projectColors.colors[self.label] = self.color
 
-    def plot(self, fig):
-        """ Plots the job_log to the given figure instance
-        """
-        if len(self.time) == 0:
-            return
+    def myPlot(self, fig, plot_single, N=7):
+        """Calls plot_cmd(ax, t, y, ylabel, **kwargs) with the correct axis and y value"""
+        ax = [fig.add_subplot(self.N, 1, 1)]
+        for ix in range(2, N+1):
+            sharey = None
+            if ix in (2, 3):
+                sharey = ax[0]
 
-        N = 4                               # Number of subplots
-        self.axes = list()
-        ax1 = fig.add_subplot(N, 1, 1)
-        for ix in range(N):
-            if ix != 3:
-                ax = fig.add_subplot(N, 1, ix+1)#, sharey=ax1)
-            else:
-                ax = fig.add_subplot(N, 1, ix+1)
-            barPlotter = BarPlotter(ax)
-            self.axes.append(barPlotter)
+            ax.append(fig.add_subplot(self.N, 1, ix, 
+                                      sharex=ax[0], sharey=sharey))
+        self.setColor(ax[0])    # ugly hack.
 
-        # Plot datapoints and bars, make sure the same colors are used.
-        self.setColor(ax1)
-        self.plot_datapoints()
-        self.plot_hist_day()
-        
-        self.formatAxis()
-
-    def formatXAxis(self, ax):
-        dayFormat(ax)
-
-    def formatAxis(self):
-        for ax in self.axes:
-            self.formatXAxis(ax)
-
-        leg = self.axes[3].legend()
-        if leg is not None:
-            leg.draggable()
-
-        ylabels = ['Estimated time', 'Final CPU time', 'Final clock time', 'flops']
-        for ix, ax in enumerate(self.axes):
-            ax.set_xlabel('Date')
-            if ix == len(self.axes)-1: # last axes
-                y_min, y_max = ax.get_ybound()
-                scale, si = util.engineeringUnit(y_max)
-                ylabels[ix] = si + ylabels[ix]
-                siFormatter(ax, scale)
-            else:
-                ax.yaxis.set_major_formatter(formatter_timedelta)
-                plt.setp(ax.get_xticklabels(), visible=False)
-
-            ax.set_ylabel(ylabels[ix])
-
-    def plot_datapoints(self):
-        """
-        Let each datapoint be a single dot
-        """
-        time = self.time
-
-        kwargs = dict(ls='none', marker='o', color=self.color)
-        for ix, data in enumerate([self.ue, self.ct, self.et, self.fe]):
-            self.axes[ix].plot(time, data, **kwargs)
-
-    def plot_hist_day(self):
-        """
-        Create a single bar for each day
-        """
-        time, ue, ct, fe, name, et = self.time, self.ue, self.ct, self.fe, self.names, self.et
-
-        currentDay = time[0]#plt.num2date(time[0])
-        cumulative = np.zeros(4) # [ue, ct, et, fe]
-        #cumulative = np.zeros(3) # [ue, ct, et]
-
-        def myBarPlot(currentDay, cumulative, **kwargs):
-            d = currentDay.replace(hour=0, minute=0, second=0, microsecond=0) # Reset to 0:00:00 this day for alignment of bars
-            x = plt.date2num(d)
-            # Plot bars
-            kwargs['width'] = 1
-            kwargs['alpha'] = 0.75
-            kwargs['color'] = self.color
-            self.axes[0].bar(x, cumulative[0], **kwargs)
-            self.axes[1].bar(x, cumulative[1], **kwargs)
-            self.axes[2].bar(x, cumulative[2], **kwargs)
-            self.axes[3].bar(x, cumulative[3], **kwargs)
-
-        for ix in range(len(time)):
-            # If new day, plot and null out cumulative
-            if currentDay.day != time[ix].day:
-                myBarPlot(currentDay, cumulative)
-                # Prepare for next loop
-                currentDay = time[ix]
-                cumulative = np.zeros(len(cumulative))
-
-            # Add events associated with time[ix]
-            cumulative[0] += ue[ix]
-            cumulative[1] += ct[ix]
-            cumulative[2] += et[ix]
-            cumulative[3] += fe[ix]
-
-        # plot last day
-        myBarPlot(time[-1], cumulative, label=self.label)
-
-    def plot_FoM(self, fig):
-        """Figure of Merits plot"""
-        if len(self.time) == 0:
-            return
-
-        # clock/estimated, value of 1 is excellent, larger than 1 means overestimated
-        estimate_accuracy = self.et/self.ue
-        # clock/cpu, value of 1 is efficient, larger than 1 means more cpu time then clock time
-        ct = self.ct
-        ct[np.where(ct == 0)] = np.nan # avoids division by zero
-        efficiency = self.et/ct
-        # [credit/cpu] = credits/hour
-        credits_ = np.where(self.credit != 0,
-                            self.credit/(self.et/3600.), np.nan)
-
-        data = (estimate_accuracy,
-                efficiency,
-                credits_)
-        labels = ('Estimate accuracy',
-                  'Efficiency',
-                  'Credits per hour')
-        
-        N = 3
-        kwargs = dict(ls='none', marker='o', 
-                      color=self.color, label=self.label)
-
-        ax = fig.add_subplot(N, 1, 1)
-        for ix in range(N):
-            if ix != 0:
-                ax = fig.add_subplot(N, 1, ix+1, sharex=ax)
-
-            ax.plot(self.time, data[ix], **kwargs)
-
-            ymin, ymax = ax.get_ylim()
-            ymin = max([min(data[ix]), ymin])
-            if ymin == 0: ymin = 1
-
-            if np.log10(abs(ymax/ymin)) > 3:
-                logger.debug('logarithmic axis for %s', labels[ix])
-                ax.set_yscale('log')
-
-            ax.set_ylabel(labels[ix])
-            if ix != N-1: # last axes
-                plt.setp(ax.get_xticklabels(), visible=False)            
-
-        ax.set_xlabel('Date')
-        dayFormat(ax)
-
-        leg = ax.legend()
-        if leg is not None:
-            leg.draggable()
-            leg.draw_frame(False)
-
-    def appendAverage(self):
-        for ax in self.axes:
-            N = len(ax.bottom)
-            time, value = np.zeros(N), np.zeros(N)
-            ix = 0
-            for t, y in ax.bottom.items(): # we could sort, but we don't need to
-                time[ix], value[ix] = t, y
-                ix += 1
-            
-            avg = decay_average(time, value)
-            logger.debug('AVG %s', avg)
-            ax.axhline(avg, color='k', ls='--')
-            #ax.annotate("{}".format(avg), (max(time)+1, avg))
-
-class JobLog_Months(JobLog):
-    """ JobLog focus is on single events summed up to one day, 
-    this class focuses on days being summed to months
-    """
-    def plot_datapoints(self):
-        JobLog.plot_hist_day(self)
-
-    def plot_hist_day(self):
-        """ Replaces hist_day with hist_month
-        """
-        time, ue, ct, fe, name, et = self.time, self.ue, self.ct, self.fe, self.names, self.et
-
-        if len(time) == 0: return ;         # make sure we actually have data to work with
-
-        currentDay = time[0]
-        cumulative = np.zeros(4) # [ue, ct, et, fe]
-
-        def myBarPlot(currentDay, cumulative, **kwargs):
-            d = currentDay.replace(day=1, hour=0, minute=0, 
-                                   second=1, microsecond=0) # Reset to 0:00:00 this month for alignment of bars
-            x = plt.date2num(d)
-            # Plot bars
-            _, daysInMonth = calendar.monthrange(currentDay.year,
-                                                 currentDay.month)
-            kwargs['width'] = daysInMonth
-            kwargs['alpha'] = 0.5
-            kwargs['color'] = self.color
-            self.axes[0].bar(x, cumulative[0], **kwargs)
-            self.axes[1].bar(x, cumulative[1], **kwargs)
-            self.axes[2].bar(x, cumulative[2], **kwargs)
-            self.axes[3].bar(x, cumulative[3], **kwargs)
-
-        for ix in range(len(time)):
-            # If new month, plot and null out cumulative
-            if currentDay.month != time[ix].month:
-                myBarPlot(currentDay, cumulative)
-                # Prepare for next loop
-                currentDay = time[ix]
-                cumulative = np.zeros(len(cumulative))
-
-            # Add events associated with time[ix]
-            cumulative[0] += ue[ix]
-            cumulative[1] += ct[ix]
-            cumulative[2] += et[ix]
-            cumulative[3] += fe[ix]
-
-        # plot last month
-        myBarPlot(time[-1], cumulative)
-        
-
-    def formatXAxis(self, ax):
-        dayFormat(ax, month=True)
-
-class BarPlotter(object):
-    # Bar plotter that remembers bottom
-    # and automatically plots bars stacked instead of on top of each other
-    # Assumes that bar is called with only a single bar at a time
-    def __init__(self, ax):
-        self.ax = ax
-        if not(hasattr(self.ax, 'bottom')):
-            self.ax.bottom = dict()     # key is x coordinate and value is height
-
-    def clear(self):
-        print 'clearing', self.ax.bottom
-        self.ax.bottom = dict()
-        
-    def __getattr__(self, name):
-        """ Redirect to axes
-        """
-        return self.ax.__getattribute__(name)
-
-    def bar(self, x, *args, **kwargs):
-        # Find previous (if any)
         try:
-            b = self.ax.bottom[x]
-        except KeyError:
-            b = 0
-        kwargs['bottom'] = b
-        # Plot
-        rect = self.ax.bar(x, *args, **kwargs)[0]
+            print 'calling estimated time'
+            plot_single(ax[0], self.estimated_runtime_uncorrected, 'Estimated time')
+            print 'end estimated time'
+            plot_single(ax[1], self.final_cpu_time, 'Final CPU time')
+            plot_single(ax[2], self.final_elapsed_time, 'Final clock time')
+            plot_single(ax[3], self.rsc_fpops_est, 'flops')
+            # Todo: once credits are stored on drive, add that as well
 
-        # Remember
-        x, y = rect.get_xy()
-        self.ax.bottom[x] = y + rect.get_height()
-        return b
+            # clock/estimated, value of 1 is excellent, larger than 1 means overestimated, smaller is underestimated
+            accuracy = self.final_elapsed_time/self.estimated_runtime_uncorrected
+            plot_single(ax[4], accuracy, 'Estimate accuracy')
 
-    # def plot(self, *args, **kwargs):
-    #     self.ax.plot(*args, **kwargs)
+            # clock/cpu, value of 1 is efficient, larger than 1 means more cpu time then clock time
+            efficiency = np.where(self.final_cpu_time != 0, # avoid divison by 0
+                                  self.final_elapsed_time/self.final_cpu_time, np.nan)
+            plot_single(ax[5], efficiency, 'Efficiency')
+
+            # [credit/cpu] = credits/hour
+            credits_hours = np.where(self.credit != 0, # avoid plotting where we have no data
+                                     self.credit/(self.final_elapsed_time/3600.), np.nan)
+            plot_single(ax[6], credits_hours, 'Credits per hour')
+        except IndexError:
+            pass
+
+        try:
+            addLegend(ax[-1])
+        except:
+            logging.exception('Something ammis in paradise, can not even add a legend')
+
+        dayFormat(ax[-1])
+        for axis in ax[:-1]:    # hide xlabels for all but last axis
+            plt.setp(axis.get_xticklabels(), visible=False)
+    
+    def plot_points(self, ax, y, ylabel, **kwargs):
+        """Deals with a single axis for plotting data as points"""
+        if len(y) == 0:
+            return
+
+        ax.plot(self.time, y, ls='none',
+                marker='o', color=self.color, label=self.label,
+                **kwargs)
+        y_min, y_max = ax.get_ybound()
+        y_min = max([min(y), y_min])
+        if y_min == 0: y_min = 1
+
+        if ylabel.endswith('time'):
+            ax.yaxis.set_major_formatter(formatter_timedelta)
+        elif ylabel == 'flops':
+            scale, si = util.engineeringUnit(y_max)
+            ylabel = si + ylabel
+            siFormatter(ax, scale)
+        elif np.log10(abs(y_max/y_min)) > 3:
+            ax.set_yscale('log')
+
+        ax.set_ylabel(ylabel)
+
+    def plot_bars_daily(self, ax, y, ylabel, **kwargs):
+        """Deals with a single axis for plotting data as bars"""
+        days = list()
+        cumulative = list()
+        bottom = list()
+        ix = 0
+        for key, group in itertools.groupby(self.time, lambda k: k.day):
+            c = 0               # cumulative
+            for count in group: # we just need to run the length of the iterator
+                c += y[ix]
+                ix += 1
+            now = count.replace(hour=0, minute=0, second=0, microsecond=0) # Reset to 0:00:00 this day for alignment of bars
+            days.append(now)
+            cumulative.append(c)
+            try:
+                b = ax.__bottom[now]
+                bottom.append(b)
+            except AttributeError:  # first time calling (no ax.__bottom)
+                bottom.append(0)
+                ax.__bottom = dict()
+            except KeyError:    # day which is not present in any other dataset
+                bottom.append(0)
+            ax.__bottom[now] = bottom[-1] + c
+                
+
+        print self.label, bottom
+        ax.bar(days, cumulative, color=self.color, 
+               width = 1, alpha=0.75, bottom=bottom,
+               **kwargs)
+        
+#     @property
+#     def time(self):
+#         if len(self._time) != len(self):
+#             self._time = [task.time for task in self]
+#             #self._time = self.createArray('time')
+#         return self._time
+
+#     @property
+#     def ue(self):
+#         if len(self._ue) != len(self):
+#             self._ue = self.createArray('estimated_runtime_uncorrected')
+#         return self._ue
+
+#     @property
+#     def ct(self):
+#         if len(self._ct) != len(self):
+#             self._ct = self.createArray('final_cpu_time')
+#         return self._ct
+
+#     @property
+#     def fe(self):
+#         if len(self._fe) != len(self):
+#             self._fe = self.createArray('rsc_fpops_est')
+#         return self._fe
+
+#     @property
+#     def et(self):
+#         if len(self._et) != len(self):
+#             self._et = self.createArray('final_elapsed_time')
+#         return self._et
+
+#     @property
+#     def credit(self):
+#         if len(self._credit) != len(self):
+#             self._credit = self.createArray('credit')
+#         return self._credit
+
+#     @property
+#     def names(self):
+#         if len(self._names) != len(self):
+#             self._names = [task.name for task in self]
+#         return self._names
+
+#     def setColor(self, ax):
+#         try:
+#             self.color = projectColors.colors[self.label]
+#         except KeyError:
+#             logger.debug('Vops, no color found for %s', self.label)
+#             self.color = ax._get_lines.color_cycle.next()
+#             projectColors.colors[self.label] = self.color
+
+#     def plot(self, fig):
+#         """ Plots the job_log to the given figure instance
+#         """
+#         if len(self.time) == 0:
+#             return
+
+#         N = 4                               # Number of subplots
+#         self.axes = list()
+#         ax1 = fig.add_subplot(N, 1, 1)
+#         for ix in range(N):
+#             if ix != 3:
+#                 ax = fig.add_subplot(N, 1, ix+1)#, sharey=ax1)
+#             else:
+#                 ax = fig.add_subplot(N, 1, ix+1)
+#             barPlotter = BarPlotter(ax)
+#             self.axes.append(barPlotter)
+
+#         # Plot datapoints and bars, make sure the same colors are used.
+#         self.setColor(ax1)
+#         self.plot_datapoints()
+#         self.plot_hist_day()
+        
+#         self.formatAxis()
+
+#     def formatXAxis(self, ax):
+#         dayFormat(ax)
+
+#     def formatAxis(self):
+#         for ax in self.axes:
+#             self.formatXAxis(ax)
+
+#         leg = self.axes[3].legend()
+#         if leg is not None:
+#             leg.draggable()
+
+#         ylabels = ['Estimated time', 'Final CPU time', 'Final clock time', 'flops']
+#         for ix, ax in enumerate(self.axes):
+#             ax.set_xlabel('Date')
+#             if ix == len(self.axes)-1: # last axes
+#                 y_min, y_max = ax.get_ybound()
+#                 scale, si = util.engineeringUnit(y_max)
+#                 ylabels[ix] = si + ylabels[ix]
+#                 siFormatter(ax, scale)
+#             else:
+#                 ax.yaxis.set_major_formatter(formatter_timedelta)
+#                 plt.setp(ax.get_xticklabels(), visible=False)
+
+#             ax.set_ylabel(ylabels[ix])
+
+#     def plot_datapoints(self):
+#         """
+#         Let each datapoint be a single dot
+#         """
+#         time = self.time
+
+#         kwargs = dict(ls='none', marker='o', color=self.color)
+#         for ix, data in enumerate([self.ue, self.ct, self.et, self.fe]):
+#             self.axes[ix].plot(time, data, **kwargs)
+
+#     def plot_hist_day(self):
+#         """
+#         Create a single bar for each day
+#         """
+#         time, ue, ct, fe, name, et = self.time, self.ue, self.ct, self.fe, self.names, self.et
+
+#         currentDay = time[0]#plt.num2date(time[0])
+#         cumulative = np.zeros(4) # [ue, ct, et, fe]
+#         #cumulative = np.zeros(3) # [ue, ct, et]
+
+#         def myBarPlot(currentDay, cumulative, **kwargs):
+#             d = currentDay.replace(hour=0, minute=0, second=0, microsecond=0) # Reset to 0:00:00 this day for alignment of bars
+#             x = plt.date2num(d)
+#             # Plot bars
+#             kwargs['width'] = 1
+#             kwargs['alpha'] = 0.75
+#             kwargs['color'] = self.color
+#             self.axes[0].bar(x, cumulative[0], **kwargs)
+#             self.axes[1].bar(x, cumulative[1], **kwargs)
+#             self.axes[2].bar(x, cumulative[2], **kwargs)
+#             self.axes[3].bar(x, cumulative[3], **kwargs)
+
+#         for ix in range(len(time)):
+#             # If new day, plot and null out cumulative
+#             if currentDay.day != time[ix].day:
+#                 myBarPlot(currentDay, cumulative)
+#                 # Prepare for next loop
+#                 currentDay = time[ix]
+#                 cumulative = np.zeros(len(cumulative))
+
+#             # Add events associated with time[ix]
+#             cumulative[0] += ue[ix]
+#             cumulative[1] += ct[ix]
+#             cumulative[2] += et[ix]
+#             cumulative[3] += fe[ix]
+
+#         # plot last day
+#         myBarPlot(time[-1], cumulative, label=self.label)
+
+#     def plot_FoM(self, fig):
+#         """Figure of Merits plot"""
+#         if len(self.time) == 0:
+#             return
+
+#         # clock/estimated, value of 1 is excellent, larger than 1 means overestimated
+#         estimate_accuracy = self.et/self.ue
+#         # clock/cpu, value of 1 is efficient, larger than 1 means more cpu time then clock time
+#         ct = self.ct
+#         ct[np.where(ct == 0)] = np.nan # avoids division by zero
+#         efficiency = self.et/ct
+#         # [credit/cpu] = credits/hour
+#         credits_ = np.where(self.credit != 0,
+#                             self.credit/(self.et/3600.), np.nan)
+
+#         data = (estimate_accuracy,
+#                 efficiency,
+#                 credits_)
+#         labels = ('Estimate accuracy',
+#                   'Efficiency',
+#                   'Credits per hour')
+        
+#         N = 3
+#         kwargs = dict(ls='none', marker='o', 
+#                       color=self.color, label=self.label)
+
+#         ax = fig.add_subplot(N, 1, 1)
+#         for ix in range(N):
+#             if ix != 0:
+#                 ax = fig.add_subplot(N, 1, ix+1, sharex=ax)
+
+#             ax.plot(self.time, data[ix], **kwargs)
+
+#             ymin, ymax = ax.get_ylim()
+#             ymin = max([min(data[ix]), ymin])
+#             if ymin == 0: ymin = 1
+
+#             if np.log10(abs(ymax/ymin)) > 3:
+#                 logger.debug('logarithmic axis for %s', labels[ix])
+#                 ax.set_yscale('log')
+
+#             ax.set_ylabel(labels[ix])
+#             if ix != N-1: # last axes
+#                 plt.setp(ax.get_xticklabels(), visible=False)            
+
+#         ax.set_xlabel('Date')
+#         dayFormat(ax)
+
+#         leg = ax.legend()
+#         if leg is not None:
+#             leg.draggable()
+#             leg.draw_frame(False)
+
+#     def appendAverage(self):
+#         for ax in self.axes:
+#             N = len(ax.bottom)
+#             time, value = np.zeros(N), np.zeros(N)
+#             ix = 0
+#             for t, y in ax.bottom.items(): # we could sort, but we don't need to
+#                 time[ix], value[ix] = t, y
+#                 ix += 1
+            
+#             avg = decay_average(time, value)
+#             logger.debug('AVG %s', avg)
+#             ax.axhline(avg, color='k', ls='--')
+#             #ax.annotate("{}".format(avg), (max(time)+1, avg))
+
+# class JobLog_Months(JobLog):
+#     """ JobLog focus is on single events summed up to one day, 
+#     this class focuses on days being summed to months
+#     """
+#     def plot_datapoints(self):
+#         JobLog.plot_hist_day(self)
+
+#     def plot_hist_day(self):
+#         """ Replaces hist_day with hist_month
+#         """
+#         time, ue, ct, fe, name, et = self.time, self.ue, self.ct, self.fe, self.names, self.et
+
+#         if len(time) == 0: return ;         # make sure we actually have data to work with
+
+#         currentDay = time[0]
+#         cumulative = np.zeros(4) # [ue, ct, et, fe]
+
+#         def myBarPlot(currentDay, cumulative, **kwargs):
+#             d = currentDay.replace(day=1, hour=0, minute=0, 
+#                                    second=1, microsecond=0) # Reset to 0:00:00 this month for alignment of bars
+#             x = plt.date2num(d)
+#             # Plot bars
+#             _, daysInMonth = calendar.monthrange(currentDay.year,
+#                                                  currentDay.month)
+#             kwargs['width'] = daysInMonth
+#             kwargs['alpha'] = 0.5
+#             kwargs['color'] = self.color
+#             self.axes[0].bar(x, cumulative[0], **kwargs)
+#             self.axes[1].bar(x, cumulative[1], **kwargs)
+#             self.axes[2].bar(x, cumulative[2], **kwargs)
+#             self.axes[3].bar(x, cumulative[3], **kwargs)
+
+#         for ix in range(len(time)):
+#             # If new month, plot and null out cumulative
+#             if currentDay.month != time[ix].month:
+#                 myBarPlot(currentDay, cumulative)
+#                 # Prepare for next loop
+#                 currentDay = time[ix]
+#                 cumulative = np.zeros(len(cumulative))
+
+#             # Add events associated with time[ix]
+#             cumulative[0] += ue[ix]
+#             cumulative[1] += ct[ix]
+#             cumulative[2] += et[ix]
+#             cumulative[3] += fe[ix]
+
+#         # plot last month
+#         myBarPlot(time[-1], cumulative)
+        
+
+#     def formatXAxis(self, ax):
+#         dayFormat(ax, month=True)
+
+# class BarPlotter(object):
+#     # Bar plotter that remembers bottom
+#     # and automatically plots bars stacked instead of on top of each other
+#     # Assumes that bar is called with only a single bar at a time
+#     def __init__(self, ax):
+#         self.ax = ax
+#         if not(hasattr(self.ax, 'bottom')):
+#             self.ax.bottom = dict()     # key is x coordinate and value is height
+
+#     def clear(self):
+#         print 'clearing', self.ax.bottom
+#         self.ax.bottom = dict()
+        
+#     def __getattr__(self, name):
+#         """ Redirect to axes
+#         """
+#         return self.ax.__getattribute__(name)
+
+#     def bar(self, x, *args, **kwargs):
+#         # Find previous (if any)
+#         try:
+#             b = self.ax.bottom[x]
+#         except KeyError:
+#             b = 0
+#         kwargs['bottom'] = b
+#         # Plot
+#         rect = self.ax.bar(x, *args, **kwargs)[0]
+
+#         # Remember
+#         x, y = rect.get_xy()
+#         self.ax.bottom[x] = y + rect.get_height()
+#         return b
+
+#     # def plot(self, *args, **kwargs):
+#     #     self.ax.plot(*args, **kwargs)
 
 
 def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
@@ -453,19 +556,21 @@ def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
             project = None
             label = url
 
-        tasks_daily = createFromFilename(JobLog, filename, 
-                                   label=label, limitMonths=1)
+        tasks_daily = createFromFilename(filename, limitMonths=1)
         if project is not None:
-            tasks_daily.merge(project)
+            merge(tasks_daily, project)
+        p = Plot(tasks_daily, label=label)
+        p.myPlot(fig1, p.plot_points)
+        p.myPlot(fig1, p.plot_bars_daily, N=4)
 
-        tasks_daily.plot(fig=fig1)
-        tasks_daily.plot_FoM(fig=fig2)
+    #     tasks_daily.plot(fig=fig1)
+    #     tasks_daily.plot_FoM(fig=fig2)
 
-        task_monthly = createFromFilename(JobLog_Months, filename, 
-                                   label=label, limitMonths=120)
-        task_monthly.plot(fig=fig3)
+    #     task_monthly = createFromFilename(JobLog_Months, filename, 
+    #                                label=label, limitMonths=120)
+    #     task_monthly.plot(fig=fig3)
 
-    tasks_daily.appendAverage()
+    # tasks_daily.appendAverage()
     #task_monthly.appendAverage() # vops modificatin needed for this to work. Data is stored twice
 
 if __name__ == '__main__':
