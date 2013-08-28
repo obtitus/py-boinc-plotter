@@ -125,7 +125,6 @@ class Plot(object):
         self.rsc_fpops_est = createArray(tasks, 'rsc_fpops_est')
         self.credit = createArray(tasks, 'credit')
         self.label = label
-        self.N = 7
 
     def setColor(self, ax):
         try:
@@ -135,17 +134,31 @@ class Plot(object):
             self.color = ax._get_lines.color_cycle.next()
             projectColors.colors[self.label] = self.color
 
-    def myPlot(self, fig, plot_single, N=7):
+    def myPlot(self, fig1, plot_single, fig2=None):
         """Calls plot_cmd(ax, t, y, ylabel, **kwargs) with the correct axis and y value"""
-        ax = [fig.add_subplot(self.N, 1, 1)]
-        for ix in range(2, N+1):
+        N = 4
+        ax = list()
+        for ix in range(1, N+1):
+            sharex = None
+            if ix != 1:
+                sharex = ax[0]
+
             sharey = None
             if ix in (2, 3):
                 sharey = ax[0]
 
-            ax.append(fig.add_subplot(self.N, 1, ix, 
-                                      sharex=ax[0], sharey=sharey))
+            ax.append(fig1.add_subplot(N, 1, ix, 
+                                       sharex=sharex, sharey=sharey))
+        if fig2 != None:
+            for ix in range(1, N+1):
+                sharex = None
+                if ix != 1:
+                    sharex = ax[N] # ugly
+                ax.append(fig2.add_subplot(N, 1, ix,
+                                           sharex=sharex))
+            
         self.setColor(ax[0])    # ugly hack.
+        
 
         try:
             print 'calling estimated time'
@@ -154,7 +167,6 @@ class Plot(object):
             plot_single(ax[1], self.final_cpu_time, 'Final CPU time')
             plot_single(ax[2], self.final_elapsed_time, 'Final clock time')
             plot_single(ax[3], self.rsc_fpops_est, 'flops')
-            # Todo: once credits are stored on drive, add that as well
 
             # clock/estimated, value of 1 is excellent, larger than 1 means overestimated, smaller is underestimated
             accuracy = self.final_elapsed_time/self.estimated_runtime_uncorrected
@@ -165,21 +177,21 @@ class Plot(object):
                                   self.final_elapsed_time/self.final_cpu_time, np.nan)
             plot_single(ax[5], efficiency, 'Efficiency')
 
+            credit = np.where(self.credit != 0,
+                              self.credit, np.nan)
+            plot_single(ax[6], credit, 'Credits')
             # [credit/cpu] = credits/hour
-            credits_hours = np.where(self.credit != 0, # avoid plotting where we have no data
-                                     self.credit/(self.final_elapsed_time/3600.), np.nan)
-            plot_single(ax[6], credits_hours, 'Credits per hour')
+            credits_hours = self.credit/(self.final_elapsed_time/3600.)
+            plot_single(ax[7], credits_hours, 'Credits per hour')
         except IndexError:
             pass
 
-        try:
-            addLegend(ax[-1])
-        except:
-            logging.exception('Something ammis in paradise, can not even add a legend')
-
-        dayFormat(ax[-1])
-        for axis in ax[:-1]:    # hide xlabels for all but last axis
-            plt.setp(axis.get_xticklabels(), visible=False)
+        for fig in [fig1, fig2]:
+            if fig != None:
+                dayFormat(fig.axes[-1])
+                addLegend(fig.axes[-1])
+                for axis in fig.axes[:-1]:    # hide xlabels for all but last axis
+                    plt.setp(axis.get_xticklabels(), visible=False)
     
     def plot_points(self, ax, y, ylabel, **kwargs):
         """Deals with a single axis for plotting data as points"""
@@ -560,8 +572,8 @@ def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
         if project is not None:
             merge(tasks_daily, project)
         p = Plot(tasks_daily, label=label)
-        p.myPlot(fig1, p.plot_points)
-        p.myPlot(fig1, p.plot_bars_daily, N=4)
+        p.myPlot(fig1, p.plot_points, fig2=fig2)
+        p.myPlot(fig1, p.plot_bars_daily)
 
     #     tasks_daily.plot(fig=fig1)
     #     tasks_daily.plot_FoM(fig=fig2)
