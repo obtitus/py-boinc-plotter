@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """Example server for displaying local boinc status. 
 Run: python example_server.py
-and the point your web browser to: http://localhost:8080/boinccmd.mako"""
+and the point your web browser to: http://localhost:8080/boinccmd.mako
+The heavy lifting is done by wsgiref which is a standard python module and mako, see also boinccmd.mako"""
 from wsgiref.simple_server import make_server
 from mako.template import Template
 
