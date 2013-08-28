@@ -32,6 +32,7 @@ if __name__ == '__main__':
             "PIL",
             "lxml",
             "beautifulsoup4",
-            "appdirs"
+            "appdirs",
+            "mako"
         ],
     )
