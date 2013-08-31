@@ -161,9 +161,7 @@ class Plot(object):
         
 
         try:
-            print 'calling estimated time'
             plot_single(ax[0], self.estimated_runtime_uncorrected, 'Estimated time')
-            print 'end estimated time'
             plot_single(ax[1], self.final_cpu_time, 'Final CPU time')
             plot_single(ax[2], self.final_elapsed_time, 'Final clock time')
             plot_single(ax[3], self.rsc_fpops_est, 'flops')
@@ -241,7 +239,7 @@ class Plot(object):
             ax.__bottom[now] = bottom[-1] + c
                 
 
-        print self.label, bottom
+        logger.debug("Bottom: %s, %s", self.label, bottom)
         ax.bar(days, cumulative, color=self.color, 
                width = 1, alpha=0.75, bottom=bottom,
                **kwargs)
