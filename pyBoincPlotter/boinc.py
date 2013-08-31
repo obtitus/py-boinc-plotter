@@ -50,8 +50,14 @@ class Boinc(object):
         self.web_projects = dict()
         self.wuprop_projects = dict()
 
-    def parse_args(self, parser, *args, **kwargs):
-        self.args = parser.parse_args(*args, **kwargs)
+        self.args.update = True
+
+    def parse_args(self, parser, args=None, namespace=None):
+        self.args = parser.parse_args(args=args, namespace=None)
+        if args is None or len(args) == 0: # no commands where given
+            self.args.update = True
+        else:
+            self.args.update = False
 
     def verbosePrintProject(self, name, proj):
         """Only print proj if verbose setting is True"""
@@ -168,31 +174,33 @@ class Boinc(object):
 
 def main(b):
     
-    b.addAccount()
     b.setLoggingLevel()
     # These do nothing if the user does ask for them
+    b.addAccount()
     prefs_responce = b.changePrefs()
     boinccmd_responce = b.callBoinccmd()
     b.startBoinc()
 
     # Get data
-    try:
-        b.updateLocalProjects()
-        b.updateWupropProjects()
-        b.updateWebProjects()
-    except Exception as e:
-        logger.exception('Uncaught exception when getting data')
+    if b.args.update:
+        try:
+            b.updateLocalProjects()
+            b.updateWupropProjects()
+            b.updateWebProjects()
+        except Exception as e:
+            logger.exception('Uncaught exception when getting data')
 
-    # print 'MERGED'
-    project.pretty_print(b.web_projects, 
-                         show_empty=b.args.verbose)
+        # print 'MERGED'
+        project.pretty_print(b.web_projects, 
+                             show_empty=b.args.verbose)
+        b.plot()
+
+        b.args.update = False   # reset for next time: todo: doesn't actually do anything
 
     if boinccmd_responce is not None:
         print boinccmd_responce.communicate()
     if prefs_responce is not None:
         print prefs_responce.communicate()
-
-    b.plot()
 
 def add_switch(parser, shortName, longName, help_on, help_off='', default=True):
     if help_off == '': help_off = help_on
