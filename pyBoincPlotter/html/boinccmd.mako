@@ -15,16 +15,30 @@ def makeRow(task):
     ret = ''
     for item in task.toString():
         ret += tag('td', content=item)
-    return tag('tr', content=ret)
+
+    attribute = ''
+    if task.state_str == 'running':
+        attribute += 'bgcolor="lightblue"'
+    elif task.state_str == 'ready to report':
+        attribute += 'bgcolor="lightgreen"'
+
+    return tag('tr', attribute, content=ret)
 def makeTable(app):
     ret = ''
     for task in app.tasks: # row
         ret += makeRow(task)
     return tag('table', 'cellpadding="4" style="border: 1px solid #000000; border-collapse: collapse;" border="1"', ret)
+heading = "pyBoincPlotter Get State"
 %>
 
-<html><head></head><body>
-<h1></h1>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>${heading}</title>
+
+</head>
+<body>
+<h1>${heading}</h1>
 % for key, project in sorted(pyBoincPlotter.boinccmd.get_state().items()):
     % if len(project) == 0:
         <% continue %>:

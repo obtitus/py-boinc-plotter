@@ -70,7 +70,6 @@ class Boinccmd(socket):
                "<%s/>\n"\
                "</boinc_gui_rpc_request>\n\003"\
                % (command)
-        #print 'BUF', buf
         self.sendall(buf)
         return self.recv_end()
 
