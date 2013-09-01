@@ -37,7 +37,7 @@ def _setUp(Browser, Parser, url, **kwargs):
                 CONFIG=CONFIG, 
                 **kwargs)
     p = project.Project(url)
-    parser = Parser(browser=b, project=p)
+    parser = Parser(browser=b, p=p)
     return b, parser
 
     
