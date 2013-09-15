@@ -179,7 +179,7 @@ class Plot(object):
                               self.credit, np.nan)
             plot_single(ax[6], credit, 'Credits')
             # [credit/cpu] = credits/hour
-            credits_hours = self.credit/(self.final_elapsed_time/3600.)
+            credits_hours = credit/(self.final_elapsed_time/3600.)
             plot_single(ax[7], credits_hours, 'Credits per hour')
         except IndexError:
             pass
