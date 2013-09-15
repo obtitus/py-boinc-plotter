@@ -53,7 +53,8 @@ class Boinc(object):
         self.args.update = True
 
     def parse_args(self, parser, args=None, namespace=None):
-        self.args = parser.parse_args(args=args, namespace=None)
+        #print 'parse_args called with', parser, args, namespace
+        self.args = parser.parse_args(args=args, namespace=namespace)
         if args is None or len(args) == 0: # no commands where given
             self.args.update = True
         else:
@@ -110,7 +111,8 @@ class Boinc(object):
         # configure logger
         loggerLevel = logging.INFO
         if self.args.verbose: loggerLevel = logging.DEBUG
-        if self.args.silent: loggerLevel = logging.ERROR    
+        if self.args.silent: loggerLevel = logging.ERROR
+        #print 'Logging level', loggerLevel
         loggerSetup(loggerLevel)    
 
     def addAccount(self):
@@ -147,6 +149,8 @@ class Boinc(object):
             return p
 
     def startBoinc(self):
+        logger.debug('self.args.boinc = %s, %s', 
+                     self.args.boinc, type(self.args.boinc))
         if self.args.boinc != None:
             if self.args.boinc:
                 cmd = [os.path.join(self.BOINC_DIR, 'boinc')]

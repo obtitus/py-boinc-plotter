@@ -73,8 +73,7 @@ def plot(fig, projects):
     ax.set_xlabel('State')
 
     ax.set_ylabel('Count')
-    leg = ax.legend(loc='upper left')
-    leg.draw_frame(False)
+    addLegend(ax, loc='upper left')
 
     fig.suptitle("Showing state of {:.0f} tasks".format(sum(bottom)))
 
