@@ -209,12 +209,13 @@ class Task_local(Task):
                    'abort pending', 'aborted', 'unable to start', # 5, 6, 7
                    'waiting to quit', 'suspended', 'waiting for copy', # 8, 9, 10
                    'unknown']   # -1
-    def __init__(self, schedularState=-1, active=-1, memUsage=0, **kwargs):
+    def __init__(self, schedularState=-1, active=-1, memUsage=0, resources='', **kwargs):
         self.__state = None      # cache
 
         self.setSchedularState(schedularState)
         self.setActive(active)
         self.memUsage = float(memUsage)
+        self.resources = resources
         Task.__init__(self, **kwargs)
 
     @staticmethod
@@ -236,7 +237,8 @@ class Task_local(Task):
                           deadline = soup.report_deadline,
                           schedularState = soup.schedular_state or -1,
                           active = soup.active_task_state or -1,
-                          memUsage = soup.working_set_size_smoothed or 0)
+                          memUsage = soup.working_set_size_smoothed or 0,
+                          resources = soup.resources or '')
 
             for key in kwargs:
                 try:
@@ -254,7 +256,7 @@ class Task_local(Task):
 
     def toString(self):
         s = super(Task_local, self).toString()
-        s.extend([self.memUsage_str])
+        s.extend([self.memUsage_str, self.resources])
         return s
 
     @property
