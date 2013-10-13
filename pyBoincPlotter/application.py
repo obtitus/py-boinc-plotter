@@ -27,11 +27,17 @@ logger = logging.getLogger('boinc.application')
 from bs4 import BeautifulSoup
 # This project
 import task
-from statistics import StatisticsList
+from statistics import StatisticsList, ApplicationStatistics_wuprop
 
 class Application(object):
-    def __init__(self, name='', badge='', statistics=''):
-        self.setName_shortLong(name)                # Hopefully on the form Say No to Schistosoma (sn2s)
+    def __init__(self, name='', badge='', statistics='', is_long=False):
+        """use is_long = True when passed name is the long name (i.e. from wuprop)"""
+        if not(is_long):
+            self.setName_shortLong(name)                # Hopefully on the form Say No to Schistosoma (sn2s)
+        else:
+            self.name_short = name
+            self.name_long = name
+
         self.tasks = list()
         self.badge = badge
         self.statistics = statistics
@@ -80,10 +86,20 @@ class Application(object):
     
     def appendStatistics(self, statistics):
         #self.statistics += str(statistics)
+        logger.debug('Appending application statistics "%s" to "%s"', 
+                     statistics, self.statistics)
+        
+        # TODO: shorten the code?
         if self.statistics == '':
-            self.statistics = StatisticsList([statistics])
+            if isinstance(statistics, StatisticsList):
+                self.statistics = statistics
+            else:
+                self.statistics = StatisticsList([statistics])
         else:
-            self.statistics.append(statistics)
+            if isinstance(statistics, StatisticsList):
+                self.statistics.extend(statistics)
+            else:
+                self.statistics.append(statistics)
         
     # Name
     """Name should be on the form <long> (<short>), do a regexp when the name is set.
@@ -167,6 +183,22 @@ class Application(object):
 
 def mergeApplications(local_app, web_app):
     """Tries to merge local and web information by adding information from local to the web application"""
+    logger.debug('mergeapplication %s %s', local_app.name, web_app.name)
+    # This is a uggly hack which should be removed (currently needed to avoid merging too much).
+    try:
+        logger.debug('local_app.statistics[0] = %s, %s', local_app.statistics[0],
+                     isinstance(local_app.statistics[0], ApplicationStatistics_wuprop))
+        logger.debug('web_app.statistics[0] = %s, %s', web_app.statistics[0],
+                     isinstance(web_app.statistics[0], ApplicationStatistics_wuprop))
+        if isinstance(local_app.statistics[0], ApplicationStatistics_wuprop) and\
+           isinstance(web_app.statistics[0], ApplicationStatistics_wuprop):
+            logger.warning('Tried to merge "%s" and "%s", but both had wuprop stats', 
+                           local_app.name, web_app.name)
+            return False
+    except (IndexError, TypeError):
+        pass
+
+
     local_tasks = list(local_app.tasks)
     web_tasks = web_app.tasks
     ix = 0
@@ -191,3 +223,5 @@ def mergeApplications(local_app, web_app):
     
     if web_app.name_short == '':
         web_app.name_short = local_app.name_short
+
+    return True

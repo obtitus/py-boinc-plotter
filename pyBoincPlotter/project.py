@@ -19,6 +19,7 @@
 # END LICENCE
 # Standard python
 import re
+import difflib
 import logging
 logger = logging.getLogger('boinc.project')
 # non standard
@@ -102,8 +103,8 @@ class Project(object):
     # 
     # HTML related
     # 
-    def appendApplication(self, name):
-        app = Application(name=name)
+    def appendApplication(self, name, is_long=False):
+        app = Application(name=name, is_long=is_long)
         name_long = app.name_long
         if not(name_long in self.applications):
             self.applications[name_long] = app
@@ -131,11 +132,11 @@ class Project(object):
         return ret
         
     def appendStatistics(self, statistics):
-        # TODO: consider keeping a reference to the object
         if statistics is None:
             return
 
-        logger.debug('Appending statistics "%s"', statistics)
+        logger.debug('Appending project statistics "%s" to "%s"', 
+                     statistics, self.statistics)
         if self.statistics is None:
             self.statistics = StatisticsList([statistics])
         elif isinstance(statistics, list):
@@ -226,6 +227,7 @@ def mergeProject(local_project, web_project):
     if local_project.settings is not None:
         web_project.settings = local_project.settings
 
+    return True
 def mergeWuprop(wuprop_projects,
                 local_projects):
     """Tries to merge the wuprop project dict (which is sorted by user_friendly_name)
@@ -253,9 +255,9 @@ def mergeDicts(local_dict, web_dict, merge, name):
                   local_dict, web_dict)
     for key in local_dict.keys():
         if key in web_dict:
-            merge(local_dict[key],
-                  web_dict[key])
-            del local_dict[key]
+            if merge(local_dict[key],
+                     web_dict[key]):
+                del local_dict[key]
 
     def fuzzyMatch(name1, name2):
         if name1 is None or name2 is None: return False
@@ -269,15 +271,29 @@ def mergeDicts(local_dict, web_dict, merge, name):
         name1 = name1.replace('(', '').replace(')', '')
         name2 = name2.replace('(', '').replace(')', '')
         return name1 == name2
-            
+
     for remaining_key, remaining in local_dict.items():
         for web in web_dict.values():
             if fuzzyMatch(getattr(remaining, name),
                           getattr(web, name)):
-                merge(remaining, web)
+                logger.debug('fuzzy match \n"%s", \n"%s"', 
+                             remaining.name, web.name)
+                if merge(remaining, web):
+                    del local_dict[remaining_key]
+                    break
+
+    web_objects = web_dict.values()
+    web_names   = [getattr(web, name) for web in web_objects]
+    for remaining_key, remaining in local_dict.items():
+        try:
+            match = difflib.get_close_matches(getattr(remaining, name), web_names, n=1, cutoff=0.8)
+            ix = web_names.index(match[0])
+            logger.debug('difflib match \n"%s", \n"%s"', 
+                         remaining.name, web_objects[ix].name)
+            if merge(remaining, web_objects[ix]):
                 del local_dict[remaining_key]
                 break
-        else:
+        except (IndexError, TypeError):
             logger.warning('merge with %s failed, remaining local %s, web keys, %s', merge, remaining_key, web_dict.keys())
             web_dict[remaining_key] = local_dict[remaining_key]
 
