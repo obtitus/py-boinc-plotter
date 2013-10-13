@@ -308,6 +308,10 @@ class HTMLParser_climateprediction(HTMLParser):
         super(HTMLParser_climateprediction, self).__init__(*args, **kwargs)
         self.Task = task.Task_web_climateprediction
         self.wantedLength = 11
+        self.name = 'climateprediction.net'
+        self.project.setName(self.name)
+        self.project.setUrl('http://www.climateprediction.net')
+        print 'PARSE', self.project
 
 class HTMLParser_primegrid(HTMLParser):
     def getBadges(self):
@@ -406,7 +410,8 @@ class HTMLParser_wuprop(HTMLParser):
                 if proj_name not in projects:
                     projects[proj_name] = project.Project(name=proj_name)
 
-                app = projects[proj_name].appendApplication(app_name)
+                logger.debug('app_name %s', app_name)
+                app = projects[proj_name].appendApplication(app_name, is_long=True)
                 app.appendStatistics(stat)
                 #self.project = Project(short=projects, name=application, wuRuntime=runningTime, wuPending=pending)
 
