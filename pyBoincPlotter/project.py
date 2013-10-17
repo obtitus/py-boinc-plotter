@@ -293,6 +293,8 @@ def mergeDicts(local_dict, web_dict, merge, name):
             if merge(remaining, web_objects[ix]):
                 del local_dict[remaining_key]
                 break
+            else:
+                raise IndexError()
         except (IndexError, TypeError):
             logger.warning('merge with %s failed, remaining local %s, web keys, %s', merge, remaining_key, web_dict.keys())
             web_dict[remaining_key] = local_dict[remaining_key]
