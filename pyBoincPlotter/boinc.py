@@ -156,7 +156,7 @@ class Boinc(object):
                 cmd = [os.path.join(self.BOINC_DIR, 'boinc')]
                 logger.info('%s', cmd)
                 self.boinc = subprocess.Popen(cmd, cwd=self.BOINC_DIR)
-                time.sleep(1)
+                time.sleep(10)
                 atexit.register(self.boinc.terminate)
             else:               # is false
                 try:
