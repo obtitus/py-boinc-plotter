@@ -503,7 +503,7 @@ class Task_jobLog(Task):
         Expects a single line from the job log file
         """
         s = line.split()
-        assert len(s) == 11, 'Line in job log not recognized {0} "{1}" -> "{2}"'.format(len(s), line, s)
+        assert len(s) in (11, 13), 'Line in job log not recognized {0} "{1}" -> "{2}"'.format(len(s), line, s)
         return Task_jobLog(time=s[0], name=s[8],
                            ue=s[2], ct=s[4], fe=s[6], et=s[10])
 
