@@ -69,8 +69,11 @@ function decay_average($avg, $avg_time, $now = 0) {
 def createFromFilename(filename, limitMonths=None):
     """ Returns a JobLog instance from a given filename
     """
-    with open(filename, 'r') as f:
-        return createFromFilehandle(f, limitMonths=limitMonths)
+    try:
+        with open(filename, 'r') as f:
+            return createFromFilehandle(f, limitMonths=limitMonths)
+    except Exception as e:
+        logger.exception('Error reading job_log %s', filename)
 
 def createFromFilehandle(f, limitMonths=None):
     """ Returns a JobLog instance from a given filehandle
