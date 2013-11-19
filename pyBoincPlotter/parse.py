@@ -66,6 +66,9 @@ class HTMLParser(object):
         elif section == 'climateapps2.oerc.ox.ac.uk/cpdnboinc':
             logger.debug('getting climateprediction parser')
             parser = HTMLParser_climateprediction(**kwargs)
+        elif section == 'einstein.phys.uwm.edu/':
+            logger.debug('getting einstein parser')
+            parser = HTMLParser_einstein(**kwargs)
         else:                   # Lets try the generic
             logger.debug('getting generic parser, name = %s', section)
             parser = HTMLParser(**kwargs)
@@ -90,7 +93,7 @@ class HTMLParser(object):
             ret = [td.text for td in tr.find_all('td')]
 
             if len(ret) != 0:
-                self.logger.debug('in parseTable, got %s, len = %s', ret, len(ret))
+                self.logger.debug('in parseTable, got %s, len = %s, expected %s', ret, len(ret), self.wantedLength)
 
             if len(ret) == self.wantedLength and ret[0].strip() != '':
                 yield ret
@@ -312,6 +315,13 @@ class HTMLParser_climateprediction(HTMLParser):
         self.project.setName(self.name)
         self.project.setUrl('http://www.climateprediction.net')
         print 'PARSE', self.project
+
+class HTMLParser_einstein(HTMLParser):
+    """Same as web but length is 11"""
+    def __init__(self, *args, **kwargs):
+        super(HTMLParser_einstein, self).__init__(*args, **kwargs)
+        self.Task = task.Task_web_climateprediction
+        self.wantedLength = 11
 
 class HTMLParser_primegrid(HTMLParser):
     def getBadges(self):
