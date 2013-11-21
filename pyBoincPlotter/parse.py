@@ -314,7 +314,6 @@ class HTMLParser_climateprediction(HTMLParser):
         self.name = 'climateprediction.net'
         self.project.setName(self.name)
         self.project.setUrl('http://www.climateprediction.net')
-        print 'PARSE', self.project
 
 class HTMLParser_einstein(HTMLParser):
     """Same as web but length is 11"""

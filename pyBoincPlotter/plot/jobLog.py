@@ -109,25 +109,38 @@ def merge(tasks, web_project):
         except AttributeError:
             logger.debug('Not a web task %s', web_task)
 
-def createArray(tasks, attr, dtype=np.float):
-    ret = np.zeros(len(tasks), dtype=dtype)
-    for ix, item in enumerate(tasks):
-        try:
-            value = getattr(item, attr)
-        except AttributeError:
-            value = np.nan
-        ret[ix] = value
-    return ret
-
 class Plot(object):
-    def __init__(self, tasks, label=''):
-        self.time = createArray(tasks, 'time', dtype=datetime.datetime)
-        self.estimated_runtime_uncorrected = createArray(tasks, 'estimated_runtime_uncorrected')
-        self.final_cpu_time = createArray(tasks, 'final_cpu_time')
-        self.final_elapsed_time = createArray(tasks, 'final_elapsed_time')
-        self.rsc_fpops_est = createArray(tasks, 'rsc_fpops_est')
-        self.credit = createArray(tasks, 'credit')
+    def __init__(self, tasks, limitMonths=1, label=''):
         self.label = label
+        # First figure out the length:
+        now = datetime.datetime.now()
+        time = list()
+        for t in tasks:
+            if util.diffMonths(t.time, now) < limitMonths:
+                time.append(t.time)
+
+        self.time = np.array(time) #self.createArray('time', dtype=datetime.datetime)
+        self.N = len(self.time)
+
+        self.estimated_runtime_uncorrected = self.createArray(tasks, 'estimated_runtime_uncorrected')
+        self.final_cpu_time = self.createArray(tasks, 'final_cpu_time')
+        self.final_elapsed_time = self.createArray(tasks, 'final_elapsed_time')
+        self.rsc_fpops_est = self.createArray(tasks, 'rsc_fpops_est')
+        self.credit = self.createArray(tasks, 'credit')
+
+
+    def createArray(self, tasks, attr, dtype=np.float):
+        """ helper function for __init__ """
+        ret = np.zeros(self.N, dtype=dtype)
+        for ix in xrange(self.N): # Get only N tasks
+            try:
+                value = getattr(tasks[-ix], attr) # remember to go the other way
+            except AttributeError:
+                value = np.nan
+            except IndexError:
+                value = np.nan
+            ret[-ix] = value
+        return ret
 
     def setColor(self, ax):
         try:
@@ -137,7 +150,7 @@ class Plot(object):
             self.color = ax._get_lines.color_cycle.next()
             projectColors.colors[self.label] = self.color
 
-    def myPlot(self, fig1, plot_single, fig2=None):
+    def myPlot(self, fig1, plot_single, fig2=None, month=False, **kwargs):
         """Calls plot_cmd(ax, t, y, ylabel, **kwargs) with the correct axis and y value"""
         N = 4
         ax = list()
@@ -164,44 +177,47 @@ class Plot(object):
         
 
         try:
-            plot_single(ax[0], self.estimated_runtime_uncorrected, 'Estimated time')
-            plot_single(ax[1], self.final_cpu_time, 'Final CPU time')
-            plot_single(ax[2], self.final_elapsed_time, 'Final clock time')
-            plot_single(ax[3], self.rsc_fpops_est, 'flops')
+            plot_single(ax[0], self.estimated_runtime_uncorrected, 'Estimated time', **kwargs)
+            plot_single(ax[1], self.final_cpu_time, 'Final CPU time', **kwargs)
+            plot_single(ax[2], self.final_elapsed_time, 'Final clock time', **kwargs)
+            plot_single(ax[3], self.rsc_fpops_est, 'flops', **kwargs)
 
             # clock/estimated, value of 1 is excellent, larger than 1 means overestimated, smaller is underestimated
             accuracy = self.final_elapsed_time/self.estimated_runtime_uncorrected
-            plot_single(ax[4], accuracy, 'Estimate accuracy')
+            plot_single(ax[4], accuracy, 'Estimate accuracy', **kwargs)
 
             # clock/cpu, value of 1 is efficient, larger than 1 means more cpu time then clock time
             efficiency = np.where(self.final_cpu_time != 0, # avoid divison by 0
                                   self.final_elapsed_time/self.final_cpu_time, np.nan)
-            plot_single(ax[5], efficiency, 'Efficiency')
+            plot_single(ax[5], efficiency, 'Efficiency', **kwargs)
 
             credit = np.where(self.credit != 0,
                               self.credit, np.nan)
-            plot_single(ax[6], credit, 'Credits')
+            plot_single(ax[6], credit, 'Credits', **kwargs)
+
             # [credit/cpu] = credits/hour
             credits_hours = credit/(self.final_elapsed_time/3600.)
-            plot_single(ax[7], credits_hours, 'Credits per hour')
-        except IndexError:
+            plot_single(ax[7], credits_hours, 'Credits per hour', **kwargs)
+        except IndexError as e: # thrown if fig2 is None
             pass
 
         for fig in [fig1, fig2]:
             if fig != None:
-                dayFormat(fig.axes[-1])
+                dayFormat(fig.axes[-1])#, month=month)
                 addLegend(fig.axes[-1])
                 for axis in fig.axes[:-1]:    # hide xlabels for all but last axis
                     plt.setp(axis.get_xticklabels(), visible=False)
     
     def plot_points(self, ax, y, ylabel, **kwargs):
         """Deals with a single axis for plotting data as points"""
-        if len(y) == 0:
+        if len(y) == 0 or np.all(np.isnan(y)):
             return
 
         ax.plot(self.time, y, ls='none',
-                marker='o', color=self.color, label=self.label,
-                **kwargs)
+                marker='o', color=self.color, **kwargs)
+        self.annoteAxis(ax, y, ylabel)
+
+    def annoteAxis(self, ax, y, ylabel):
         y_min, y_max = ax.get_ybound()
         y_min = max([min(y), y_min])
         if y_min == 0: y_min = 1
@@ -218,19 +234,39 @@ class Plot(object):
         ax.set_ylabel(ylabel)
 
     def plot_bars_daily(self, ax, y, ylabel, **kwargs):
-        """Deals with a single axis for plotting data as bars"""
+        self.plot_bars('day', ax, y, ylabel, **kwargs)
+
+    def plot_bars_montly(self, ax, y, ylabel, **kwargs):
+        self.plot_bars('month', ax, y, ylabel, **kwargs)
+
+    def plot_bars(self, mode, ax, y, ylabel, **kwargs):
+        """Deals with a single axis for plotting data as bars.
+        Mode must be either 'day' or 'month'"""
+        assert mode in ('day', 'month'), 'Vops, somethings very wrong, mode is %s' % mode
+
         days = list()
+        width = list()
         cumulative = list()
         bottom = list()
         ix = 0
-        for key, group in itertools.groupby(self.time, lambda k: k.day):
+        for key, group in itertools.groupby(self.time, lambda k: getattr(k, mode)):
             c = 0               # cumulative
             for count in group: # we just need to run the length of the iterator
                 c += y[ix]
                 ix += 1
             now = count.replace(hour=0, minute=0, second=0, microsecond=0) # Reset to 0:00:00 this day for alignment of bars
+            if mode == 'month':
+                # replace day as well
+                now = now.replace(day=1)
+
             days.append(now)
             cumulative.append(c)
+            w = 1
+            if mode == 'month':
+                _, w = calendar.monthrange(now.year,
+                                               now.month)
+            width.append(w)
+
             try:
                 b = ax.__bottom[now]
                 bottom.append(b)
@@ -243,10 +279,12 @@ class Plot(object):
                 
 
         logger.debug("Bottom: %s, %s", self.label, bottom)
+
         ax.bar(days, cumulative, color=self.color, 
-               width = 1, alpha=0.75, bottom=bottom,
+               width=width, alpha=0.75, bottom=bottom, 
                **kwargs)
-        
+        self.annoteAxis(ax, [0], ylabel)
+
 #     @property
 #     def time(self):
 #         if len(self._time) != len(self):
@@ -569,19 +607,26 @@ def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
             project = None
             label = url
 
-        tasks_daily = createFromFilename(filename, limitMonths=1)
+        tasks = createFromFilename(filename, limitMonths=120)
         if project is not None:
-            merge(tasks_daily, project)
-        p = Plot(tasks_daily, label=label)
-        p.myPlot(fig1, p.plot_points, fig2=fig2)
-        p.myPlot(fig1, p.plot_bars_daily)
+            merge(tasks, project)
+        # for t in  tasks:
+        #     print t, getattr(t, 'credit', None)
+        p_daily = Plot(tasks, limitMonths=1, label=label)
+        p_daily.myPlot(fig1, p_daily.plot_points, fig2=fig2, label=label)
+        p_daily.myPlot(fig1, p_daily.plot_bars_daily)
+
+        p = Plot(tasks, limitMonths=120, label=label)
+        #p.myPlot(fig3, p.plot_points, fig2=None)
+        p.myPlot(fig3, p.plot_bars_daily, month=True)
+        p.myPlot(fig3, p.plot_bars_montly, label=label, month=True)
 
     #     tasks_daily.plot(fig=fig1)
     #     tasks_daily.plot_FoM(fig=fig2)
 
-    #     task_monthly = createFromFilename(JobLog_Months, filename, 
-    #                                label=label, limitMonths=120)
-    #     task_monthly.plot(fig=fig3)
+        # task_monthly = createFromFilename(JobLog_Months, filename, 
+        #                                   label=label, limitMonths=120)
+        # task_monthly.plot(fig=fig3)
 
     # tasks_daily.appendAverage()
     #task_monthly.appendAverage() # vops modificatin needed for this to work. Data is stored twice
