@@ -112,7 +112,11 @@ def cumulativeMonth(day, data):
     yield day[-1], cumulative
 
 def addLegend(ax, loc='best'):
-    leg = ax.legend(loc=loc)
-    if leg is not None:
-        leg.draggable()
-        leg.draw_frame(False)
+    try:
+        h, l = ax.get_legend_handles_labels()
+        if len(h) != 0:
+            leg = ax.legend(h, l, loc=loc)
+            leg.draggable()
+            leg.draw_frame(False)
+    except Exception as e:
+        pass
