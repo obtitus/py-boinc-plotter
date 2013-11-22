@@ -618,7 +618,7 @@ def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
 
         p = Plot(tasks, limitMonths=120, label=label)
         #p.myPlot(fig3, p.plot_points, fig2=None)
-        p.myPlot(fig3, p.plot_bars_daily, month=True)
+        #p.myPlot(fig3, p.plot_bars_daily, month=True)
         p.myPlot(fig3, p.plot_bars_montly, label=label, month=True)
 
     #     tasks_daily.plot(fig=fig1)
