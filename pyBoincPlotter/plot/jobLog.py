@@ -174,7 +174,7 @@ class Plot(object):
                                            sharex=sharex))
             
         self.setColor(ax[0])    # ugly hack.
-        
+        self.ax = ax
 
         try:
             plot_single(ax[0], self.estimated_runtime_uncorrected, 'Estimated time', **kwargs)
@@ -285,6 +285,29 @@ class Plot(object):
                **kwargs)
         self.annoteAxis(ax, [0], ylabel)
 
+    def addAverageLine(self):
+        for ax in self.ax:
+            try:
+                N = len(ax.__bottom)
+            except AttributeError:
+                continue
+
+            time, value = np.zeros(N), np.zeros(N)
+            ix = 0
+            for t, y in ax.__bottom.items(): # we could sort, but we don't need to
+                time[ix], value[ix] = plt.date2num(t), y
+                ix += 1
+
+            avg = decay_average(time, value)
+            logger.debug('AVG %s', avg)
+            ax.axhline(avg, color='k', ls='--', alpha=0.5)
+            # annotate:
+            form = ax.yaxis.get_major_formatter()
+            s = form(avg)
+            x_min, x_max = ax.get_xlim()
+            xy = (x_max, avg)
+            ax.annotate(s, xy, fontsize='x-small')
+            
 #     @property
 #     def time(self):
 #         if len(self._time) != len(self):
@@ -621,15 +644,8 @@ def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
         #p.myPlot(fig3, p.plot_bars_daily, month=True)
         p.myPlot(fig3, p.plot_bars_montly, label=label, month=True)
 
-    #     tasks_daily.plot(fig=fig1)
-    #     tasks_daily.plot_FoM(fig=fig2)
-
-        # task_monthly = createFromFilename(JobLog_Months, filename, 
-        #                                   label=label, limitMonths=120)
-        # task_monthly.plot(fig=fig3)
-
-    # tasks_daily.appendAverage()
-    #task_monthly.appendAverage() # vops modificatin needed for this to work. Data is stored twice
+    p_daily.addAverageLine()
+    #p.addAverageLine()
 
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
