@@ -47,6 +47,7 @@ class Task(object):
     fmt_date = '%d %b %Y %H:%M:%S UTC'
     def __init__(self, name='', device='localhost',
                  state='unknown', fractionDone='0',
+                 checkpointCPUtime=None, currentCPUtime=None,
                  elapsedCPUtime='0', remainingCPUtime='0', deadline=None):
         """
         Each attribute has a string representation and a 'data' representation:
@@ -64,6 +65,7 @@ class Task(object):
 
         self.setElapsedCPUtime(elapsedCPUtime) # stored as timedelta, see strToTimedelta and timedeltaToStr
         self.setRemainingCPUtime(remainingCPUtime) # stored as timedelta, see strToTimedelta and timedeltaToStr
+        self.setCheckpoint(checkpointCPUtime, currentCPUtime)
         self.setDeadline(deadline)                 # stored as datetime, string is time until deadline
 
     N = 10
@@ -161,7 +163,10 @@ class Task(object):
 
     @property
     def elapsedCPUtime_str(self):
-        return self.timedeltaToStr(self.elapsedCPUtime)
+        elapsed = self.timedeltaToStr(self.elapsedCPUtime)
+        if self.checkpoint != None:
+            elapsed += " ({})".format(self.checkpoint_str)
+        return elapsed
 
     def setElapsedCPUtime(self, elapsedCPUtime):
         if elapsedCPUtime == '---':
@@ -175,6 +180,19 @@ class Task(object):
     def setRemainingCPUtime(self, remainingCPUtime):
         self.__state = None
         self.remainingCPUtime = self.strToTimedelta(remainingCPUtime)
+
+    @property
+    def checkpoint_str(self):
+        return self.timedeltaToStr(self.checkpoint)
+
+    def setCheckpoint(self, checkpointCPUtime, currentCPUtime):
+        self.checkpoint = None
+        if checkpointCPUtime != None and currentCPUtime != None:
+            try:
+                sec = self.toFloat(currentCPUtime) - self.toFloat(checkpointCPUtime)
+                self.checkpoint = datetime.timedelta(seconds=sec)
+            except:
+                pass
 
     @property
     def deadline_str(self):
@@ -234,6 +252,8 @@ class Task_local(Task):
                           fractionDone = soup.fraction_done or 0,
                           elapsedCPUtime = soup.elapsed_time or soup.final_elapsed_time or 0,
                           remainingCPUtime = soup.estimated_cpu_time_remaining or 0,
+                          checkpointCPUtime = soup.checkpoint_cpu_time or None,
+                          currentCPUtime = soup.current_cpu_time or None,
                           deadline = soup.report_deadline,
                           schedularState = soup.schedular_state or -1,
                           active = soup.active_task_state or -1,
