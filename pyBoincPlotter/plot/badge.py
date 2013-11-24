@@ -53,7 +53,12 @@ class Badge(object):
         elif name == 'spirit': name = 'r'
         elif name == 'held': name = 'r'
         elif name == 'half god': name = 'g'
-        elif name == 'god': name = 'g'        
+        elif name == 'god': name = 'g'
+        # wuprop colors
+        elif name == 'Pink': name = (253, 48, 253)
+        elif name == 'LightGreen': name = (38, 252, 34)
+        elif name == 'LightBlue': name = (34, 255, 255)
+        elif name == 'Violet': name = (147, 40, 220)
         return name
 
     # Overriden in subclass:
@@ -123,7 +128,11 @@ class Badge_wuprop(Badge):
               [500, 'Gold'],
               [1000, 'Ruby'],
               [2500, 'Emerald'],
-              [5000, 'Sapphire']]
+              [5000, 'Sapphire'],
+              [10000, 'Pink'],
+              [25000, 'LightGreen'],
+              [50000, 'LightBlue'],
+              [100000, 'Violet']]
     def __init__(self, name='', url=''):
         self.name = name
         self.url = url
