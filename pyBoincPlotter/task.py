@@ -181,16 +181,21 @@ class Task(object):
         self.__state = None
         self.remainingCPUtime = self.strToTimedelta(remainingCPUtime)
 
-    @property
-    def checkpoint_str(self):
-        return self.timedeltaToStr(self.checkpoint)
+    # @property
+    # def checkpoint_str(self):
+    #     return self.timedeltaToStr(self.checkpoint)
 
     def setCheckpoint(self, checkpointCPUtime, currentCPUtime):
         self.checkpoint = None
         if checkpointCPUtime != None and currentCPUtime != None:
             try:
                 sec = self.toFloat(currentCPUtime) - self.toFloat(checkpointCPUtime)
-                self.checkpoint = datetime.timedelta(seconds=sec)
+                if sec < 0:     # negative timedeltas are wierd
+                    self.checkpoint = datetime.timedelta(seconds=-sec)
+                    self.checkpoint_str = '-' + self.timedeltaToStr(self.checkpoint)
+                else:
+                    self.checkpoint = datetime.timedelta(seconds=sec)
+                    self.checkpoint_str = self.timedeltaToStr(self.checkpoint)
             except:
                 pass
 
