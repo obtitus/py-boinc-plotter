@@ -155,23 +155,29 @@ class Plot(object):
         N = 4
         ax = list()
         for ix in range(1, N+1):
-            sharex = None
-            if ix != 1:
-                sharex = ax[0]
-
-            sharey = None
-            if ix in (2, 3):
-                sharey = ax[0]
-
-            ax.append(fig1.add_subplot(N, 1, ix, 
-                                       sharex=sharex, sharey=sharey))
-        if fig2 != None:
-            for ix in range(1, N+1):
+            if len(fig1.axes) > ix:
+                ax.append(fig1.axes[ix]) # Already created
+            else:
                 sharex = None
                 if ix != 1:
-                    sharex = ax[N] # ugly
-                ax.append(fig2.add_subplot(N, 1, ix,
-                                           sharex=sharex))
+                    sharex = ax[0]
+
+                sharey = None
+                if ix in (2, 3):
+                    sharey = ax[0]
+
+                ax.append(fig1.add_subplot(N, 1, ix, 
+                                           sharex=sharex, sharey=sharey))
+        if fig2 != None:
+            for ix in range(1, N+1):
+                if len(fig2.axes) > ix:
+                    ax.append(fig2.axes[ix]) # Already created
+                else:
+                    sharex = None
+                    if ix != 1:
+                        sharex = ax[N] # ugly
+                    ax.append(fig2.add_subplot(N, 1, ix,
+                                               sharex=sharex))
             
         self.setColor(ax[0])    # ugly hack.
         self.ax = ax
@@ -201,13 +207,6 @@ class Plot(object):
         except IndexError as e: # thrown if fig2 is None
             pass
 
-        for fig in [fig1, fig2]:
-            if fig != None:
-                dayFormat(fig.axes[-1])#, month=month)
-                addLegend(fig.axes[-1])
-                for axis in fig.axes[:-1]:    # hide xlabels for all but last axis
-                    plt.setp(axis.get_xticklabels(), visible=False)
-    
     def plot_points(self, ax, y, ylabel, **kwargs):
         """Deals with a single axis for plotting data as points"""
         if len(y) == 0 or np.all(np.isnan(y)):
@@ -647,6 +646,14 @@ def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
     p_daily.addAverageLine()
     #p.addAverageLine()
 
+    for fig in [fig1, fig2, fig3]:
+        if fig != None:
+            dayFormat(fig.axes[-1])#, month=month)
+            addLegend(fig.axes[-1])
+            for axis in fig.axes[:-1]:    # hide xlabels for all but last axis
+                plt.setp(axis.get_xticklabels(), visible=False)
+
+
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
     loggerSetup(logging.INFO)
@@ -669,4 +676,4 @@ if __name__ == '__main__':
     fig3 = plt.figure()
     plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR)
 
-    raw_input('=== Press enter to exit ===\n')
+    #raw_input('=== Press enter to exit ===\n')
