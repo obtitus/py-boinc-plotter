@@ -58,19 +58,20 @@ def plot(fig, data, limitDays=None):
     for t, desc in data:
         if desc.startswith('power'):
             newState = desc[len('power_'):]
-            power.barh(ax0, t, newState)
+            power.barh(t, newState)
         elif desc.startswith('net'):
             newState = desc[len('net_'):]
-            net.barh(ax1, t, newState)
+            net.barh(t, newState)
         elif desc.startswith('proc'):
             newState = desc[len('proc_'):]
-            proc.barh(ax2, t, newState)
+            proc.barh(t, newState)
         else:
             logger.warning('plotTimeStats, did not recognize "{}" as description'.format(desc))
 
     # Draw current state to now
     for ix, item in enumerate([power, net, proc]):
-        item.barh(axes[ix], now, '')
+        item.barh(now, '')
+        item.barh_draw(axes[ix])
         ax2 = fig.add_subplot(gs[ix, -1])
         item.pie(ax2)
 
@@ -96,6 +97,8 @@ class PrevState(object): # namedtuple('PreviousState', ['t', 'desc'])
         self.now = datetime.datetime.now()
         self.limitDays = limitDays
 
+        self.data = collections.defaultdict(list)
+
     def getColor(self, desc=None):
         if desc == None: desc = self.desc
         try:
@@ -104,7 +107,7 @@ class PrevState(object): # namedtuple('PreviousState', ['t', 'desc'])
             logger.warning('plotTimeStats unknown state "{}"'.format(desc))
             return 'k'
 
-    def barh(self, ax, t, newState):
+    def barh(self, t, newState):
         """Draw a bar from the previous state (self.t) to t"""
         #print self.t != None, self.limitDays == None, (self.now - t).days < self.limitDays
         if self.t != None and (self.limitDays == None or (self.now - t).days < self.limitDays):
@@ -113,12 +116,18 @@ class PrevState(object): # namedtuple('PreviousState', ['t', 'desc'])
             left = plt.date2num(self.t)
             # logger.debug('drawing a bar "%s" from %s, of length %.3g to %s', 
             #              self.desc, plt.num2date(left), width*24, plt.num2date(left+width))
-            ax.barh(bottom=0, width=width, 
-                    left=left, height=1, color=color, linewidth=0)
+            # ax.barh(bottom=0, width=width, 
+            #         left=left, height=1, color=color, linewidth=0)
+            #self.data.append((left, width))
+            self.data[color].append((left, width))
 
             self.cumsum[self.desc] += width # todo substract outside wanted range
 
         self.update(t, newState)
+        
+    def barh_draw(self, ax):
+        for color in sorted(self.data): # the order matters since the last one will be most prominent
+            ax.broken_barh(self.data[color], (0, 1), color=color)
 
     def pie(self, ax):
         # use the cumsum to plot a pie chart
