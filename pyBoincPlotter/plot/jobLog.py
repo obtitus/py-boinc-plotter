@@ -110,13 +110,15 @@ def merge(tasks, web_project):
             logger.debug('Not a web task %s', web_task)
 
 class Plot(object):
-    def __init__(self, tasks, limitMonths=1, label=''):
+    def __init__(self, tasks, limitMonths=1, minDays=15, label=''):
+        """Show at least minDays, but only limitMonths months"""
         self.label = label
+        self.ax = list()
         # First figure out the length:
         now = datetime.datetime.now()
         time = list()
         for t in tasks:
-            if util.diffMonths(t.time, now) < limitMonths:
+            if abs((now - t.time).days) < minDays or util.diffMonths(t.time, now) < limitMonths:
                 time.append(t.time)
 
         self.time = np.array(time) #self.createArray('time', dtype=datetime.datetime)
@@ -154,29 +156,29 @@ class Plot(object):
         """Calls plot_cmd(ax, t, y, ylabel, **kwargs) with the correct axis and y value"""
         N = 4
         ax = list()
-        for ix in range(1, N+1):
-            if len(fig1.axes) > ix:
-                ax.append(fig1.axes[ix]) # Already created
+        for ix in range(N):
+            if len(self.ax) > ix:
+                ax.append(self.ax[ix]) # Already created
             else:
                 sharex = None
-                if ix != 1:
+                if ix != 0:
                     sharex = ax[0]
 
                 sharey = None
-                if ix in (2, 3):
+                if ix in (1, 2):
                     sharey = ax[0]
 
-                ax.append(fig1.add_subplot(N, 1, ix, 
+                ax.append(fig1.add_subplot(N, 1, ix+1, 
                                            sharex=sharex, sharey=sharey))
         if fig2 != None:
-            for ix in range(1, N+1):
-                if len(fig2.axes) > ix:
-                    ax.append(fig2.axes[ix]) # Already created
+            for ix in range(N):
+                if len(self.ax) > ix+N:
+                    ax.append(self.ax[ix+N]) # Already created
                 else:
                     sharex = None
-                    if ix != 1:
+                    if ix != 0:
                         sharex = ax[N] # ugly
-                    ax.append(fig2.add_subplot(N, 1, ix,
+                    ax.append(fig2.add_subplot(N, 1, ix+1,
                                                sharex=sharex))
             
         self.setColor(ax[0])    # ugly hack.
@@ -647,7 +649,7 @@ def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
     #p.addAverageLine()
 
     for fig in [fig1, fig2, fig3]:
-        if fig != None:
+        if fig != None and len(fig.axes) != 0:
             dayFormat(fig.axes[-1])#, month=month)
             addLegend(fig.axes[-1])
             for axis in fig.axes[:-1]:    # hide xlabels for all but last axis
@@ -676,4 +678,4 @@ if __name__ == '__main__':
     fig3 = plt.figure()
     plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR)
 
-    #raw_input('=== Press enter to exit ===\n')
+    raw_input('=== Press enter to exit ===\n')
