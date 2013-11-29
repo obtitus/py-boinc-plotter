@@ -292,13 +292,15 @@ def mergeDicts(local_dict, web_dict, merge, name):
                          remaining.name, web_objects[ix].name)
             if merge(remaining, web_objects[ix]):
                 del local_dict[remaining_key]
-                break
+                #break
             else:
                 raise IndexError()
         except (IndexError, TypeError):
             logger.warning('merge with %s failed, remaining local %s, web keys, %s', merge, remaining_key, web_dict.keys())
             web_dict[remaining_key] = local_dict[remaining_key]
-
+            del local_dict[remaining_key]
+    
+    assert len(local_dict) == 0, 'Vops, not all projects merged %s' % local_dict
     
 def pretty_print(projects, show_empty=False):
     for p in projects.values():
