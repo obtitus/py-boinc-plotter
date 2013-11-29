@@ -233,6 +233,7 @@ if __name__ == '__main__':
     project.merge(local_projects, web_projects)
     print 'MERGED'
     project.pretty_print(web_projects, show_empty=True)
+    #project.pretty_print(local_projects, show_empty=True)
     
     fig1 = plt.figure()
     fig2 = plt.figure()
