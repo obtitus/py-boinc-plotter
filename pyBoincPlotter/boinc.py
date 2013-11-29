@@ -240,23 +240,24 @@ def run():
     argparse.ArgumentParser.add_switch = add_switch # isn't it neat that we can change the implementation of argumentparser?
     parser = argparse.ArgumentParser(description='Boinc statistics')
     parser.add_switch('p', 'plot',
-                      help_on='Use matplotlib to plot statistics and progress',
+                      help_on='Use matplotlib to plot statistics and progress (default behavior)',
                       help_off='Disable plotting')
     parser.add_argument('-dmacosx', action='store_true', help='Use the macosx backend for plotting')    
     #parser.add_argument('-s', '--save', action='store_true', help='Use in combination with --plot, saves the figures to disk in the current working directory')
     exclusive = parser.add_mutually_exclusive_group()
     exclusive.add_argument('-v', '--verbose', action='store_true', help='Sets logging level to DEBUG')
     exclusive.add_argument('-s', '--silent', action='store_true', help='Sets logging level to ERROR')    
-    parser.add_argument('--add', help='Add webpage that pyBoincPlotter should track, example: --add wuprop.boinc-af.org/')
+    parser.add_argument('--add', help='Add webpage that pyBoincPlotter should track, example: "--add wuprop.boinc-af.org/"')
     parser.add_argument('--batch', help='Do not prompt for user input', action='store_false')
     parser.add_switch('w', 'web', 
-                      help_on='Allow pyBoincPlotter to connect to the internet',
+                      help_on=('Allow pyBoincPlotter to connect to the internet (default behavior). '
+                               'Only visits sites previously added by --add'),
                       help_off='Do not connect to the internet')
     parser.add_switch('l', 'local', 
-                      help_on='Allow pyBoincPlotter to connect to local boinc client',
+                      help_on='Allow pyBoincPlotter to connect to local boinc client (default behavior)',
                       help_off='Do not connect to the local boinc client')
-    parser.add_argument('--boinccmd', nargs='?', help=('Passed to the command line boinccmd'
-                                                       'if available, pass --boinccmd=--help for more info'))
+    parser.add_argument('--boinccmd', nargs='?', help=('Passed to the command line boinccmd, '
+                                                       'pass --boinccmd=--help for more info'))
     parser.add_argument('--prefs', nargs='?', help=('Passed to the py-boinc-prefs utility '
                                                     'which changes the global_prefs_override.xml '
                                                     'and issues a read_global_prefs_override when done. '
@@ -264,8 +265,10 @@ def run():
     parser.add_switch('b', 'boinc', 
                       help_on=('Initiate the command line version of boinc, ' 
                                'the process will be killed when py-boinc-plotter exits, '
-                               'so combining with --batch makes no sense.'),
-                      help_off='Kill any command line version of boinc controlled by py-boinc-plotter', 
+                               'so combining with --batch makes no sense. '
+                               'Default is off'),
+                      help_off=('Kill any command line version of boinc controlled by py-boinc-plotter. '
+                                'For interactive use after --boinc has been passed'),
                       default=False)
 
     b = Boinc(parser)
