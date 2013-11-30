@@ -165,7 +165,7 @@ def plot_wuprop(fig, applications, badges, browser):
         h += pending
 
         pending, running, validation = app.pendingTime(include_elapsedCPUtime=False)
-        for t, alpha in ((pending, 0.5), (running, 0.25), (validation, 0.125)):
+        for t, alpha in ((validation, 0.5), (running, 0.25), (pending, 0.125)):
             ax.bar(ix, t, bottom=h, alpha=alpha, **kwargs)
             h += t
 
