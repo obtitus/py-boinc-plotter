@@ -97,7 +97,7 @@ class PrevState(object): # namedtuple('PreviousState', ['t', 'desc'])
         self.now = datetime.datetime.now()
         self.limitDays = limitDays
 
-        self.data = collections.defaultdict(list)
+        self.data_barh = collections.defaultdict(list)
 
     def getColor(self, desc=None):
         if desc == None: desc = self.desc
@@ -108,26 +108,21 @@ class PrevState(object): # namedtuple('PreviousState', ['t', 'desc'])
             return 'k'
 
     def barh(self, t, newState):
-        """Draw a bar from the previous state (self.t) to t"""
+        """Prepare bar from the previous state (self.t) to t. Call barh_draw when done to call matplotlib."""
         #print self.t != None, self.limitDays == None, (self.now - t).days < self.limitDays
         if self.t != None and (self.limitDays == None or (self.now - t).days < self.limitDays):
             color = self.getColor()
             width = (t - self.t).total_seconds()/(60*60*24.) # Matplotlib deals in days
             left = plt.date2num(self.t)
-            # logger.debug('drawing a bar "%s" from %s, of length %.3g to %s', 
-            #              self.desc, plt.num2date(left), width*24, plt.num2date(left+width))
-            # ax.barh(bottom=0, width=width, 
-            #         left=left, height=1, color=color, linewidth=0)
-            #self.data.append((left, width))
-            self.data[color].append((left, width))
+            self.data_barh[color].append((left, width))
 
             self.cumsum[self.desc] += width # todo substract outside wanted range
 
         self.update(t, newState)
         
     def barh_draw(self, ax):
-        for color in sorted(self.data): # the order matters since the last one will be most prominent
-            ax.broken_barh(self.data[color], (0, 1), color=color)
+        for color in sorted(self.data_barh): # the order matters since the last one will be most prominent
+            ax.broken_barh(self.data_barh[color], (0, 1), color=color)
 
     def pie(self, ax):
         # use the cumsum to plot a pie chart
