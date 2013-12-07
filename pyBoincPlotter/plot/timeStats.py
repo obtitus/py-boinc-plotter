@@ -144,7 +144,7 @@ def plotAll(fig, BOINC_DIR):
     filename = os.path.join(BOINC_DIR, 'time_stats_log')
     with open(filename, 'r') as f:
         p = parse(f)
-        plot(fig, p, limitDays=14)
+        plot(fig, p, limitDays=1)
     
 if __name__ == '__main__':
     from loggerSetup import loggerSetup

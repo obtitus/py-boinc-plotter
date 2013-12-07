@@ -53,6 +53,12 @@ class TestBadge(unittest.TestCase):
                                 'silver', 45*DAYS)
         self.worldcommunitygrid('Bronze Level Badge (14 days) for Say No to Schistosoma',
                                 '#8C7853', 14*DAYS)
+        self.worldcommunitygrid('Emerald Level Badge (1 year) for FightAIDS@Home',
+                                'g', 365.25*DAYS)
+        self.worldcommunitygrid('Emerald Level Badge (1 year) for FightAIDS@Home',
+                                'g', 365.25*DAYS)
+        self.worldcommunitygrid('Sapphire Level Badge (2 years) for Help Conquer Cancer',
+                                'b', 2*365.25*DAYS)
 
     def wuprop(self, runtime, color, value):
         c, v = badge.Badge_wuprop.getColor(runtime)
