@@ -89,7 +89,8 @@ class Badge_worldcommunitygrid(Badge):
     @Badge.name.setter
     def name(self, name):
         self._name = name
-        self.reg = re.search('(\w+) Level Badge \((\d+) (days|years)\)', name)
+        self.reg = re.search('(\w+) Level Badge \((\d+) (days|year|years)\)', name)
+        print name, self.reg
     
     @property
     def color(self):
@@ -103,9 +104,9 @@ class Badge_worldcommunitygrid(Badge):
     def runtime(self):
         reg = self.reg
         if reg:
-            if reg.group(3) == 'years':
-                year = int(reg.group(2))
-                day = datetime.timedelta(years=years).total_seconds()
+            if reg.group(3).startswith('year'):
+                years = int(reg.group(2))
+                day = datetime.timedelta(days=years*365.25).total_seconds()
             elif reg.group(3) == 'days':
                 day = int(reg.group(2))
                 day = datetime.timedelta(days=day).total_seconds()
