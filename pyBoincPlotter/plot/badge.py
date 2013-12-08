@@ -90,7 +90,7 @@ class Badge_worldcommunitygrid(Badge):
     def name(self, name):
         self._name = name
         self.reg = re.search('(\w+) Level Badge \((\d+) (days|year|years)\)', name)
-        print name, self.reg
+        logger.debug("Badge_worldcommunitygrid %s, %s", name, self.reg)
     
     @property
     def color(self):
