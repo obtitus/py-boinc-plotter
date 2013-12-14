@@ -82,11 +82,13 @@ def createFromFilehandle(f, limitMonths=None):
     fe - rsc_fpops_est, estimated flops
     et - final_elapsed_time, clock time to finish
     """
+    #logger.debug('createFromFilehandle(%s, %s)', f, limitMonths)
     tasks = list()
     now = datetime.datetime.now()
     for line in f:
         t = task.Task_jobLog.createFromJobLog(line)
         if limitMonths == None or util.diffMonths(t.time, now) < limitMonths:
+            #logger.debug('Appending from JobLog %s', t)
             tasks.append(t)
     return tasks
 
