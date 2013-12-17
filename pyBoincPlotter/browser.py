@@ -112,6 +112,12 @@ class Browser_file(object):
         else:
             return None
 
+    def removeURL(self, URL, extension='.html'):
+        """If you visit a task page that errors out, 
+        call this to remove the page from cache to try again."""
+        filename = join(self.cacheDir, sanitizeURL(URL)) + extension
+        self.remove(filename)
+
 class BrowserSuper(object):
     # Browser for visiting the web, use subclass to actually connect somewhere
     # Subclass must define self.URL, self.loginInfo, self.loginPage and self.section
@@ -119,6 +125,7 @@ class BrowserSuper(object):
     def __init__(self, browser_cache):
         self.visitedPages = list()
         self.browser_cache = browser_cache # address of cache class
+        self.removeURL = self.browser_cache.removeURL
         self.client = requests.session()
         self.update()
 

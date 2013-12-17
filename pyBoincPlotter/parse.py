@@ -152,11 +152,14 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
 
             t = async.Async(self.Task.createFromHTML, row[1:])
             app_name = async.Async(self.parseWorkunit, workunit)
-            async_data.append((t, app_name))
+            async_data.append((t, app_name, url))
 
-        for t, app_name in async_data:
-            application = self.project.appendApplication(app_name.ret)
-            application.tasks.append(t.ret)
+        for t, app_name, url in async_data:
+            if app_name.ret is None:
+                self.browser.removeURL(url)
+            else:
+                application = self.project.appendApplication(app_name.ret)
+                application.tasks.append(t.ret)
 
     def findNextPage(self, soup):
         reg_compiled = re.compile('pageNum=(\d+)')
@@ -192,6 +195,9 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
                 reg = re.search(reg_compiled, td.text)
                 if reg:
                     return reg.group(1).strip()
+        else:
+            logger.error('Could not find project name for worldcommunitygrid task %s', soup.prettify())
+            return None
 
     def getBadges(self):
         page = self.browser.visitStatistics()
