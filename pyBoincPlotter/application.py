@@ -32,7 +32,7 @@ from statistics import StatisticsList, ApplicationStatistics_wuprop
 class Application(object):
     def __init__(self, name='', badge='', statistics='', is_long=False):
         """use is_long = True when passed name is the long name (i.e. from wuprop)"""
-        if not(is_long):
+        if not(is_long) and not(name is None):
             self.setName_shortLong(name)                # Hopefully on the form Say No to Schistosoma (sn2s)
         else:
             self.name_short = name

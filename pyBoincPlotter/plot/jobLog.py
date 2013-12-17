@@ -193,12 +193,12 @@ class Plot(object):
             plot_single(ax[3], self.rsc_fpops_est, 'flops', **kwargs)
 
             # clock/estimated, value of 1 is excellent, larger than 1 means overestimated, smaller is underestimated
-            accuracy = self.final_elapsed_time/self.estimated_runtime_uncorrected
+            accuracy = (self.final_elapsed_time-self.estimated_runtime_uncorrected)/self.estimated_runtime_uncorrected
             plot_single(ax[4], accuracy, 'Estimate accuracy', **kwargs)
 
             # clock/cpu, value of 1 is efficient, larger than 1 means more cpu time then clock time
             efficiency = np.where(self.final_cpu_time != 0, # avoid divison by 0
-                                  self.final_elapsed_time/self.final_cpu_time, np.nan)
+                                  (self.final_elapsed_time - self.final_cpu_time)/self.final_cpu_time, np.nan)
             plot_single(ax[5], efficiency, 'Efficiency', **kwargs)
 
             credit = np.where(self.credit != 0,
