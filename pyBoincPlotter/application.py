@@ -188,15 +188,13 @@ def mergeApplications(local_app, web_app):
     logger.debug('mergeapplication %s %s', local_app.name, web_app.name)
     # This is a uggly hack which should be removed (currently needed to avoid merging too much).
     try:
-        logger.debug('local_app.statistics[0] = %s, %s', local_app.statistics[0],
-                     isinstance(local_app.statistics[0], ApplicationStatistics_wuprop))
-        logger.debug('web_app.statistics[0] = %s, %s', web_app.statistics[0],
-                     isinstance(web_app.statistics[0], ApplicationStatistics_wuprop))
-        if isinstance(local_app.statistics[0], ApplicationStatistics_wuprop) and\
-           isinstance(web_app.statistics[0], ApplicationStatistics_wuprop):
-            logger.warning('Tried to merge "%s" and "%s", but both had wuprop stats', 
-                           local_app.name, web_app.name)
-            return False
+        for stat in web_app.statistics:
+            logger.debug('local_app.statistics[ix] = %s, %s', stat,
+                         isinstance(stat, ApplicationStatistics_wuprop))
+            if isinstance(stat, ApplicationStatistics_wuprop):
+                logger.warning('Tried to merge "%s" and "%s", but both had wuprop stats', 
+                               local_app.name, web_app.name)
+                return False
     except (IndexError, TypeError):
         pass
 
