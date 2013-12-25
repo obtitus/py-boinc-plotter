@@ -256,6 +256,9 @@ def run():
     parser.add_switch('l', 'local', 
                       help_on='Allow pyBoincPlotter to connect to local boinc client (default behavior)',
                       help_off='Do not connect to the local boinc client')
+    # parser.add_switch('c', 'checkpoint', 
+    #                   help_on='Show CPU time since checkpoint for active tasks.',
+    #                   help_off='Hide CPU time since checkpoint for active tasks')
     parser.add_argument('--boinccmd', nargs='?', help=('Passed to the command line boinccmd, '
                                                        'pass --boinccmd=--help for more info'))
     parser.add_argument('--prefs', nargs='?', help=('Passed to the py-boinc-prefs utility '

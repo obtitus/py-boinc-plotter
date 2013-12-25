@@ -26,7 +26,8 @@ from socket import socket
 import logging
 logger = logging.getLogger('boinc.boinccmd')
 # This project
-from project import Project, pretty_print
+from project import Project, Project_fileTransfers, pretty_print
+from task import Task_fileTransfer
 
 class CallBoinccmd(object):
     """ tiny layer on top of subprocess Popen for calling boinccmd and getting stdout """
@@ -97,7 +98,7 @@ class Boinccmd(socket):
                 yield data[line_ix][:ix]
                 self.previous_data += data[line_ix][:ix]
 
-def get_state(command='get_state', printRaw=False):
+def get_state_command(command='get_state', printRaw=False):
     parser = Parse_state()
     with Boinccmd() as s:
         for line in s.request(command):
@@ -106,13 +107,23 @@ def get_state(command='get_state', printRaw=False):
 
             parser.feed(line)
 
+    if len(parser.fileTransfers) != 0:
+        p = Project_fileTransfers(tasks=parser.fileTransfers)
+        parser.projects['wFile Transfers'] = p
     return parser.projects
+
+def get_state(printRaw=False):
+    d1 = get_state_command('get_state', printRaw=printRaw)
+    d2 = get_state_command('get_file_transfers', printRaw=printRaw)
+    d1.update(d2)
+    return d1
 
 class Parse_state(object):
     def __init__(self):
         self.currentBlock = []
         self.inBlock = False
         self.projects = dict()
+        self.fileTransfers = list()
 
         # Current state:
         self.c_proj = None
@@ -120,7 +131,7 @@ class Parse_state(object):
         self.c_task = None
 
     def feed(self, line):
-        if line.strip() in ('<project>', '<app>', '<workunit>', '<result>'):
+        if line.strip() in ('<project>', '<app>', '<workunit>', '<result>', '<file_transfer>'):
             self.inBlock = True
 
         reset = True
@@ -140,6 +151,9 @@ class Parse_state(object):
                 logger.debug('result, %s', t)
             except KeyError:
                 logging.exception('Could not append task to application:')
+        elif '</file_transfer>' in line:
+            t = Task_fileTransfer.createFromXML("\n".join(self.currentBlock))
+            self.fileTransfers.append(t)
         else:
             reset = False
 
@@ -156,14 +170,16 @@ if __name__ == '__main__':
     from loggerSetup import loggerSetup
 
     parser = argparse.ArgumentParser(description='Runs and parses get_state rpc reply')
-    parser.add_argument('command', default='get_state', choices=['get_state', 'get_project_status'], nargs='?')
+    parser.add_argument('command', default='get_state', nargs='?', choices=['get_state', 
+                                                                            'get_file_transfers', 
+                                                                            'get_project_status'])
     parser.add_argument('-r', '--raw', action='store_true', help='Print out the raw xml')
     parser.add_argument('--show_empty', action='store_true', help='Show empty projects (no tasks)')
     args = parser.parse_args()
 
     loggerSetup(logging.INFO)
-    projects = get_state(command=args.command,
-                         printRaw=args.raw)
+    projects = get_state_command(command=args.command,
+                                 printRaw=args.raw)
 
     pretty_print(projects, 
                  show_empty=args.show_empty)

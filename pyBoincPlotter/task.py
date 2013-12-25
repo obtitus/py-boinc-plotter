@@ -164,8 +164,8 @@ class Task(object):
     @property
     def elapsedCPUtime_str(self):
         elapsed = self.timedeltaToStr(self.elapsedCPUtime)
-        if self.checkpoint != None:
-            elapsed += " ({})".format(self.checkpoint_str)
+        # if self.checkpoint != None:
+        #     elapsed += " ({})".format(self.checkpoint_str)
         return elapsed
 
     def setElapsedCPUtime(self, elapsedCPUtime):
@@ -275,7 +275,6 @@ class Task_local(Task):
         except Exception as e:
             logger.exception('Trying to create task out of {}, got'.format(xml))
 
-
     def done(self):
         return self.remainingCPUtime_str == '0:00:00'
 
@@ -371,6 +370,55 @@ class Task_local(Task):
             logger.debug('adding to pending')
             return (getSeconds(self), 0, 0)
 
+class Task_fileTransfer(Task):
+    def __init__(self, name, nbytes, status, time_so_far, nbytes_xferred, is_upload):
+        kwargs = dict()
+        kwargs['name'] = name
+        if is_upload == '1':
+            state = 'upload'
+        else:                   # todo: fix, use status as well
+            state = 'download'
+        kwargs['state'] = state
+        nbytes = float(nbytes)
+        nbytes_xferred = float(nbytes_xferred)
+        if nbytes != 0:
+            kwargs['fractionDone'] = 1 - (nbytes - nbytes_xferred)/nbytes
+        print 'fractionDone', kwargs['fractionDone'], nbytes, nbytes_xferred
+        kwargs['elapsedCPUtime'] = time_so_far
+        Task.__init__(self, **kwargs)
+
+    def done(self):
+        return False            # override superclass since it does a few wierd things with the fractionDone
+
+    @staticmethod
+    def createFromXML(xml):
+        """
+        Expects the result block:
+        <file_transfer>
+        ...
+        </file_transfer>
+        from the boinc rpc
+        """
+        try:
+            soup = BeautifulSoup(xml, "xml")
+            kwargs = dict(name = soup.find('name') or '',   # Vops: soup.name is 'reserved' so need to use find('name')
+                          nbytes = soup.nbytes or 0,
+                          status = soup.status or None,
+                          time_so_far = soup.time_so_far or 0,
+                          nbytes_xferred = soup.last_bytes_xferred or 0,
+                          is_upload = soup.is_upload or 0)
+
+            for key in kwargs:
+                try:
+                    kwargs[key] = kwargs[key].text # ok if soup stuff
+                except AttributeError:
+                    pass
+
+            return Task_fileTransfer(**kwargs)
+        except Exception as e:
+            logger.exception('Trying to create task out of {}, got'.format(xml))
+        
+        return soup.project_url
 
 class Task_web(Task):
     fmt_date = '%d %b %Y %H:%M:%S UTC'
