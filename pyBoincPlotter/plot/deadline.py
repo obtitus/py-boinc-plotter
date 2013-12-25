@@ -40,9 +40,12 @@ def plot(fig, projects):
     totalRemaining = datetime.timedelta(0)
     for key, p in sorted(projects.items()):
         for task in p.tasks():
-            r = task.remainingCPUtime.total_seconds()
-            d = (task.deadline - now).total_seconds()
-            c = task.elapsedCPUtime.total_seconds()
+            try:
+                r = task.remainingCPUtime.total_seconds()
+                d = (task.deadline - now).total_seconds()
+                c = task.elapsedCPUtime.total_seconds()
+            except TypeError:
+                continue
 
             totalRemaining += task.remainingCPUtime
 
