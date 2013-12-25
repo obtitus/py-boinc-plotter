@@ -98,8 +98,8 @@ class Boinccmd(socket):
                 yield data[line_ix][:ix]
                 self.previous_data += data[line_ix][:ix]
 
-def get_state_command(command='get_state', printRaw=False):
-    parser = Parse_state()
+def get_state_command(command='get_state', printRaw=False, projects=None):
+    parser = Parse_state(projects)
     with Boinccmd() as s:
         for line in s.request(command):
             if printRaw:
@@ -107,23 +107,21 @@ def get_state_command(command='get_state', printRaw=False):
 
             parser.feed(line)
 
-    if len(parser.fileTransfers) != 0:
-        p = Project_fileTransfers(tasks=parser.fileTransfers)
-        parser.projects['wFile Transfers'] = p
     return parser.projects
 
 def get_state(printRaw=False):
     d1 = get_state_command('get_state', printRaw=printRaw)
-    d2 = get_state_command('get_file_transfers', printRaw=printRaw)
-    d1.update(d2)
-    return d1
+    d2 = get_state_command('get_file_transfers', printRaw=printRaw, projects=d1)
+    return d2
 
 class Parse_state(object):
-    def __init__(self):
+    def __init__(self, projects=None):
         self.currentBlock = []
         self.inBlock = False
-        self.projects = dict()
-        self.fileTransfers = list()
+        if projects is not None:
+            self.projects = projects
+        else:
+            self.projects = dict()
 
         # Current state:
         self.c_proj = None
@@ -153,7 +151,13 @@ class Parse_state(object):
                 logging.exception('Could not append task to application:')
         elif '</file_transfer>' in line:
             t = Task_fileTransfer.createFromXML("\n".join(self.currentBlock))
-            self.fileTransfers.append(t)
+            p = Project(url=t.project_url, name=t.project_name)
+            
+            if not(self.projects.has_key(t.project_url)):
+                logger.debug('Hmm, projects does not have key "%s", %s', t.project_url, self.projects)
+                self.projects[t.project_url] = p
+            logger.debug('appending file_transfer %s', t)
+            self.projects[p.url].fileTransfers.append(t)
         else:
             reset = False
 
@@ -177,7 +181,7 @@ if __name__ == '__main__':
     parser.add_argument('--show_empty', action='store_true', help='Show empty projects (no tasks)')
     args = parser.parse_args()
 
-    loggerSetup(logging.INFO)
+    loggerSetup(logging.DEBUG)
     projects = get_state_command(command=args.command,
                                  printRaw=args.raw)
 
