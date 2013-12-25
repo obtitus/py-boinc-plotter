@@ -375,9 +375,9 @@ class Task_fileTransfer(Task):
         kwargs = dict()
         kwargs['name'] = name
         if is_upload == '1':
-            state = 'upload'
+            state = 'uploading'
         else:                   # todo: fix, use status as well
-            state = 'download'
+            state = 'downloading'
         kwargs['state'] = state
         nbytes = float(nbytes)
         nbytes_xferred = float(nbytes_xferred)
