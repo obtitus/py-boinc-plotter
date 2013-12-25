@@ -42,6 +42,7 @@ class Project(object):
         self.applications = dict()
         self.statistics = statistics
         self.settings = settings
+        self.fileTransfers = list() # list of task like objects with files in transit (will mostly be empty)
 
         self._appNames = dict() # key is task name and value is application name
         self._badges = list()
@@ -184,6 +185,9 @@ class Project(object):
 
         for _, badge in self._badges:
             ret.append(str(badge))
+
+        for t in self.fileTransfers:
+            ret.append(str(t))
 
         for key in sorted(self.applications):
             if len(self.applications[key]) != 0 or self.show_empty:

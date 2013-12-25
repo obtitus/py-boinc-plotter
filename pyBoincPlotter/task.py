@@ -371,7 +371,8 @@ class Task_local(Task):
             return (getSeconds(self), 0, 0)
 
 class Task_fileTransfer(Task):
-    def __init__(self, name, nbytes, status, time_so_far, nbytes_xferred, is_upload):
+    def __init__(self, project_url, project_name, name, nbytes, 
+                 status, time_so_far, nbytes_xferred, is_upload):
         kwargs = dict()
         kwargs['name'] = name
         if is_upload == '1':
@@ -385,6 +386,8 @@ class Task_fileTransfer(Task):
             kwargs['fractionDone'] = 1 - (nbytes - nbytes_xferred)/nbytes
 
         kwargs['elapsedCPUtime'] = time_so_far
+        self.project_url = project_url
+        self.project_name = project_name
         Task.__init__(self, **kwargs)
 
     def done(self):
@@ -401,7 +404,9 @@ class Task_fileTransfer(Task):
         """
         try:
             soup = BeautifulSoup(xml, "xml")
-            kwargs = dict(name = soup.find('name') or '',   # Vops: soup.name is 'reserved' so need to use find('name')
+            kwargs = dict(project_url = soup.project_url or '',
+                          project_name = soup.project_name or '',
+                          name = soup.find('name') or '',   # Vops: soup.name is 'reserved' so need to use find('name')
                           nbytes = soup.nbytes or 0,
                           status = soup.status or None,
                           time_so_far = soup.time_so_far or 0,
@@ -417,8 +422,6 @@ class Task_fileTransfer(Task):
             return Task_fileTransfer(**kwargs)
         except Exception as e:
             logger.exception('Trying to create task out of {}, got'.format(xml))
-        
-        return soup.project_url
 
 class Task_web(Task):
     fmt_date = '%d %b %Y %H:%M:%S UTC'
