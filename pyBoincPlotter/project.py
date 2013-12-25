@@ -207,6 +207,12 @@ class Project(object):
             for task in self.applications[key].tasks:
                 yield task
 
+class Project_fileTransfers(Project):
+    def __init__(self, tasks):
+        Project.__init__(self, name='File Transfers')
+        a = Application(tasks=tasks)
+        self.applications[''] = a
+
 def merge(local_projects, 
           web_projects):
     """Tries to merge local and web information by adding information from local to the web dictionary"""
@@ -302,7 +308,7 @@ def mergeDicts(local_dict, web_dict, merge, name):
     
     assert len(local_dict) == 0, 'Vops, not all projects merged %s' % local_dict
     
-def pretty_print(projects, show_empty=False):
+def pretty_print(projects, show_empty=False, show_checkpoint=False):
     for p in projects.values():
         for app in p.applications:
             tasks = p.applications[app].tasks

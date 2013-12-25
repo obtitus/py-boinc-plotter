@@ -34,7 +34,7 @@ def parse_worldcommunitygrid(projects):
     try:
         project = projects['http://www.worldcommunitygrid.org']
     except KeyError:
-        logger.exception('Vops, boinc.plot.runtime.plot_worldcommunitygrid got dictionary without worldcommunitygrid, got %s',
+        logger.exception('Vops, boinc.plot.runtime.plot_worldcommunitygrid got dictionary without worldcommunitygrid, got %s. Traceback is:',
                          projects.keys())
         return
     
@@ -57,6 +57,9 @@ def parse_worldcommunitygrid(projects):
     return data
         
 def plot_worldcommunitygrid(fig, browser, data):
+    if data == None:
+        return
+
     ax = fig.add_subplot(111)
     width = 0.75
     ix = 0

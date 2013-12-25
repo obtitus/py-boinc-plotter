@@ -30,7 +30,7 @@ import task
 from statistics import StatisticsList, ApplicationStatistics_wuprop
 
 class Application(object):
-    def __init__(self, name='', badge='', statistics='', is_long=False):
+    def __init__(self, name='', badge='', statistics='', is_long=False, tasks=None):
         """use is_long = True when passed name is the long name (i.e. from wuprop)"""
         if name == None:
             raise ValueError('Name is None')
@@ -40,7 +40,10 @@ class Application(object):
             self.name_short = name
             self.name_long = name
 
-        self.tasks = list()
+        if tasks is None:
+            self.tasks = list()
+        else:
+            self.tasks = tasks
         self.badge = badge
         self.statistics = statistics
     
