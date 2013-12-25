@@ -383,7 +383,7 @@ class Task_fileTransfer(Task):
         nbytes_xferred = float(nbytes_xferred)
         if nbytes != 0:
             kwargs['fractionDone'] = 1 - (nbytes - nbytes_xferred)/nbytes
-        print 'fractionDone', kwargs['fractionDone'], nbytes, nbytes_xferred
+
         kwargs['elapsedCPUtime'] = time_so_far
         Task.__init__(self, **kwargs)
 
