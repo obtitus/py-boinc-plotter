@@ -30,6 +30,9 @@ logger = logging.getLogger('boinc.task')
 # non standard:
 from bs4 import BeautifulSoup
 
+# This project
+import util
+
 class Task(object):
     """
     Mostly handles string conversion around the following properties:
@@ -288,12 +291,13 @@ class Task_local(Task):
         if self.memUsage == 0:
             return ''
         else:
-            mem = self.memUsage/1e6
-            suffix = 'MB'
-            if mem > 1000:
-                mem /= 1e3
-                suffix = 'GB'
-            return '{:.3g} {}'.format(mem, suffix)
+            return util.fmtSi(self.memUsage) + 'B'
+            # mem = self.memUsage/1e6
+            # suffix = 'MB'
+            # if mem > 1000:
+            #     mem /= 1e3
+            #     suffix = 'GB'
+            # return '{:.3g} {}'.format(mem, suffix)
 
     def setDeadline(self, deadline):
         if deadline is not None:
@@ -374,24 +378,31 @@ class Task_fileTransfer(Task):
     def __init__(self, project_url, project_name, name, nbytes, 
                  status, time_so_far, nbytes_xferred, is_upload):
         kwargs = dict()
-        kwargs['name'] = name
         if is_upload == '1':
             state = 'uploading'
         else:                   # todo: fix, use status as well
             state = 'downloading'
-        kwargs['state'] = state
         nbytes = float(nbytes)
         nbytes_xferred = float(nbytes_xferred)
-        if nbytes != 0:
-            kwargs['fractionDone'] = 1 - (nbytes - nbytes_xferred)/nbytes
 
         kwargs['elapsedCPUtime'] = time_so_far
+        kwargs['name'] = name
+        kwargs['state'] = state
+        if nbytes != 0:
+            kwargs['fractionDone'] = 1 - (nbytes - nbytes_xferred)/nbytes
+        self.bytesDone = '{}B/{}B'.format(util.fmtSi(nbytes_xferred), 
+                                        util.fmtSi(nbytes))
         self.project_url = project_url
         self.project_name = project_name
         Task.__init__(self, **kwargs)
 
     def done(self):
         return False            # override superclass since it does a few wierd things with the fractionDone
+
+    def toString(self):
+        s = super(Task_fileTransfer, self).toString()
+        s[5] = self.bytesDone
+        return s
 
     @staticmethod
     def createFromXML(xml):
