@@ -186,12 +186,14 @@ class Project(object):
         for _, badge in self._badges:
             ret.append(str(badge))
 
-        for t in self.fileTransfers:
-            ret.append(str(t))
-
         for key in sorted(self.applications):
             if len(self.applications[key]) != 0 or self.show_empty:
                 ret.append(str(self.applications[key]))
+
+        if len(self.fileTransfers) != 0:
+            ret.append('- File Transfers -')
+            for t in self.fileTransfers:
+                ret.append(str(t))
 
         return "\n".join(ret)
 
