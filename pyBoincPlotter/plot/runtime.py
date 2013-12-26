@@ -90,7 +90,7 @@ def plot_worldcommunitygrid(fig, browser, data):
         logger.debug('app %s, pending, running, validation = %s, %s, %s', 
                      key, pending, running, validation)
 
-        for t, alpha in ((pending, 0.5), (running, 0.25), (validation, 0.125)):
+        for t, alpha in ((validation, 0.5), (running, 0.25), (pending, 0.125)):
             ax.bar(ix, t, bottom=height, alpha=alpha, **kwargs)
             height += t
 
