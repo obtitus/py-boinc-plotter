@@ -63,6 +63,9 @@ class HTMLParser(object):
         elif section == 'numberfields.asu.edu/NumberFields':
             logger.debug('getting NumberFields parser')
             parser = HTMLParser_numberfields(**kwargs)
+        # elif section == 'escatter11.fullerton.edu/nfs/':
+        #     logger.debug('getting nfs parser')
+        #     parser = HTMLParser_nfs(**kwargs)
         elif section == 'climateapps2.oerc.ox.ac.uk/cpdnboinc':
             logger.debug('getting climateprediction parser')
             parser = HTMLParser_climateprediction(**kwargs)
@@ -433,6 +436,8 @@ class HTMLParser_wuprop(HTMLParser):
         return projects
 
 class HTMLParser_numberfields(HTMLParser):
+    Badge = badge.Badge_numberfields
+
     def getBadges(self):
         page = self.browser.visitHome()
         self.parseHome(page)
@@ -450,7 +455,7 @@ class HTMLParser_numberfields(HTMLParser):
                 try:
                     url = img['src']
                     name = img['title']
-                    b = badge.Badge_numberfields(name=name, url=url)
+                    b = self.Badge(name=name, url=url)
                     self.project.appendBadge(badge=b)
                 except KeyError as e:
                     continue
@@ -458,3 +463,6 @@ class HTMLParser_numberfields(HTMLParser):
                 v = first_td.find_next_sibling('td', class_='fieldvalue').text
                 v = v.replace(',', '')
                 self.project.credit = float(v)
+
+class HTMLParser_nfs(HTMLParser_numberfields):
+    Badge = badge.Badge_nfs
