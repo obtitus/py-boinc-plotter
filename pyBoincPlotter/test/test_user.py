@@ -25,9 +25,13 @@ class TestUser(unittest.TestCase):
     def setUp(self):
         self.app = user.User('1234', 'secret', 'ola')
 
-    def test_name(self):
+    def test_userid(self):
         self.assertEqual(self.app.userid, '1234')
+        
+    def test_password(self):
         self.assertEqual(self.app.password, 'secret')
+
+    def test_username(self):
         self.assertEqual(self.app.username, 'ola')
 
 if __name__ == '__main__':
