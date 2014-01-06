@@ -72,6 +72,7 @@ def plot(fig, data, limitDays=None):
     for ix, item in enumerate([power, net, proc]):
         item.barh(now, '')
         item.barh_draw(axes[ix])
+        #item.runningPie(axes[ix])
         ax2 = fig.add_subplot(gs[ix, -1])
         item.pie(ax2)
 
@@ -115,17 +116,17 @@ class PrevState(object): # namedtuple('PreviousState', ['t', 'desc'])
             width = (t - self.t).total_seconds()/(60*60*24.) # Matplotlib deals in days
             left = plt.date2num(self.t)
             self.data_barh[color].append((left, width))
+            self.cumsum[self.desc] += width
 
-            self.cumsum[self.desc] += width # todo substract outside wanted range
-
-        self.update(t, newState)
+        self.t = t
+        self.desc = newState
         
     def barh_draw(self, ax):
         for color in sorted(self.data_barh): # the order matters since the last one will be most prominent
             ax.broken_barh(self.data_barh[color], (0, 1), color=color)
 
     def pie(self, ax):
-        # use the cumsum to plot a pie chart
+        """use the cumsum to plot a pie chart"""
         x = list()
         colors = list()
         labels = list()
@@ -136,9 +137,21 @@ class PrevState(object): # namedtuple('PreviousState', ['t', 'desc'])
 
         ax.pie(x, labels=labels, colors=colors, autopct='%.1f %%')
 
-    def update(self, t, desc):
-        self.t = t
-        self.desc = desc
+    # def runningPie(self, ax):
+    #     """ use the data_barh to draw a running percentage"""
+    #     data = list()
+    #     for ix, color in enumerate(sorted(self.data_barh)):
+    #         for left, width in self.data_barh[color]:
+    #             data.append([left, ix])
+    #             data.append([left+width, ix])
+    #     data.sort()
+    #     data = np.array(data)
+    #     t, y = data[:, 0], data[:, 1]
+    #     # print t, y
+    #     # t_new = np.linspace(t[0], t[-1], 1024*5)
+    #     # y_new = np.interp(t_new, t, y)
+    #     # ax.plot(t_new, y_new+1, '.-')
+    #     ax.plot(t, y+1, '.-')
 
 def plotAll(fig, BOINC_DIR):
     filename = os.path.join(BOINC_DIR, 'time_stats_log')
