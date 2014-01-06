@@ -44,6 +44,9 @@ class Badge(object):
         name = name.lower()
         if name == 'bronze': name = '#8C7853'
         elif name == 'ruby': name = 'r'
+        elif name == 'amethyst': name = (149/255., 39/255., 197/255.)
+        elif name == 'turquoise': name = (59/255., 215/255., 249/255.)
+        elif name == 'diamond': name = (142/255., 219/255., 245/255.)
         elif name == 'emerald': name = 'g'
         elif name == 'sapphire': name = 'b'
         # yoyo colors
@@ -73,13 +76,16 @@ class Badge(object):
         # Uses badge url to create a matplotlib artist where the
         # matplotlib.offsetbox.AnnotationBbox
         # is created by *args and **kwargs. Typical usage: (ix, day), frameon=False, box_alignment=(0, 0.5)
-        fileName, extension = os.path.splitext(self.url)        
+        fileName, extension = os.path.splitext(self.url)
+        zoom = kwargs.pop('zoom', 1)
         try:
             img = browser.visitURL(self.url, extension=extension)
             img = StringIO(img)
             img = mpimg.imread(img, format=extension) # may raise error due to .jpg, support for other images than .png is added by PIL
+            #if max(img.size) > maxdim:
+            img.resize((maxdim, maxdim))
             # Add image:
-            of = matplotlib.offsetbox.OffsetImage(img)
+            of = matplotlib.offsetbox.OffsetImage(img, zoom=zoom)
             ab = matplotlib.offsetbox.AnnotationBbox(of, *args, **kwargs)
             return ab                   # use plt.gca().add_artist(ab)
         except Exception:
@@ -248,18 +254,69 @@ class Badge_numberfields(Badge):
               [10000000, 'Ruby'],
               [50000000, 'Emerald'],
               [100000000, 'Diamond']]
+    # 'Bronze Medal- 10k credits. (Next badge is Silver at 100k)'
+    reg = '(\w+) Medal[-\s]*(\d+)(\w) credits'
+
+    def setValue(self, value, suffix):
+        value = float(value)
+        if suffix == 'k':
+            value *= 1000
+        elif suffix == 'm':
+            value *= 1000000
+        else:
+            logger.warning('Unknown numbersfields badge suffix %s, "%s"', reg.group(3), name)
+        return value
 
     @Badge.name.setter
     def name(self, name):
         self._name = name
-        # 'Bronze Medal- 10k credits. (Next badge is Silver at 100k)'
-        reg = re.search('(\w+) Medal[-\s]*(\d+)(\w) credits', name)
+        if name == '': return 
+
+        reg = re.search(self.reg, name)
         if reg:
-            self.color = Badge.badgeToColor(reg.group(1))
-            self.value = float(reg.group(2))
-            if reg.group(3) == 'k':
-                self.value *= 1000
-            elif reg.group(3) == 'm':
-                self.value *= 1000000
-            else:
-                logger.warning('Unknown numbersfields badge suffix %s, "%s"', reg.group(3), name)
+            self.color = self.badgeToColor(reg.group(1))
+            self.value = self.setValue(value=reg.group(2), 
+                                       suffix=reg.group(3))
+        else:
+            logger.warning('Regexp failed on badge string "%s"', name)
+
+class Badge_nfs(Badge_numberfields):
+    badges = [[10000, 'Bronze'],
+              [100000, 'Silver'],
+              [500000, 'Gold'],
+              [1000000, 'Amethyst'],
+              [5000000, 'Turquoise'],
+              [10000000, 'Sapphire'],
+              [50000000, 'Ruby'],
+              [100000000, 'Emerald'],
+              [500000000, 'Diamond']]
+
+    # 10k in NFS credit
+    reg = '(\d+)(\w) in NFS credit'
+
+    @Badge.name.setter
+    def name(self, name):
+        self._name = name
+        if name == '': return
+
+        reg = re.search(self.reg, name)
+        if reg:
+            self.value = self.setValue(value=reg.group(1),
+                                       suffix=reg.group(2))
+        else:
+            logger.warning('Regexp failed on badge string "%s"', name)
+
+    @property
+    def url(self):
+        return self._url
+
+    @url.setter
+    def url(self, url):
+        self._url = 'http://escatter11.fullerton.edu/nfs/'+url
+        if url == '': return
+
+        reg = re.search('(\w+)_nfs.png', url)
+        if reg:
+            self.color = self.badgeToColor(reg.group(1))
+        else:
+            logger.warning('Regexp failed on badge url "%s"', url)
