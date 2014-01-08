@@ -111,7 +111,10 @@ class Task(object):
         return timedelta
 
     def toFloat(self, value):
-        value = value.replace(',', '')
+        try:
+            value = value.replace(',', '')
+        except:                 # guess its not a string
+            pass
         # if value == '---':
         #     value = '0'
         try:
