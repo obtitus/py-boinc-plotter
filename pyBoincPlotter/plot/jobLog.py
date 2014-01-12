@@ -647,7 +647,10 @@ def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
         #p.myPlot(fig3, p.plot_bars_daily, month=True)
         p.myPlot(fig3, p.plot_bars_montly, label=label, month=True)
 
-    p_daily.addAverageLine()
+    try:
+        p_daily.addAverageLine()
+    except UnboundLocalError:   # no files, loop never happend
+        return
     #p.addAverageLine()
 
     for fig in [fig1, fig2, fig3]:
