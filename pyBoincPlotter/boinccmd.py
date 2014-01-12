@@ -35,7 +35,10 @@ class CallBoinccmd(object):
         if isinstance(arguments, basestring):
             arguments = shlex.split(arguments)
 
-        cmd = [os.path.join(boinc_dir, 'boinccmd')]
+        boinccmd = os.path.join(boinc_dir, 'boinccmd')
+        if not(os.path.exists(boinccmd)):
+            boinccmd = 'boinccmd' # lets hope its on the $PATH
+        cmd = [boinccmd]
         cmd.extend(arguments)
         logger.info('cmd: %s', cmd)
         try:
