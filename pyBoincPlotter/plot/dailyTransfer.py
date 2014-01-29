@@ -41,7 +41,7 @@ def parse(page, limitMonths):
     """
     tree = xml.etree.ElementTree.parse(page)
     data = defaultdict(list)
-    now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
     for d in tree.iter('dx'):
         for child in d:
             if child.tag == 'when':

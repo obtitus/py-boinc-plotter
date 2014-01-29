@@ -32,7 +32,7 @@ def plot(fig, projects):
     ax = fig.add_subplot(111)
     
     width = 0.8
-    now = datetime.datetime.today()
+    now = datetime.datetime.utcnow()
     norm = datetime.timedelta(days=7).total_seconds() # normalize colors to 7 days
     colormap = matplotlib.cm.get_cmap('hot')
     names = list()

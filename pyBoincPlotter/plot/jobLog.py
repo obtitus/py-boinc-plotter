@@ -56,7 +56,7 @@ function decay_average($avg, $avg_time, $now = 0) {
     M_LN2 = 0.693147180559945309417
     credit_half_life = 7#86400 * 7, matplotlib deals in days
     if now == 0:
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         now = plt.date2num(now)
 
     diff = now - t
@@ -84,7 +84,7 @@ def createFromFilehandle(f, limitMonths=None):
     """
     #logger.debug('createFromFilehandle(%s, %s)', f, limitMonths)
     tasks = list()
-    now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
     for line in f:
         t = task.Task_jobLog.createFromJobLog(line)
         if limitMonths == None or util.diffMonths(t.time, now) < limitMonths:
@@ -117,7 +117,7 @@ class Plot(object):
         self.label = label
         self.ax = list()
         # First figure out the length:
-        now = datetime.datetime.now()
+        now = datetime.datetime.utcnow()
         time = list()
         for t in tasks:
             if abs((now - t.time).days) < minDays or util.diffMonths(t.time, now) < limitMonths:
