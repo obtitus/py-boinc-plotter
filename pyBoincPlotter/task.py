@@ -210,7 +210,7 @@ class Task(object):
         """ Time until deadline
         """
         if self.deadline is not None:
-            now = datetime.datetime.today()
+            now = datetime.datetime.utcnow()#today()
             delta = self.deadline - now
             s = self.timedeltaToStr(delta)
             if delta.days < 0:

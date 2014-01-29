@@ -43,7 +43,7 @@ def parse(page):
         yield t, desc
 
 def plot(fig, data, limitDays=None):
-    now = datetime.datetime.now()
+    now = datetime.datetime.utcnow()
     
     gs = gridspec.GridSpec(3, 3)
     
@@ -95,7 +95,7 @@ class PrevState(object): # namedtuple('PreviousState', ['t', 'desc'])
         self.t = t
         self.desc = desc
         self.cumsum = collections.defaultdict(int) # Keep a sum over all plotted
-        self.now = datetime.datetime.now()
+        self.now = datetime.datetime.utcnow()
         self.limitDays = limitDays
 
         self.data_barh = collections.defaultdict(list)
