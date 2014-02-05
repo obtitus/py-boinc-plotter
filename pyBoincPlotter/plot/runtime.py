@@ -198,6 +198,7 @@ def plot_wuprop(fig, applications, badges, browser):
 
     for mark in pos[::20][1:]:
         ax.axvline(mark)
+    ax.set_ylim(ymin=0)         # Negative runtime values makes no sense
 
 def plotAll(fig1, fig2, projects, browser):
     data = parse_worldcommunitygrid(projects)
