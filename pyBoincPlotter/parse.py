@@ -85,7 +85,7 @@ class HTMLParser(object):
             try:
                 t = self.Task.createFromHTML(row[:-1])
             except Exception as e:
-                self.logger.warning('Unable to parse %s as task', row)
+                self.logger.warning('Unable to parse %s as task: "%s"', row, e)
                 continue
 
             application = self.project.appendApplication(row[-1])
