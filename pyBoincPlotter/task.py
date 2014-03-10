@@ -601,6 +601,11 @@ class Task_jobLog(Task):
         t = int(value)
         self.time = datetime.datetime.fromtimestamp(t)
 
+    def toString(self):
+        s = super(Task_jobLog, self).toString()
+        s.insert(0, self.time.isoformat())
+        return s
+
 def adjustColumnSpacing(tasks):
     """
     Not Thread safe, modifies the Task.columnSpacing for equal columns.

@@ -88,7 +88,7 @@ def createFromFilehandle(f, limitMonths=None):
     for line in f:
         t = task.Task_jobLog.createFromJobLog(line)
         if limitMonths == None or util.diffMonths(t.time, now) < limitMonths:
-            #logger.debug('Appending from JobLog %s', t)
+            logger.debug('Appending from JobLog %s', t)
             tasks.append(t)
     return tasks
 
@@ -138,7 +138,8 @@ class Plot(object):
         ret = np.zeros(self.N, dtype=dtype)
         for ix in xrange(self.N): # Get only N tasks
             try:
-                value = getattr(tasks[-ix], attr) # remember to go the other way
+                #print -ix, tasks[-ix]
+                value = getattr(tasks[-ix-1], attr) # remember to go the other way
             except AttributeError:
                 value = np.nan
             except IndexError:
@@ -673,7 +674,7 @@ if __name__ == '__main__':
     CONFIG, CACHE_DIR, BOINC_DIR = config.set_globals()
     browser_cache = browser.Browser_file(CACHE_DIR)
 
-    local_projects = boinccmd.get_state(command='get_project_status') # Need for names
+    local_projects = boinccmd.get_state() # Need for names
     web_projects = browser.getProjectsDict(CONFIG, browser_cache)
     project.merge(local_projects,
                   web_projects)
