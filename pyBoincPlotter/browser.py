@@ -81,7 +81,7 @@ class Browser_file(object):
     def update(self):
         self.cache = dict()
         self.now = time.time()
-        for filename in self.findCacheFiles(('.html', '.xml')):
+        for filename in self.findCacheFiles(('.html', '.xml', '.json')):
             age = self.fileAge(filename)
             oldAge = 1
             if 'workunit' in filename:
@@ -258,23 +258,38 @@ class Browser_worldcommunitygrid(BrowserSuper):
     def __init__(self, browser_cache, CONFIG):
         BrowserSuper.__init__(self, browser_cache)
         self.CONFIG = CONFIG
+        username = self.CONFIG.get('worldcommunitygrid.org', 'username')
+        password = CONFIG.getpassword('worldcommunitygrid.org', 'username'),
+        code = self.CONFIG.get('worldcommunitygrid.org', 'code')
+
         self.section = 'worldcommunitygrid.org'
-        self.URL = self.name +\
-                   '/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum={0}&sortBy=sentTime'
+        name = 'https://secure.worldcommunitygrid.org' # todo: override property in superclass?
+        self.URL = name+'/api/members/{username}/results?code={code}&json=true'.format(username=username, code=code)
+        self.URL = self.URL + '&limit=25&offset={offset}'
+        self.statistics = name+'/verifyMember.do?name={username}&code={code}&xml=true'.format(username=username, code=code)
+        # self.URL = self.name +\
+        #            '/ms/viewBoincResults.do?filterDevice=0&filterStatus=-1&projectId=-1&pageNum={0}&sortBy=sentTime'
 
         self.loginInfo = {
             'settoken': 'on',
-            'j_username': CONFIG.get('worldcommunitygrid.org', 'username'),
-            'j_password': CONFIG.getpassword('worldcommunitygrid.org', 'username'),
+            'j_username': username,
+            'j_password': password
             }
-        self.loginPage = 'https://secure.worldcommunitygrid.org/j_security_check'
+        self.loginPage = 'https://secure.worldcommunitygrid.org/j_security_check' # TODO: needed?
 
     def visitStatistics(self):
-        username = self.CONFIG.get('worldcommunitygrid.org', 'username')
-        code = self.CONFIG.get('worldcommunitygrid.org', 'code')
-        url = self.name + "/verifyMember.do?name={0}&code={1}"
-        page = self.visitURL(url.format(username, code), extension='.xml')
+        page = self.visitURL(self.statistics, extension='.xml')
         return page
+
+    def visit(self, page=1):
+        # Visit task page
+        URL = self.URL.format(offset=25*(page-1)) # page = 1 gives offest 0, page = 2 gives offset 25, ...
+        
+        if URL in self.visitedPages: return ''
+        self.visitedPages.append(URL)
+
+        return self.visitURL(URL, extension='.json')
+
         
 class Browser(BrowserSuper):
     def __init__(self, section, browser_cache, CONFIG):
