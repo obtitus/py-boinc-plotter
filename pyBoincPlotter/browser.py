@@ -236,12 +236,12 @@ class BrowserSuper(object):
             return parser.project # empty project
 
         try:
-            parser.parse(taskPage)
-            
             try:
                 parser.getBadges()
             except AttributeError as e:  # Parser does not implement getBadges
                 logging.debug('no badge for %s, %s', self.section, e)
+
+            parser.parse(taskPage)            
         except Exception as e:
             logger.exception('Uncaught parse exception %s', e)
 

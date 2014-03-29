@@ -149,13 +149,16 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
         self.Task = task.Task_web_worldcommunitygrid
 
     def parse(self, content):
-        data = json.loads(content)
+        try:
+            data = json.loads(content)
+        except:
+            logger.exception('JSON error for "%s"', content)
         data = data[u'ResultsStatus']
-        print data[u'ResultsAvailable']
         for result in data[u'Results']:
-            print self.Task.createFromJSON(result)
+            t = self.Task.createFromJSON(result)
+            app = self.project.appendApplicationShort(result['AppName'])
+            app.tasks.append(t)
         
-        exit(1)
         # async_data = list()
         # for row in self.getRows(content):
         #     url = self.name + row[0]
@@ -249,6 +252,7 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
             results = application.find('Results').text
             
             app = self.project.appendApplication(name)
+            app.name_short = short
             Stat = statistics.ApplicationStatistics_worldcommunitygrid
             app.appendStatistics(Stat(runtime, points, results))
 
@@ -260,7 +264,7 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
             self.project.appendBadge(name, Badge(name=t, url=url))
 
 
-class HTMLParser_yoyo(HTMLParser_worldcommunitygrid):
+class HTMLParser_yoyo(HTMLParser):
     def __init__(self, *args, **kwargs):
         super(HTMLParser_yoyo, self).__init__(*args, **kwargs)
         self.Task = task.Task_web_yoyo
@@ -285,13 +289,13 @@ class HTMLParser_yoyo(HTMLParser_worldcommunitygrid):
                     row[0], row[1] = row[1], row[0]
                     yield row
 
-    def findNextPage(self, soup):
-        # This is ugly, but we need to bypass the superclass
-        return HTMLParser.findNextPage(self, soup)
+    # def findNextPage(self, soup):
+    #     # This is ugly, but we need to bypass the superclass
+    #     return HTMLParser.findNextPage(self, soup)
 
-    def parseWorkunit(self, html):
-        # This is ugly, but we need to bypass the superclass
-        return HTMLParser.parseWorkunit(self, html)
+    # def parseWorkunit(self, html):
+    #     # This is ugly, but we need to bypass the superclass
+    #     return HTMLParser.parseWorkunit(self, html)
 
     def getBadges(self):
         """Fills out project badges"""
