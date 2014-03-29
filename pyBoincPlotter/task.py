@@ -469,7 +469,10 @@ class Task_web(Task):
 
     @property
     def grantedCredit_str(self):
-        return str(self.grantedCredit)
+        try:
+            return "%g" % self.grantedCredit
+        except:
+            return str(self.grantedCredit)
 
     def setGrantedCredit(self, grantedCredit):
         if grantedCredit == 'pending':
@@ -478,7 +481,10 @@ class Task_web(Task):
 
     @property
     def claimedCredit_str(self):
-        return str(self.claimedCredit)
+        try:
+            return "%g" % self.claimedCredit
+        except:
+            return str(self.claimedCredit)
 
     def setClaimedCredit(self, claimedCredit):
         self.claimedCredit = self.toFloat(claimedCredit)
@@ -487,6 +493,8 @@ class Task_web(Task):
         if state.lower() == 'completed and validated':
             state = 'valid'
         elif state.lower() == 'over success done':
+            state = 'valid'
+        elif state.lower() == 'reported success valid':
             state = 'valid'
         elif state.lower().endswith('waiting for validation'):
             state = 'pending validation'
@@ -504,12 +512,25 @@ class Task_web(Task):
         super(Task_web, self).setState(state)
 
 class Task_web_worldcommunitygrid(Task_web):
-    fmt_date = '%m/%d/%y %H:%M:%S'
+    #fmt_date = '%m/%d/%y %H:%M:%S'
+    fmt_date = '%Y-%m-%dT%H:%M:%S'
+    desc_serverState = ['unknown', 'unknown', 'unknown', 'unknown',
+                        'in progress', # 4
+                        'reported']    # 5
+    desc_outcome = ['unknown', 'success', 'unknown', 'error', 'no reply', 'validation error', 'abandoned']
+    desc_validateState = ['pending validation', 'valid', 'invalid', 'pending verification', 'too late']
+
     def strToTimedelta(self, hours):
         return datetime.timedelta(hours=self.toFloat(hours))
 
+    def __init__(self, serverState, outcome, validateState, **kwargs):
+        state = self.getState(serverState, outcome, validateState)
+        kwargs['state'] = state
+        super(Task_web_worldcommunitygrid, self).__init__(**kwargs)
+        
     @staticmethod
     def createFromHTML(data):
+        """Deprecated by webpage update, use the json interface."""
         assert len(data) == 7, 'vops, data not recognized %s' % data
 
         name = data[0]
@@ -529,6 +550,19 @@ class Task_web_worldcommunitygrid(Task_web):
                                            state=state, 
                                            elapsedCPUtime=CPUtime, deadline=deadline,
                                            claimedCredit=claimedCredit, grantedCredit=grantedCredit)
+
+    @staticmethod
+    def createFromJSON(dct):
+        return Task_web_worldcommunitygrid(name=dct['Name'], device=dct['DeviceName'], 
+                                           serverState=dct['ServerState'], outcome=dct['Outcome'], validateState=dct['ValidateState'],
+                                           elapsedCPUtime=dct['SentTime'], deadline=dct['ReportDeadline'],
+                                           claimedCredit=dct['ClaimedCredit'], grantedCredit=dct['GrantedCredit'])
+
+    def getState(self, serverState, outcome, validateState):
+        return "{0} {1} {2}".format(self.desc_serverState[serverState],
+                                    self.desc_outcome[outcome],
+                                    self.desc_validateState[validateState])
+        
 
 class Task_web_yoyo(Task_web):
     @staticmethod

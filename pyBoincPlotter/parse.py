@@ -22,6 +22,7 @@ import re
 import logging
 logger = logging.getLogger('boinc.browser')
 import xml.etree.ElementTree
+import json
 
 # Non-standard python
 from bs4 import BeautifulSoup
@@ -148,21 +149,28 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
         self.Task = task.Task_web_worldcommunitygrid
 
     def parse(self, content):
-        async_data = list()
-        for row in self.getRows(content):
-            url = self.name + row[0]
-            workunit = self.browser.visitURL(url)
+        data = json.loads(content)
+        data = data[u'ResultsStatus']
+        print data[u'ResultsAvailable']
+        for result in data[u'Results']:
+            print self.Task.createFromJSON(result)
+        
+        exit(1)
+        # async_data = list()
+        # for row in self.getRows(content):
+        #     url = self.name + row[0]
+        #     workunit = self.browser.visitURL(url)
 
-            t = async.Async(self.Task.createFromHTML, row[1:])
-            app_name = async.Async(self.parseWorkunit, workunit)
-            async_data.append((t, app_name, url))
+        #     t = async.Async(self.Task.createFromHTML, row[1:])
+        #     app_name = async.Async(self.parseWorkunit, workunit)
+        #     async_data.append((t, app_name, url))
 
-        for t, app_name, url in async_data:
-            if app_name.ret is None:
-                self.browser.removeURL(url)
-            else:
-                application = self.project.appendApplication(app_name.ret)
-                application.tasks.append(t.ret)
+        # for t, app_name, url in async_data:
+        #     if app_name.ret is None:
+        #         self.browser.removeURL(url)
+        #     else:
+        #         application = self.project.appendApplication(app_name.ret)
+        #         application.tasks.append(t.ret)
 
     def findNextPage(self, soup):
         reg_compiled = re.compile('pageNum=(\d+)')
@@ -187,6 +195,7 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
                     pass
                 row.append(td.text.strip())
 
+            # logger.debug('len(row)= %s, row = %s', len(row), row)
             if len(row) == 8:
                 yield row
 
