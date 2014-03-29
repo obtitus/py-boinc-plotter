@@ -104,6 +104,15 @@ class Project(object):
     # 
     # HTML related
     # 
+    def appendApplicationShort(self, name_short):
+        for key, app in self.applications.items():
+            if app.name_short == name_short:
+                return app
+        else:
+            app = Application(name_short, is_long=True)
+            self.applications[name_short] = app
+        return app
+
     def appendApplication(self, name, is_long=False):
         app = Application(name=name, is_long=is_long)
         name_long = app.name_long
