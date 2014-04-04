@@ -494,8 +494,6 @@ class Task_web(Task):
             state = 'valid'
         elif state.lower() == 'over success done':
             state = 'valid'
-        elif state.lower() == 'reported success valid':
-            state = 'valid'
         elif state.lower().endswith('waiting for validation'):
             state = 'pending validation'
         elif state.lower().endswith('validation inconclusive'):
@@ -559,9 +557,12 @@ class Task_web_worldcommunitygrid(Task_web):
                                            claimedCredit=dct['ClaimedCredit'], grantedCredit=dct['GrantedCredit'])
 
     def getState(self, serverState, outcome, validateState):
-        return "{0} {1} {2}".format(self.desc_serverState[serverState],
-                                    self.desc_outcome[outcome],
-                                    self.desc_validateState[validateState])
+        if serverState == 5 and outcome == 1:
+            return self.desc_validateState[validateState]
+        else:
+            return "{0} {1} {2}".format(self.desc_serverState[serverState],
+                                        self.desc_outcome[outcome],
+                                        self.desc_validateState[validateState])
         
 
 class Task_web_yoyo(Task_web):
