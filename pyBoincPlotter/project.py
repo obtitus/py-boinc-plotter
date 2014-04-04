@@ -295,6 +295,15 @@ def mergeDicts(local_dict, web_dict, merge, name):
 
     for remaining_key, remaining in local_dict.items():
         for web in web_dict.values():
+            if getattr(remaining, 'name_short', 1) == getattr(web, 'name_short', -1):
+                logger.debug('short name match \n"%s", \n"%s"', 
+                             remaining.name, web.name)
+                if merge(remaining, web):
+                    del local_dict[remaining_key]
+                    break
+
+    for remaining_key, remaining in local_dict.items():
+        for web in web_dict.values():
             if fuzzyMatch(getattr(remaining, name),
                           getattr(web, name)):
                 logger.debug('fuzzy match \n"%s", \n"%s"', 
