@@ -516,7 +516,10 @@ class Task_web_worldcommunitygrid(Task_web):
                         'in progress', # 4
                         'reported']    # 5
     desc_outcome = ['unknown', 'success', 'unknown', 'error', 'no reply', 'validation error', 'abandoned']
-    desc_validateState = ['pending validation', 'valid', 'invalid', 'pending verification', 'too late']
+    desc_validateState = ['pending validation', 'valid', # 0, 1
+                          'invalid',                     # 2
+                          'unknown',                     # 3
+                          'pending verification', 'too late'] # 4, 5
 
     def strToTimedelta(self, hours):
         return datetime.timedelta(hours=self.toFloat(hours))
