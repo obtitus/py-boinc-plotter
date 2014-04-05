@@ -149,70 +149,27 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
         self.Task = task.Task_web_worldcommunitygrid
 
     def parse(self, content):
+        for result in self.getRows(content):
+            t = self.Task.createFromJSON(result)
+            app = self.project.appendApplicationShort(result['AppName'])
+            app.tasks.append(t)
+
+    def getRows(self, content, pagenr=1):
         try:
             data = json.loads(content)
         except:
             logger.exception('JSON error for "%s"', content)
         data = data[u'ResultsStatus']
-        for result in data[u'Results']:
-            t = self.Task.createFromJSON(result)
-            app = self.project.appendApplicationShort(result['AppName'])
-            app.tasks.append(t)
-        
-        # async_data = list()
-        # for row in self.getRows(content):
-        #     url = self.name + row[0]
-        #     workunit = self.browser.visitURL(url)
+        try:
+            for result in data[u'Results']:
+                yield result
 
-        #     t = async.Async(self.Task.createFromHTML, row[1:])
-        #     app_name = async.Async(self.parseWorkunit, workunit)
-        #     async_data.append((t, app_name, url))
-
-        # for t, app_name, url in async_data:
-        #     if app_name.ret is None:
-        #         self.browser.removeURL(url)
-        #     else:
-        #         application = self.project.appendApplication(app_name.ret)
-        #         application.tasks.append(t.ret)
-
-    def findNextPage(self, soup):
-        reg_compiled = re.compile('pageNum=(\d+)')
-        for link in soup.table.find_all('a'):
-            try:
-                reg = re.search(reg_compiled, link['href'])
-                page_num = int(reg.group(1))
-                if page_num != 1:
-                    yield page_num
-            except (TypeError, AttributeError):
-                pass
-    
-    def parseTable(self, soup):
-        reg_compiled = re.compile("javascript:addHostPopup\('(/ms/device/viewWorkunitStatus.do\?workunitId=\d+)")
-        for tr in soup.table.find_all('tr'):
-            row = list()
-            for td in tr.find_all('td'):
-                try:
-                    reg = re.match(reg_compiled, td.a['href'])
-                    row.append(reg.group(1))
-                except (TypeError, AttributeError):
-                    pass
-                row.append(td.text.strip())
-
-            # logger.debug('len(row)= %s, row = %s', len(row), row)
-            if len(row) == 8:
-                yield row
-
-    def parseWorkunit(self, html):
-        soup = BeautifulSoup(html)
-        reg_compiled = re.compile('Project Name:\s*([^\n]+)\n')
-        for tr in soup.find_all('tr'):
-            for td in tr.find_all('td'):
-                reg = re.search(reg_compiled, td.text)
-                if reg:
-                    return reg.group(1).strip()
-        else:
-            logger.error('Could not find project name for worldcommunitygrid task %s', soup.prettify())
-            return None
+            if data['ResultsAvailable'] < data['ResultsReturned'] + data['Offset']:
+                content = self.browser.visit(pagenr)
+                if content != '':
+                    self.getRows(content, pagenr=pagenr+1) # recursion
+        except KeyError as e:
+            logger.exception('Parse exception, KeyError with keys %s', data.keys())
 
     def getBadges(self):
         page = self.browser.visitStatistics()
