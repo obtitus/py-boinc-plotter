@@ -155,6 +155,7 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
             app.tasks.append(t)
 
     def getRows(self, content, pagenr=1):
+        logger.debug('Called getRows, pagenr=%s', pagenr)
         try:
             data = json.loads(content)
         except:
@@ -164,10 +165,12 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
             for result in data[u'Results']:
                 yield result
 
-            if data['ResultsAvailable'] < data['ResultsReturned'] + data['Offset']:
-                content = self.browser.visit(pagenr)
+            if int(data['ResultsAvailable']) > int(data['ResultsReturned']) + int(data['Offset']):
+                content = self.browser.visit(pagenr+1)
                 if content != '':
-                    self.getRows(content, pagenr=pagenr+1) # recursion
+                    for res in self.getRows(content, pagenr=pagenr+1): # recursion
+                        yield res
+
         except KeyError as e:
             logger.exception('Parse exception, KeyError with keys %s', data.keys())
 
