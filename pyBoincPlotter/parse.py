@@ -165,6 +165,8 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
             for result in data[u'Results']:
                 yield result
 
+            logger.debug("ResultsAvailable > ResultsReturned + Offset = %s > %s + %s", 
+                         data['ResultsAvailable'],  data['ResultsReturned'], data['Offset'])
             if int(data['ResultsAvailable']) > int(data['ResultsReturned']) + int(data['Offset']):
                 content = self.browser.visit(pagenr+1)
                 if content != '':
