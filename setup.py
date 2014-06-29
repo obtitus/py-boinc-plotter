@@ -1,6 +1,7 @@
+#!/usr/bin/env python
 from distutils.core import setup
 
-__version_info__ = (0, 4, 5)
+__version_info__ = (0, 4, 6)
 __version__ = '.'.join(map(str, __version_info__))
 appName = 'pyBoincPlotter'
 appAuthor = 'obtitus'                   # [at] gmail.com
