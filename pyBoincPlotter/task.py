@@ -556,7 +556,7 @@ class Task_web_worldcommunitygrid(Task_web):
     def createFromJSON(dct):
         return Task_web_worldcommunitygrid(name=dct['Name'], device=dct['DeviceName'], 
                                            serverState=dct['ServerState'], outcome=dct['Outcome'], validateState=dct['ValidateState'],
-                                           elapsedCPUtime=dct['SentTime'], deadline=dct['ReportDeadline'],
+                                           elapsedCPUtime=dct['CpuTime'], deadline=dct['ReportDeadline'],
                                            claimedCredit=dct['ClaimedCredit'], grantedCredit=dct['GrantedCredit'])
 
     def getState(self, serverState, outcome, validateState):
