@@ -67,12 +67,27 @@ def fmtNumber(x, fmt='.0f'):
 def timedeltaToStr(timedelta):
     """
     Removes the millisecond part of a timedelta string conversion
+    and simplifies to years if above 365 days.
     """
-    timedelta = str(timedelta)
-    ix = timedelta.find('.')
-    if ix != -1:
-        timedelta = timedelta[:ix]
-    return timedelta
+    t_str = str(timedelta)
+    ix = t_str.find('.')
+    if ix != -1: t_str = t_str[:ix]
+    year = datetime.timedelta(days=365, hours=5, minutes=48, seconds=46)
+    if timedelta > year:
+        y = timedelta.days//year.days # how many years?
+        timedelta -= year*y # substract y years
+        s = ''
+        if y > 1: s = 's'
+        t_str  = '{0} year{1}, '.format(y, s)
+        s = ''
+        if timedelta.days > 1: s = 's'
+        t_str += '{0} day{1}, '.format(timedelta.days, s)
+        s = ''
+        h = timedelta.seconds//(60*60)
+        if h > 1: s = 's'
+        t_str += '{0} hour{1}'.format(h, s)
+        
+    return t_str
 
 def strToTimedelta(string):
     if string != None:
@@ -102,3 +117,8 @@ def getLocalFiles(boincDir, name='', extension='.xml'):
 
 def diffMonths(date1, date2):
     return (date2.year - date1.year)*12 + (date2.month - date1.month)
+
+if __name__ == '__main__':
+    print timedeltaToStr(datetime.timedelta(500))
+    print timedeltaToStr(datetime.timedelta(300))
+    print timedeltaToStr(datetime.timedelta(1000))
