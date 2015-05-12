@@ -104,8 +104,8 @@ from version import appName, appAuthor
 from appdirs import AppDirs
 appDirs = AppDirs(appName, appAuthor)
 
-def setupCacheDir(CONFIG):
-    cacheDir = CONFIG.get('configuration', 'cache_dir')
+def setupCacheDir(cacheDir):
+    
     if cacheDir == None:
         cacheDir = appDirs.user_cache_dir
         CONFIG.set('configuration', 'cache_dir', cacheDir)
@@ -151,7 +151,7 @@ def setupBoincDir(CONFIG):
 # CACHE_DIR = None
 def set_globals():
     CONFIG = setupConfigFile()
-    CACHE_DIR = setupCacheDir(CONFIG)
+    CACHE_DIR = setupCacheDir(cacheDir = CONFIG.get('configuration', 'cache_dir'))
     BOINC_DIR = setupBoincDir(CONFIG)
     logger.info('Config file "%s"\nCache dir "%s"\nBoinc dir "%s"', CONFIG.filename, CACHE_DIR, BOINC_DIR)
     return CONFIG, CACHE_DIR, BOINC_DIR

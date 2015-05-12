@@ -48,9 +48,12 @@ class CallBoinccmd(object):
             logger.error('Error when running %s, e = "%s"', cmd, e)
             self.process = None
 
-    def communicate(self):
+    def communicate(self, returnAll=False):
         if self.process != None:
             stdout, stderr = self.process.communicate()
+            if returnAll:               # hack.
+                return stdout + stderr
+            
             if stderr != '':
                 print "Error: {}".format(stderr)
                 return ''
@@ -179,14 +182,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Runs and parses get_state rpc reply')
     parser.add_argument('command', default='get_state', nargs='?', choices=['get_state', 
                                                                             'get_file_transfers', 
-                                                                            'get_project_status'])
+                                                                            'get_project_status',
+                                                                            'get_cc_status'])
     parser.add_argument('-r', '--raw', action='store_true', help='Print out the raw xml')
     parser.add_argument('--show_empty', action='store_true', help='Show empty projects (no tasks)')
     args = parser.parse_args()
 
     loggerSetup(logging.DEBUG)
-    projects = get_state_command(command=args.command,
-                                 printRaw=args.raw)
-
-    pretty_print(projects, 
-                 show_empty=args.show_empty)
+    if args.command == 'get_cc_status':
+        import config
+        _, _, BOINC_DIR = config.set_globals()
+        c = CallBoinccmd(BOINC_DIR, '--get_cc_status')
+        print c.communicate(returnAll=True)
+    else:
+        projects = get_state_command(command=args.command,
+                                     printRaw=args.raw)
+        pretty_print(projects, 
+                     show_empty=args.show_empty)
