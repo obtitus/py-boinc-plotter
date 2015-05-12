@@ -194,6 +194,7 @@ def plot_wuprop(fig, applications, badges, browser):
 
     ax.yaxis.set_major_formatter(formatter_timedelta)
 
+    totalRuntime = util.timedeltaToStr(totalRuntime)
     fig.suptitle('{} applications, total runtime {}'.format(len(labels), totalRuntime))
 
     for mark in pos[::20][1:]:

@@ -19,6 +19,7 @@
 # END LICENCE
 # Standard
 import re
+import datetime
 import logging
 logger = logging.getLogger('boinc.browser')
 import xml.etree.ElementTree
@@ -88,6 +89,10 @@ class HTMLParser(object):
             except Exception as e:
                 self.logger.warning('Unable to parse %s as task: "%s"', row, e)
                 continue
+
+            if (t.deadline - datetime.datetime.utcnow()) < -datetime.timedelta(days=90):
+                logger.info('Stopping parsing at task "%s" due to old deadline' % t)
+                return ;
 
             application = self.project.appendApplication(row[-1])
             application.tasks.append(t)
@@ -298,6 +303,46 @@ class HTMLParser_climateprediction(HTMLParser):
         self.name = 'climateprediction.net'
         self.project.setName(self.name)
         self.project.setUrl('http://www.climateprediction.net')
+        self.host = dict()
+
+    def parseHostDetail(self, html):
+        soup = BeautifulSoup(html)
+        table = soup.find_all('table')[-1]
+        for row in table.find_all('tr'):
+            for item in row.find_all('td', class_='fieldname'):
+                # print 'fieldname', item
+                # print 'fieldvalue', item.find_next_sibling('td')
+                try:
+                    self.host[item.text] = item.find_next_sibling('td').text
+                except Exception as e:
+                    print 'Vops, failed to parse row %s' % item
+        return self.host
+
+    def parseWorkunit(self, html, task):
+        soup = BeautifulSoup(html)
+        """First the task creation date:"""
+        for first_td in soup.find_all('td', class_='fieldname'):
+            if first_td.text == 'created':
+                created = first_td.find_next_sibling('td', class_='fieldvalue')
+                task.created = datetime.datetime.strptime(created.text, '%d %b %Y %H:%M:%S UTC')
+                break
+        """Table:"""
+        task.tasks = list()
+        tables = soup.find_all('table', class_='bordered', width='100%')
+        if len(tables) == 0:
+            return
+
+        table = tables[-1]
+        for tr in table.find_all('tr'):
+            row = list()
+            for td in tr.find_all('td'):
+                row.append(td.text)
+            if len(row) == 10:
+                row.insert(1, task.workUnitId)
+            if len(row) == 11:
+                t = self.Task.createFromHTML(row[:-1])
+                t.created = task.created
+                task.tasks.append(t)
 
 class HTMLParser_einstein(HTMLParser):
     """Same as web but length is 11"""

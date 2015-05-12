@@ -111,7 +111,7 @@ class Application(object):
     name_long returns <long> and name_short returns <short>"""
     @property
     def name(self):
-        return "{} ({})".format(self.name_long, self.name_short)
+        return "{} ({})".format(self.name_long.encode('utf8'), self.name_short.encode('utf8'))
 
     def setName_shortLong(self, name):
         """

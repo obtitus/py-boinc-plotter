@@ -630,7 +630,7 @@ def plotAll(fig1, fig2, fig3, web_projects, BOINC_DIR):
             project = projects[p.name]
             label = project.name
         except KeyError:
-            logger.warning('Could not find url %s in %s', url, projects)
+            logger.debug('WARNING: Could not find url %s in %s', url, projects)
             project = None
             label = url
 

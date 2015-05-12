@@ -56,8 +56,9 @@ class Browser_file(object):
     Using this class directly makes little sense, unless you have the entire updated internet in our cache folder
     Beware, not thread safe to update
     """
-    def __init__(self, CACHE_DIR, removeOld=True):
+    def __init__(self, CACHE_DIR, removeOld=True, removeOldAge=1):
         """removeOld should be set to False for testing"""
+        self.removeOldAge = removeOldAge
         self.cacheDir = CACHE_DIR
         self.removeOld = removeOld
         self.update()
@@ -83,11 +84,15 @@ class Browser_file(object):
         self.now = time.time()
         for filename in self.findCacheFiles(('.html', '.xml', '.json')):
             age = self.fileAge(filename)
-            oldAge = 1
-            if 'workunit' in filename:
-                # Currently the workunit page is only used for project name, 
-                # which will never change. Set to 30 days so that the file will eventually be cleaned
-                oldAge = 30*24
+            oldAge = self.removeOldAge
+            # if 'workunit' in filename:
+            #     # Currently the workunit page is only used for project name, 
+            #     # which will never change. Set to 30 days so that the file will eventually be cleaned
+            #     oldAge = 30*24
+            if 'show_host_detail' in filename:
+                # host page is unlikely to change that often
+                # Set to 90 days so that the file will eventually be cleaned
+                oldAge = 90*24
                 
             if not(self.removeOld) or age < oldAge:
                 self.add(filename)
@@ -150,6 +155,7 @@ class BrowserSuper(object):
         filename = join(self.browser_cache.cacheDir, sanitizeURL(URL)) + extension
         with open(filename, 'w') as f:
             f.write(content)
+        self.browser_cache.add(filename)
         return filename
 
     def authenticate(self):
@@ -228,8 +234,11 @@ class BrowserSuper(object):
             self.writeFile(URL, content, extension=extension)
         return content
 
+    def getParser(self, project=None):
+        return HTMLParser.getParser(self.section, browser=self, p=project)
+
     def parse(self, project=None):
-        parser = HTMLParser.getParser(self.section, browser=self, p=project)
+        parser = self.getParser(project=project)
 
         taskPage = self.visit()
         if taskPage == '':
@@ -292,7 +301,7 @@ class Browser_worldcommunitygrid(BrowserSuper):
 
         
 class Browser(BrowserSuper):
-    def __init__(self, section, browser_cache, CONFIG):
+    def __init__(self, section, browser_cache, CONFIG, show_names=1):
         self.section = section
         BrowserSuper.__init__(self, browser_cache)
         
@@ -300,7 +309,7 @@ class Browser(BrowserSuper):
         self.URL = 'http://{name}/results.php?userid={userid}'.format(
             name = section,
             userid=self.userid)
-        self.URL += '&offset={0}&show_names=1&state=0&appid='
+        self.URL += '&offset={0}&show_names=%d&state=0&appid=' % show_names
 
         self.loginInfo = {'email_addr': CONFIG.get(section, 'username'),
                           'mode': 'Log in',
@@ -322,7 +331,6 @@ class Browser_yoyo(Browser):
                          browser_cache=browser_cache, CONFIG=CONFIG)
         self.loginInfo['mode'] = 'Log in with email/password'
         self.loginInfo['next_url'] = '/yoyo/home.php'
-
 
 def getProject(section, CONFIG, browser_cache):
     """Gets a single project object based on section"""

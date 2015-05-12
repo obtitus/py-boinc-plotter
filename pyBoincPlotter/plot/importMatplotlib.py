@@ -17,12 +17,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # END LICENCE
-import datetime
+import datetime #
 try:
     from cStringIO import StringIO
 except:
     from StringIO import StringIO
-
+plt = None
 try:
     import numpy as np
     import matplotlib

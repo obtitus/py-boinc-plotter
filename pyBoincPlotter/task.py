@@ -223,7 +223,7 @@ class Task(object):
     def setDeadline(self, deadline):
         """ Store deadline as datetime object
         """
-        if deadline is not None:
+        if deadline is not None and deadline != '---':
             deadline = deadline.replace('|', '')
             deadline = deadline.replace(',', '')
             self.deadline = datetime.datetime.strptime(deadline, self.fmt_date)
@@ -526,6 +526,7 @@ class Task_web_worldcommunitygrid(Task_web):
 
     def __init__(self, serverState, outcome, validateState, **kwargs):
         state = self.getState(serverState, outcome, validateState)
+        logger.debug('state = %s, %s, %s, %s', state, serverState, outcome, validateState)
         kwargs['state'] = state
         super(Task_web_worldcommunitygrid, self).__init__(**kwargs)
         
@@ -587,21 +588,37 @@ class Task_web_yoyo(Task_web):
                              claimedCredit=claimedCredit, grantedCredit=grantedCredit)
 
 class Task_web_climateprediction(Task_web):
+    def __init__(self, workUnitId=None, stateWebStr='', **kwargs):
+        self.workUnitId = workUnitId
+        self.stateWebStr = stateWebStr
+        Task_web.__init__(self, **kwargs)
+
+    def toString(self):
+        s = super(self.__class__, self).toString()
+        #s.insert(0, self.workUnitId)
+        return s
+
     @staticmethod
     def createFromHTML(data):
         logger.debug('creating from %s', data)
-        assert len(data) == 10, 'vops, data not recognized %s, len = %s' % (data, len(data))
-        name = data[0]
-        workUnitId = data[1]    # not used
-        device = data[2]
-        sentTime = data[3]      # not used
-        deadline = data[4]
-        state = data[5]
-        clockTime = data[6]     # not used
-        CPUtime = data[7]
-        claimedCredit = data[8]
-        grantedCredit = data[9]
-        return Task_web(name=name, device=device,
+        assert len(data) in (9, 10), 'vops, data not recognized %s, len = %s' % (data, len(data))
+        ix = 0
+        name = data[ix]; ix += 1
+        workUnitId = data[ix]; ix += 1    # not used
+        if len(data) == 10:
+            device = data[ix]; ix += 1
+        else:
+            device = ''
+
+        sentTime = data[ix]; ix += 1      # not used
+        deadline = data[ix]; ix += 1
+        state = data[ix]; ix += 1
+        clockTime = data[ix]; ix += 1     # not used
+        CPUtime = data[ix]; ix += 1
+        claimedCredit = data[ix]; ix += 1
+        grantedCredit = data[ix]; ix += 1
+        return Task_web_climateprediction(workUnitId=workUnitId, stateWebStr=state,
+                        name=name, device=device,
                         deadline=deadline, state=state,
                         elapsedCPUtime=CPUtime, 
                         claimedCredit=claimedCredit, grantedCredit=grantedCredit)

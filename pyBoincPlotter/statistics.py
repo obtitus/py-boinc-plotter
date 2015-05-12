@@ -101,8 +101,8 @@ class ProjectStatistics_worldcommunitygrid(object):
 
     def __str__(self):
         s = 'Worldcommunitygrid.org\nLast result returned: {0}\n'.format(self.lastResult)
-        run = 'Run time {0:>20} total (#{2}), {1:>10} per day'.format(self.runtime, 
-                                                                      self.runtimePerDay, 
+        run = 'Run time {0:>20} total (#{2}), {1:>10} per day'.format(util.timedeltaToStr(self.runtime), 
+                                                                      util.timedeltaToStr(self.runtimePerDay), 
                                                                       util.fmtNumber(self.runtimeRank))
         p   = 'Points   {0:>20} total (#{2}), {1:>10} per day'.format(util.fmtNumber(self.points), 
                                                                       util.fmtNumber(self.pointsPerDay, '.1f'), 
