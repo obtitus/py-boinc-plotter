@@ -159,6 +159,11 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
             app = self.project.appendApplicationShort(result['AppName'])
             app.tasks.append(t)
 
+            # check for duplicates
+            for task in app.tasks:
+                if task.name == t.name:
+                    logger.warning('Duplicate task returned %s == %s, \n%s\n%s', task.name, t.name, task, t)
+
     def getRows(self, content, pagenr=1):
         logger.debug('Called getRows, pagenr=%s', pagenr)
         try:
