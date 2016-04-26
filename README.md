@@ -38,7 +38,11 @@ This project should be viewed as pre-alpha, currently being developed on a mac w
 There are three options for installing this package, using pip, using setup.py or by simply running the python script.
 ### From pip ###
 The simplest way of installing this software with dependencies is to download the tarball and run:
-> pip pyBoincPlotter-<version>.tar.gz
+
+```
+    pip pyBoincPlotter-<version>.tar.gz
+```
+
 where <version> is the newest version available. The project will be added to pip once it is a bit more stable.
 
 ### With setup.py ###
@@ -46,7 +50,11 @@ Alternatively the usual "python setup.py install" should do the trick. Though yo
 
 ### No install ###
 You don't actually need to install this package, simply run:
-> python <path>/pyBoincPlotter/boinc.py
+
+```
+    python <path>/pyBoincPlotter/boinc.py
+```
+
 instead of "py-boinc-plotter"
 
 # Configuration #
