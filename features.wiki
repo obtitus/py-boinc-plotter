@@ -1,0 +1,35 @@
+Textual output
+
+Here the textual output will be explained, when you run py-boinc-plotter you will hopefully note something like this near the top: 2013-07-20 21:31:48 - boinc.configuration - INFO - Config file "/Users/<username>/Library/Application Support/pyBoincPlotter/config.txt" Cache dir "/Users/<username>/Library/Caches/pyBoincPlotter" Boinc dir "/Library/Application Support/BOINC Data" Note that both the cache dir and the boinc dir can be changed in the config.txt file.
+
+Further down information gathered from both the local boinc client and scavenged from the web (see the configuration section) will be listed, example: == Mindmodeling@Beta == Resource share 100%, sched. priority -1.45 Total credit, user: 4 918, host: 4 918, 100% Avg credit, user: 155, host: 155, 100% = ACT-R cognitive modeling environment leveraging Clozure Common Lisp (sse2) = WuProp runtime 2 days, 9:18:00 (+5:00:00) 
+MindModeling-52... running 33 % 0:37:40 0:23:30 1 day, 7:34:17 localhost 130 MB 
+MindModeling-52... in progress 0 % 0:00:00 0:00:00 1 day, 5:35:29 35054 0.0 0 MindModeling-52... ready to report 100 % 0:37:57 0:00:00 1 day, 7:32:18 localhost 
+MindModeling-52... valid 100 % 0:30:45 0:00:00 -2:46:48 35054 0.0 12.51 MindModeling-52... ready to report 100 % 1:12:59 0:00:00 1 day, 7:20:21 localhost 
+MindModeling-52... valid 100 % 0:40:58 0:00:00 -2:38:33 35054 0.0 16.45 
+MindModeling-52... ready to report 100 % 1:52:00 0:00:00 1 day, 6:12:39 localhost 
+MindModeling-52... valid 100 % 0:41:31 0:00:00 -3:24:14 35054 0.0 16.99 At the top is the == Project Name ==, followed by project statistics and = Application Name = followed by application statistics (including any badges). Each task is then listed with name... state completion% elapsed remaining deadline device memory or claimed -., granted credits
+
+If you have multiple machines, any tasks downloaded but not reported will show up as "in progress". The same will happened if there is something wrong with the communication between py-boinc-plotter and boinc.
+
+At the bottom you will be prompted to === Enter q, quit, e or exit to exit === simply type 'q' then press return to quit, or press return to refresh. Note that the web based stuff is cached for 1 hour, so refreshing more frequently than that won't display any new information except for local task progress. If you are really inpatient then deleting the cache folder should do it. Note that this limit may cause some odd behavior at times, simply wait an hour for things to clear up.
+
+Other commands you enter will be passed to boinccmd, type --help to see options.
+
+Plots and graphics
+
+By running with py-boinc-plotter -p matplotlib will be used to generate a number of figures; here are some samples from my system, please feel free to upload your own!
+
+http://py-boinc-plotter.googlecode.com/files/task_pipeline.png This show the number of tasks that is currently being tracked by boinc.py and in which "state" their are in. These tasks will usually move from left to right. Note that the legend box can be draged away if it is blocking the view. The tasks marked as "in progress" have been sent to another machine.
+
+http://py-boinc-plotter.googlecode.com/files/deadline.png This one has been annotated a little, each "box" is one task and the red line indicate the current time ("now"). Any box on the left side of "now" is finished and any box to the right indicate estimated runtime. Boxes in between are currently being worked on. To the far left the deadline is marked and the boxes are colored relative to their distance to the deadline (darker is closer to deadline). Colors are normalized to 7 days, so if deadline is further than 7 days away they appear white.
+
+http://py-boinc-plotter.googlecode.com/files/running_time_by_worldcommunitygrid_project.png Here you can view your badges (if you have PIL) for worldcommunitygrid.org, and when you will get another. Colors are based on badge, black indicate no badge has been awarded. The bronze line is the 14 days requirement for a bronze badge. Each bar tries to encode the following information (in decreasing transparency) 1. The validated runtime (100 %) 1. The pending runtime (50 %) 1. Sum of tasks which are in progress (25 %) 1. Sum of tasks that are waiting to be computed (12.5 %)
+
+http://py-boinc-plotter.googlecode.com/files/running_time_by_wuprop_projects.png This only shows up if you have told boinc.py about your wuprop account (if you have one). The display is similar to the above. On the above picture we can see that "FightAIDS@Home", "Go Fight Against Malaria" and "Say No to Schistosoma" are really close to passing the 100 hours line.
+
+http://py-boinc-plotter.googlecode.com/files/boinc_statistics.png These next three plots are based on files in your boinc directory, currently they are limited to 15 days, but I plan to change this.
+
+http://py-boinc-plotter.googlecode.com/files/job_log.png Each dot on this graph represent a single task being finished, color indicate project and height the time/flops. For each day, these are summed together and the sum is represented by a bar.
+
+http://py-boinc-plotter.googlecode.com/files/daily_transfer.png Shows daily upload (in blue, upwards) and download (in red, downwards). I am unsure about the unit, I guess its either bits or bytes.
