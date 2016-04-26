@@ -438,11 +438,11 @@ class HTMLParser_wuprop(HTMLParser):
         t = soup.find_all('table')
         for row in t[-1].find_all('tr'):
             data = row.find_all('td')
-            if len(data) == 4:
+            if len(data) == 5:
                 proj_name = data[0].text
                 app_name = data[1].text
                 runningTime = data[2].text
-                pending = data[3].text
+                pending = data[-1].text
                 stat = statistics.ApplicationStatistics_wuprop(runtime=runningTime,
                                                                pending=pending)
                 if proj_name not in projects:

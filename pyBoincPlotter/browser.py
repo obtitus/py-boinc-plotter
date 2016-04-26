@@ -397,11 +397,17 @@ if __name__ == '__main__':
     
     if args.section == 'all':
         projects = getProjectsDict(CONFIG, browser_cache)
-    else:
+    else:        
         valid_sections = CONFIG.projects()
         section = args.section
         if not(section in valid_sections):
             print 'Invalid section name, either add to config file or use one of: "%s"' % valid_sections
+            exit(1)
+
+        if section == 'wuprop.boinc-af.org':
+            wuprop_projects = getProjects_wuprop(CONFIG, browser_cache)
+            print 'wu-prop:', wuprop_projects
+            
         p = getProject(section, CONFIG=CONFIG, browser_cache=browser_cache)
         projects = dict(section=p)
 

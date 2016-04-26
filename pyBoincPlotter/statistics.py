@@ -100,16 +100,18 @@ class ProjectStatistics_worldcommunitygrid(object):
         self.lastResult    = lastResult
 
     def __str__(self):
+        l1 = max(len(util.timedeltaToStr(self.runtime)), 20)
+        l2 = max(len(util.timedeltaToStr(self.runtimePerDay)), 10)
         s = 'Worldcommunitygrid.org\nLast result returned: {0}\n'.format(self.lastResult)
-        run = 'Run time {0:>20} total (#{2}), {1:>10} per day'.format(util.timedeltaToStr(self.runtime), 
+        run = 'Run time {0:>{l1}} total (#{2}), {1:>{l2}} per day'.format(util.timedeltaToStr(self.runtime), 
                                                                       util.timedeltaToStr(self.runtimePerDay), 
-                                                                      util.fmtNumber(self.runtimeRank))
-        p   = 'Points   {0:>20} total (#{2}), {1:>10} per day'.format(util.fmtNumber(self.points), 
+                                                                      util.fmtNumber(self.runtimeRank), l1=l1,l2=l2)
+        p   = 'Points   {0:>{l1}} total (#{2}), {1:>{l2}} per day'.format(util.fmtNumber(self.points), 
                                                                       util.fmtNumber(self.pointsPerDay, '.1f'), 
-                                                                      util.fmtNumber(self.pointsRank))
-        res = 'Results  {0:>20} total (#{2}), {1:>10} per day'.format(util.fmtNumber(self.results), 
+                                                                      util.fmtNumber(self.pointsRank), l1=l1,l2=l2)
+        res = 'Results  {0:>{l1}} total (#{2}), {1:>{l2}} per day'.format(util.fmtNumber(self.results), 
                                                                       util.fmtNumber(self.resultsPerDay, '.1f'), 
-                                                                      util.fmtNumber(self.resultsRank))
+                                                                         util.fmtNumber(self.resultsRank), l1=l1,l2=l2)
         s += '{:>10}\n{:>10}\n{:>10}\n'.format(run, p, res)
         return s
 
