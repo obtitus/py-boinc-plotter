@@ -45,7 +45,10 @@ def parse_worldcommunitygrid(projects):
         pending, running, validation = app.pendingTime()
         for prev_name in data:
             # So that "FightAIDS@Home - AutoDock" and "FightAIDS@Home - Vina" are merged with "FightAIDS@Home"
-            if app.name_long.startswith(prev_name):
+            #app.name_long.startswith(prev_name):
+            # no longer applies with FightAIDS@Home - Phase 2
+            #print '"%s" "%s", %s' % (app.name_long, prev_name, app.name_long.startswith(prev_name))
+            if app == "FightAIDS@Home - Vina" and prev_name == "FightAIDS@Home":
                 data[prev_name][1] += runtime
                 data[prev_name][2] += pending
                 data[prev_name][3] += running
@@ -98,6 +101,7 @@ def plot_worldcommunitygrid(fig, browser, data):
         labels.append(str(key))
         ix += 1
 
+    optional_logscale(ax)        
     pos = np.arange(len(labels))
     ax.set_xticks(pos+width/2)
     ax.set_xticklabels(labels, rotation=17, horizontalalignment='right')
@@ -105,12 +109,15 @@ def plot_worldcommunitygrid(fig, browser, data):
 
     ax.set_ylabel('Runtime')
     ax.yaxis.set_major_formatter(formatter_timedelta)
+    #ax.yaxis.set_major_locator(plt.MultipleLocator(3600*24*360))
+    #import matplotlib
+    
 
     totalRuntime = datetime.timedelta(seconds=totalRuntime)
     totalRuntime = util.timedeltaToStr(totalRuntime)
     fig.suptitle('{} worlcommunitygrid applications, total runtime {}'.format(len(labels), 
                                                                               totalRuntime))
-
+    
 def parse_wuprop(projects):
     applications = list()
     badges = list()             # hmm, well, there is only 1 but one can always dream
@@ -187,7 +194,9 @@ def plot_wuprop(fig, applications, badges, browser):
                               box_alignment=(0.5, 0.5))
                 except Exception as e:
                     logger.error('Badge image failed with "%s"', e)
-                    
+
+    optional_logscale(ax)
+    
     pos = np.arange(len(labels))
     ax.set_xticks(pos+width/2)
     ax.set_xticklabels(labels, rotation=17, horizontalalignment='right')
@@ -199,7 +208,19 @@ def plot_wuprop(fig, applications, badges, browser):
 
     for mark in pos[::20][1:]:
         ax.axvline(mark)
-    ax.set_ylim(ymin=0)         # Negative runtime values makes no sense
+
+def optional_logscale(ax, ymin_log=3600*24):
+    y_min, y_max = ax.get_ybound()
+    if y_min == 0: y_min = 1    # avoid division by 0
+
+    #print np.log10(abs(y_max/y_min))
+    if np.log10(abs(y_max/y_min)) > 5:
+        ax.set_yscale('log')
+        ax.set_ylim(ymin=ymin_log)
+        ax.yaxis.set_major_locator(matplotlib.ticker.LogLocator(base=60, subs=np.arange(0, 6+1, 1)))
+        ax.yaxis.set_minor_locator(matplotlib.ticker.LogLocator(base=60, subs=np.arange(0, 6+0.1, 0.1)))
+    else:
+        ax.set_ylim(ymin=0)         # Negative runtime values makes no sense
 
 def plotAll(fig1, fig2, projects, browser):
     data = parse_worldcommunitygrid(projects)

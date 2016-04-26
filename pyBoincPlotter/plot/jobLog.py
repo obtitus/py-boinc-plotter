@@ -152,7 +152,10 @@ class Plot(object):
             self.color = projectColors.colors[self.label]
         except KeyError:
             logger.debug('Vops, no color found for %s', self.label)
-            self.color = ax._get_lines.color_cycle.next()
+            try:
+                self.color = ax._get_lines.color_cycle.next()
+            except AttributeError: # new matplotlib
+                self.color = ax._get_lines.prop_cycler.next()['color']
             projectColors.colors[self.label] = self.color
 
     def myPlot(self, fig1, plot_single, fig2=None, month=False, **kwargs):
