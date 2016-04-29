@@ -1,6 +1,6 @@
 Python project for plotting boinc statistics and current tasks. Please see http://boinc.berkeley.edu/ for more information about boinc, command line version required for certain features.
 
-Uses both the boinc rpc and the command line version to communicate with boinc. Does web crawling on boinc websites for further task information (valid/credits/...), statistics and badges. Please see the [https://code.google.com/p/py-boinc-plotter/wiki/Features features] page for more information
+Uses both the boinc rpc and the command line version to communicate with boinc. Does web crawling on boinc websites for further task information (valid/credits/...), statistics and badges. Please see the [https://github.com/obtitus/py-boinc-plotter/wiki/Features features] page for more information
 
 ## Motivation ##
   * Updates on request only (not continuously)
