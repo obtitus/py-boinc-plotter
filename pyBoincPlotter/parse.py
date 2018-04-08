@@ -74,6 +74,9 @@ class HTMLParser(object):
         elif section == 'einstein.phys.uwm.edu/':
             logger.debug('getting einstein parser')
             parser = HTMLParser_einstein(**kwargs)
+        elif section == 'boinc.bakerlab.org/rosetta/':
+            logger.debug('getting rosetta parser')
+            parser = HTMLParser_rosetta(**kwargs)
         else:                   # Lets try the generic
             logger.debug('getting generic parser, name = %s', section)
             parser = HTMLParser(**kwargs)
@@ -87,7 +90,7 @@ class HTMLParser(object):
             try:
                 t = self.Task.createFromHTML(row[:-1])
             except Exception as e:
-                self.logger.warning('Unable to parse %s as task: "%s"', row, e)
+                self.logger.exception('Unable to parse %s as task: "%s"', row, e)
                 continue
 
             if (t.deadline - datetime.datetime.utcnow()) < -datetime.timedelta(days=90):
@@ -157,12 +160,6 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
         for result in self.getRows(content):
             t = self.Task.createFromJSON(result)
             app = self.project.appendApplicationShort(result['AppName'])
-
-            # check for duplicates, before adding!
-            for task in app.tasks:
-                if task.name == t.name:
-                    logger.warning('Duplicate task returned %s == %s, \n%s\n%s', task.name, t.name, task, t)
-
             app.tasks.append(t)
 
     def getRows(self, content, pagenr=1):
@@ -305,7 +302,7 @@ class HTMLParser_climateprediction(HTMLParser):
     def __init__(self, *args, **kwargs):
         super(HTMLParser_climateprediction, self).__init__(*args, **kwargs)
         self.Task = task.Task_web_climateprediction
-        self.wantedLength = 11
+        self.wantedLength = 10
         self.name = 'climateprediction.net'
         self.project.setName(self.name)
         self.project.setUrl('http://www.climateprediction.net')
@@ -330,26 +327,58 @@ class HTMLParser_climateprediction(HTMLParser):
         for first_td in soup.find_all('td', class_='fieldname'):
             if first_td.text == 'created':
                 created = first_td.find_next_sibling('td', class_='fieldvalue')
-                task.created = datetime.datetime.strptime(created.text, '%d %b %Y %H:%M:%S UTC')
+                # try:
+                date = created.text.replace(', ', ' ')  # 9 Dec 2016, 18:58:24 UTC
+                task.created = datetime.datetime.strptime(date, '%d %b %Y %H:%M:%S UTC')
+                # except ValueError:
+                #     
+                #     task.created = datetime.datetime.strptime(created.text, '%d %b %Y %H:%M:%S UTC')
+                    
                 break
         """Table:"""
         task.tasks = list()
-        tables = soup.find_all('table', class_='bordered', width='100%')
+        tables = soup.find_all('table', class_='table-bordered', width='100%')
         if len(tables) == 0:
+            logger.error('no table found %s, %s', tables, soup.prettify())
             return
 
-        table = tables[-1]
+        table = tables[-2]
         for tr in table.find_all('tr'):
             row = list()
             for td in tr.find_all('td'):
                 row.append(td.text)
-            if len(row) == 10:
+            logger.debug('row = %s, %s', len(row), row)
+            if len(row) == 9:#10:
                 row.insert(1, task.workUnitId)
-            if len(row) == 11:
+            if len(row) == 10:#11:
                 t = self.Task.createFromHTML(row[:-1])
                 t.created = task.created
                 task.tasks.append(t)
 
+    # fixme: hack, climatepredication seems to have a sorting bug, so we cant just return
+    # when we meet an old task
+    def parse(self, content):
+        """Fills up the self.project with applications and tasks
+        Assumes the application name is the last column"""
+        for row in self.getRows(content):
+            try:
+                t = self.Task.createFromHTML(row[:-1])
+            except Exception as e:
+                self.logger.exception('Unable to parse %s as task: "%s"', row, e)
+                continue
+
+            if (t.deadline - datetime.datetime.utcnow()) < -datetime.timedelta(days=90):
+                logger.debug('skipping task "%s" due to old deadline' % t)
+                #return ;
+                continue
+
+            application = self.project.appendApplication(row[-1])
+            if len(application.tasks) > 1000:
+                logger.info('Max nr. of tasks reached, breaking')
+                return ;
+            
+            application.tasks.append(t)
+                
 class HTMLParser_einstein(HTMLParser):
     """Same as web but length is 11"""
     def __init__(self, *args, **kwargs):
@@ -444,10 +473,11 @@ class HTMLParser_wuprop(HTMLParser):
         t = soup.find_all('table')
         for row in t[-1].find_all('tr'):
             data = row.find_all('td')
-            if len(data) == 5:
-                proj_name = data[0].text
-                app_name = data[1].text
-                runningTime = data[2].text
+            if len(data) == 6:
+                index = data[0].text
+                proj_name = data[1].text
+                app_name = data[2].text
+                runningTime = data[3].text
                 pending = data[-1].text
                 stat = statistics.ApplicationStatistics_wuprop(runtime=runningTime,
                                                                pending=pending)
@@ -492,3 +522,15 @@ class HTMLParser_numberfields(HTMLParser):
 
 class HTMLParser_nfs(HTMLParser_numberfields):
     Badge = badge.Badge_nfs
+
+class HTMLParser_rosetta(HTMLParser):
+    """Same as web but diffent task class and hack to return app as last column"""
+    def __init__(self, *args, **kwargs):
+        super(HTMLParser_rosetta, self).__init__(*args, **kwargs)
+        self.Task = task.Task_web_rosetta
+    
+    def parseTable(self, soup):
+        for row in super(HTMLParser_rosetta, self).parseTable(soup):
+            row.append('Rosetta')
+            yield row
+        

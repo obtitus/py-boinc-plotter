@@ -26,7 +26,8 @@ plt = None
 try:
     import numpy as np
     import matplotlib
-    #matplotlib.use('module://mplh5canvas.backend_h5canvas')    
+    #matplotlib.use('module://mplh5canvas.backend_h5canvas')
+    matplotlib.use('tkagg')
     import pylab as plt
     import matplotlib.image as mpimg
     import matplotlib.gridspec as gridspec

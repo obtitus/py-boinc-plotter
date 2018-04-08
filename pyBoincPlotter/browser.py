@@ -174,17 +174,17 @@ class BrowserSuper(object):
         sessionCache = pk.dumps(self.client.cookies)
         self.writeFile(self.name, sessionCache, '.pickle')
 
-    def visit(self, page=1):
+    def visit(self, page=1, **kwargs):
         # Visit task page
         URL = self.URL.format(page)
         
         if URL in self.visitedPages: return ''
         self.visitedPages.append(URL)
 
-        return self.visitURL(URL)
+        return self.visitURL(URL, **kwargs)
 
-    def visitPage(self, page):
-        return self.visitURL('{name}/{page}'.format(name=self.name, page=page))
+    def visitPage(self, page, **kwargs):
+        return self.visitURL('{name}/{page}'.format(name=self.name, page=page), **kwargs)
 
     def redirected(self, request):
         """ Returns whether a redirect has been done or not """
@@ -198,7 +198,7 @@ class BrowserSuper(object):
         # return 'Please log in' in firstLine
         return 'Please log in' in request.content
 
-    def visitURL(self, URL, recursionCall=False, extension='.html'):
+    def visitURL(self, URL, recursionCall=False, extension='.html', timeout=5):
         """ RecursionCall is used to limit recursion to 1 step
          Extension is used for the cache for ease of debugging
         """
@@ -207,7 +207,7 @@ class BrowserSuper(object):
             logger.info('Visiting %s', URL)
 
             try:
-                r = self.client.get(URL, timeout=5)
+                r = self.client.get(URL, timeout=timeout)
             except requests.ConnectionError:
                 print('Could not connect to {0}'.format(URL))
                 return ''
@@ -261,7 +261,7 @@ class BrowserSuper(object):
         ret = self.section
         if not(self.section.startswith('www.')):
             ret = 'www.' + ret
-        return 'http://' + ret
+        return 'https://' + ret
 
 class Browser_worldcommunitygrid(BrowserSuper):
     def __init__(self, browser_cache, CONFIG):
@@ -290,14 +290,14 @@ class Browser_worldcommunitygrid(BrowserSuper):
         page = self.visitURL(self.statistics, extension='.xml')
         return page
 
-    def visit(self, page=1):
+    def visit(self, page=1, **kwargs):
         # Visit task page
         URL = self.URL.format(offset=25*(page-1)) # page = 1 gives offest 0, page = 2 gives offset 25, ...
         
         if URL in self.visitedPages: return ''
         self.visitedPages.append(URL)
 
-        return self.visitURL(URL, extension='.json')
+        return self.visitURL(URL, extension='.json', **kwargs)
 
         
 class Browser(BrowserSuper):
@@ -306,7 +306,7 @@ class Browser(BrowserSuper):
         BrowserSuper.__init__(self, browser_cache)
         
         self.userid = CONFIG.get(section, 'userid')
-        self.URL = 'http://{name}/results.php?userid={userid}'.format(
+        self.URL = 'https://{name}/results.php?userid={userid}'.format(
             name = section,
             userid=self.userid)
         self.URL += '&offset={0}&show_names=%d&state=0&appid=' % show_names
@@ -317,13 +317,13 @@ class Browser(BrowserSuper):
                           'passwd': CONFIG.getpassword(section, 'username'),
                           'stay_logged_in': 'on', # used by mindmodeling and wuprop
                           'send_cookie': 'on'}    # used by rosetta and yoyo
-        self.loginPage = 'http://{0}/login_action.php'.format(section)
+        self.loginPage = 'https://{0}/login_action.php'.format(section)
 
     def visitHome(self):
-        return self.visitURL('http://{0}/home.php'.format(self.section))
+        return self.visitURL('https://{0}/home.php'.format(self.section))
 
-    def visit(self, offset=0):
-        return BrowserSuper.visit(self, offset)
+    def visit(self, offset=0, **kwargs):
+        return BrowserSuper.visit(self, offset, **kwargs)
 
 class Browser_yoyo(Browser):
     def __init__(self, browser_cache, CONFIG):

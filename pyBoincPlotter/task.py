@@ -601,28 +601,63 @@ class Task_web_climateprediction(Task_web):
     @staticmethod
     def createFromHTML(data):
         logger.debug('creating from %s', data)
-        assert len(data) in (9, 10), 'vops, data not recognized %s, len = %s' % (data, len(data))
+        # [u'hadam3pm2_e89e_1991_10_008713749_0', u'8860223', u'1343225', u'1 May 2014, 22:08:43 UTC', u'15 May 2014, 6:29:19 UTC', u'Aborted', u'456,513.36', u'448,179.50', u'3,078.88']
+        # [u'20222553', u'10906831', u'11 Feb 2017, 22:36:53 UTC', u'25 Jan 2018, 3:56:53 UTC', u'In progress', u'---', u'---', u'---']
+        assert len(data) in (8, 9), 'vops, data not recognized %s, len = %s' % (data, len(data))
         ix = 0
-        name = data[ix]; ix += 1
-        workUnitId = data[ix]; ix += 1    # not used
-        if len(data) == 10:
-            device = data[ix]; ix += 1
+        name = data[ix]; ix += 1 # 0
+        workUnitId = data[ix]; ix += 1 # 1
+        # if len(data) == 10:
+        #     device = data[ix]; ix += 1
+        # else:
+        # device = ''
+        if len(data) == 9:
+            device = data[ix]; ix += 1 # 2
         else:
             device = ''
 
-        sentTime = data[ix]; ix += 1      # not used
-        deadline = data[ix]; ix += 1
-        state = data[ix]; ix += 1
+        sentTime = data[ix]; ix += 1  # 3 not used
+        deadline = data[ix]; ix += 1  # 4
+        state = data[ix]; ix += 1     # 5
         clockTime = data[ix]; ix += 1     # not used
         CPUtime = data[ix]; ix += 1
-        claimedCredit = data[ix]; ix += 1
-        grantedCredit = data[ix]; ix += 1
+
+        try:
+            grantedCredit = data[ix]; ix += 1
+        except IndexError:
+            grantedCredit = 0
+
+        try:
+            claimedCredit = data[ix]; ix += 1
+        except IndexError:
+            claimedCredit = 0
+        
         return Task_web_climateprediction(workUnitId=workUnitId, stateWebStr=state,
                         name=name, device=device,
                         deadline=deadline, state=state,
                         elapsedCPUtime=CPUtime, 
                         claimedCredit=claimedCredit, grantedCredit=grantedCredit)
 
+class Task_web_rosetta(Task_web):
+    @staticmethod
+    def createFromHTML(data):
+        # [u'824244685', u'746438930', u'15 May 2016 0:12:51 UTC', u'15 May 2016 19:03:33 UTC', u'Over', u'Success', u'Done', u'10,429.85', u'104.80', u'115.68']
+        assert len(data) == 10, 'vops, data not recognized, expected length 9, got %s: %s' % (len(data), data)
+
+        name = data[0]          # fixme: showname=1 not supported, this is the Task ID
+        #data[1] # workunit ID
+        sentTime = data[2]
+        deadline = data[3]
+        state = " ".join(data[4:7])
+        CPUtime = data[7]
+        
+        claimedCredit = data[8]
+        grantedCredit = data[9]
+        return Task_web_yoyo(name=name, device='',
+                             state=state, 
+                             elapsedCPUtime=CPUtime, deadline=deadline,
+                             claimedCredit=claimedCredit, grantedCredit=grantedCredit)
+    
 class Task_jobLog(Task):
     """
     Represents a task from the job_log, with the following fields:

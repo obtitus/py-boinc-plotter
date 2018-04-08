@@ -32,7 +32,7 @@ except ValueError:
 
 def parse_worldcommunitygrid(projects):
     try:
-        project = projects['http://www.worldcommunitygrid.org']
+        project = projects['https://www.worldcommunitygrid.org']
     except KeyError:
         logger.exception('Vops, boinc.plot.runtime.plot_worldcommunitygrid got dictionary without worldcommunitygrid, got %s. Traceback is:',
                          projects.keys())
@@ -72,7 +72,8 @@ def plot_worldcommunitygrid(fig, browser, data):
         badge, runtime, pending, running, validation = data[key]
 
         kwargs = dict(color='k',
-                      width=width)
+                      width=width,
+                      picker=True)
         
         try:
             kwargs['color'] = badge.color
@@ -109,6 +110,17 @@ def plot_worldcommunitygrid(fig, browser, data):
 
     ax.set_ylabel('Runtime')
     ax.yaxis.set_major_formatter(formatter_timedelta)
+    for label in ax.get_xticklabels():  # make the xtick labels pickable
+        label.set_picker(True)
+
+    def onpick1(event):
+        patch = event.artist
+        print event, patch
+        if isinstance(patch, Rectangle):
+            print('onpick1 patch:', patch.get_path())
+    fig.canvas.mpl_connect('pick_event', onpick1)
+    
+    #fig.canvas.mpl_connect('pick_event', onpick1)
     #ax.yaxis.set_major_locator(plt.MultipleLocator(3600*24*360))
     #import matplotlib
     
@@ -211,9 +223,12 @@ def plot_wuprop(fig, applications, badges, browser):
 
 def optional_logscale(ax, ymin_log=3600*24):
     y_min, y_max = ax.get_ybound()
+    # y_min = np.abs(y_min)       
+    if y_min < 0: y_min = 0 # no idea why this is needed as negative runtimes makes no sense.
     if y_min == 0: y_min = 1    # avoid division by 0
 
-    #print np.log10(abs(y_max/y_min))
+    logger.debug('optional_logscale %s, max = %s, min = %s',
+                 np.log10(abs(y_max/y_min)), y_max, y_min)
     if np.log10(abs(y_max/y_min)) > 5:
         ax.set_yscale('log')
         ax.set_ylim(ymin=ymin_log)
@@ -231,7 +246,7 @@ def plotAll(fig1, fig2, projects, browser):
 
 if __name__ == '__main__':
     from loggerSetup import loggerSetup
-    loggerSetup(logging.INFO)
+    loggerSetup(logging.DEBUG)
     
     import config
     import browser

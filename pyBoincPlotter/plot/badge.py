@@ -95,7 +95,8 @@ class Badge_worldcommunitygrid(Badge):
     @Badge.name.setter
     def name(self, name):
         self._name = name
-        self.reg = re.search('(\w+) Level Badge \((\d+) (days|year|years)\)', name)
+        name = name.replace('Level Badge', 'Badge') # hack.., the diamond++ badges is without the 'Level Badge'
+        self.reg = re.search('(\w+) Badge \((\d+) (days|year|years)\)', name)
         logger.debug("Badge_worldcommunitygrid %s, %s", name, self.reg)
     
     @property
