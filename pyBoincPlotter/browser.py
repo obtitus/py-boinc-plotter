@@ -272,7 +272,8 @@ class Browser_worldcommunitygrid(BrowserSuper):
         code = self.CONFIG.get('worldcommunitygrid.org', 'code')
 
         self.section = 'worldcommunitygrid.org'
-        name = 'https://secure.worldcommunitygrid.org' # todo: override property in superclass?
+        #name = 'https://secure.worldcommunitygrid.org' # todo: override property in superclass?
+        name = 'https://www.worldcommunitygrid.org' # Moved
         self.URL = name+'/api/members/{username}/results?code={code}&json=true'.format(username=username, code=code)
         self.URL = self.URL + '&limit=25&offset={offset}'
         self.statistics = name+'/verifyMember.do?name={username}&code={code}&xml=true'.format(username=username, code=code)
