@@ -68,7 +68,7 @@ class HTMLParser(object):
         # elif section == 'escatter11.fullerton.edu/nfs/':
         #     logger.debug('getting nfs parser')
         #     parser = HTMLParser_nfs(**kwargs)
-        elif section == 'climateapps2.oerc.ox.ac.uk/cpdnboinc':
+        elif section == 'www.cpdn.org/cpdnboinc':
             logger.debug('getting climateprediction parser')
             parser = HTMLParser_climateprediction(**kwargs)
         elif section == 'einstein.phys.uwm.edu/':
@@ -312,21 +312,23 @@ class HTMLParser_climateprediction(HTMLParser):
         soup = BeautifulSoup(html)
         table = soup.find_all('table')[-1]
         for row in table.find_all('tr'):
-            for item in row.find_all('td', class_='fieldname'):
-                # print 'fieldname', item
-                # print 'fieldvalue', item.find_next_sibling('td')
-                try:
-                    self.host[item.text] = item.find_next_sibling('td').text
-                except Exception as e:
-                    print 'Vops, failed to parse row %s' % item
+            items = list()
+            for item in row.find_all('td'):
+                items.append(item.text)
+
+            if len(items) == 2:
+                #print 'fieldname', items[0]
+                #print 'fieldvalue', items[1]
+                self.host[items[0]] = items[1]
+            
         return self.host
 
     def parseWorkunit(self, html, task):
         soup = BeautifulSoup(html)
         """First the task creation date:"""
-        for first_td in soup.find_all('td', class_='fieldname'):
+        for first_td in soup.find_all('td'):
             if first_td.text == 'created':
-                created = first_td.find_next_sibling('td', class_='fieldvalue')
+                created = first_td.find_next_sibling('td')
                 # try:
                 date = created.text.replace(', ', ' ')  # 9 Dec 2016, 18:58:24 UTC
                 task.created = datetime.datetime.strptime(date, '%d %b %Y %H:%M:%S UTC')
@@ -335,9 +337,12 @@ class HTMLParser_climateprediction(HTMLParser):
                 #     task.created = datetime.datetime.strptime(created.text, '%d %b %Y %H:%M:%S UTC')
                     
                 break
+        else:
+            raise Exception('Parsing exception, could not determine create date for %s' % task)
+        
         """Table:"""
         task.tasks = list()
-        tables = soup.find_all('table', class_='table-bordered', width='100%')
+        tables = soup.find_all('table', width='100%')
         if len(tables) == 0:
             logger.error('no table found %s, %s', tables, soup.prettify())
             return

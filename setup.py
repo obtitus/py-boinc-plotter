@@ -24,7 +24,7 @@ if __name__ == '__main__':
         url='http://pypi.python.org/pypi/pyBoincPlotter/',
         license='LICENSE.txt',
         description='Provides parsing and plotting of boinc statistics and badge information.',
-        long_description=open('README.txt').read(),
+        long_description=open('README.md').read(),
         install_requires=[
             "requests",
             "keyring",
