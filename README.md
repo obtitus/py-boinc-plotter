@@ -19,13 +19,13 @@ Uses both the boinc rpc and the command line version to communicate with boinc. 
   * www.rechenkraft.net/yoyo
   * boincsimap.org/boincsimap
   * Rosetta@home: boinc.bakerlab.org
-  * Climatepredication.net: climateapps2.oerc.ox.ac.uk/cpdnboinc
+  * Climatepredication.net: www.cpdn.org/cpdnboinc
   * FightMalaria@home: boinc.ucd.ie/fmah/
 
 Others may work, but these are the ones I have tested. Let me know how it works on other projects!
 
 # Requirements #
-This project should be viewed as pre-alpha, currently being developed on a mac with python2.7. Other python versions or operating systems may require some modifications. The following libraries are used:
+This project should be viewed as beta, currently being developed on a mac with python2.7. Other python versions or operating systems may require some modifications. The following libraries are used:
 
   * python-requests.org/
   * https://pypi.python.org/pypi/keyring

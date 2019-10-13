@@ -22,14 +22,8 @@ By running with py-boinc-plotter -p matplotlib will be used to generate a number
 
 http://py-boinc-plotter.googlecode.com/files/task_pipeline.png This show the number of tasks that is currently being tracked by boinc.py and in which "state" their are in. These tasks will usually move from left to right. Note that the legend box can be draged away if it is blocking the view. The tasks marked as "in progress" have been sent to another machine.
 
-http://py-boinc-plotter.googlecode.com/files/deadline.png This one has been annotated a little, each "box" is one task and the red line indicate the current time ("now"). Any box on the left side of "now" is finished and any box to the right indicate estimated runtime. Boxes in between are currently being worked on. To the far left the deadline is marked and the boxes are colored relative to their distance to the deadline (darker is closer to deadline). Colors are normalized to 7 days, so if deadline is further than 7 days away they appear white.
+http://py-boinc-plotter.googlecode.com/files/deadline.png Each "box" is one task and the red line indicate the current time ("now"). Any box on the left side of "now" is finished and any box to the right indicate estimated runtime. Boxes in between are currently being worked on. To the far left the deadline is marked and the boxes are colored relative to their distance to the deadline (darker is closer to deadline). Colors are normalized to 7 days, so if deadline is further than 7 days away they appear white.
 
 http://py-boinc-plotter.googlecode.com/files/running_time_by_worldcommunitygrid_project.png Here you can view your badges (if you have PIL) for worldcommunitygrid.org, and when you will get another. Colors are based on badge, black indicate no badge has been awarded. The bronze line is the 14 days requirement for a bronze badge. Each bar tries to encode the following information (in decreasing transparency) 1. The validated runtime (100 %) 1. The pending runtime (50 %) 1. Sum of tasks which are in progress (25 %) 1. Sum of tasks that are waiting to be computed (12.5 %)
 
-http://py-boinc-plotter.googlecode.com/files/running_time_by_wuprop_projects.png This only shows up if you have told boinc.py about your wuprop account (if you have one). The display is similar to the above. On the above picture we can see that "FightAIDS@Home", "Go Fight Against Malaria" and "Say No to Schistosoma" are really close to passing the 100 hours line.
-
-http://py-boinc-plotter.googlecode.com/files/boinc_statistics.png These next three plots are based on files in your boinc directory, currently they are limited to 15 days, but I plan to change this.
-
-http://py-boinc-plotter.googlecode.com/files/job_log.png Each dot on this graph represent a single task being finished, color indicate project and height the time/flops. For each day, these are summed together and the sum is represented by a bar.
-
-http://py-boinc-plotter.googlecode.com/files/daily_transfer.png Shows daily upload (in blue, upwards) and download (in red, downwards). I am unsure about the unit, I guess its either bits or bytes.
+http://py-boinc-plotter.googlecode.com/files/running_time_by_wuprop_projects.png This only shows up if you have told boinc.py about your wuprop account (if you have one). The display is similar to the above.
