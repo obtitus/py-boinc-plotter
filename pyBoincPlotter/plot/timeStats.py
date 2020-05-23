@@ -22,7 +22,7 @@ import collections
 import logging
 logger = logging.getLogger('boinc.plot.timeStats')
 # This project
-from importMatplotlib import *
+from .importMatplotlib import *
 
 def parse(page):
     """
@@ -110,7 +110,7 @@ class PrevState(object): # namedtuple('PreviousState', ['t', 'desc'])
 
     def barh(self, t, newState):
         """Prepare bar from the previous state (self.t) to t. Call barh_draw when done to call matplotlib."""
-        #print self.t != None, self.limitDays == None, (self.now - t).days < self.limitDays
+        #print(self.t != None, self.limitDays == None, (self.now - t).days < self.limitDays)
         if self.t != None and (self.limitDays == None or (self.now - t).days < self.limitDays):
             color = self.getColor()
             width = (t - self.t).total_seconds()/(60*60*24.) # Matplotlib deals in days
@@ -147,7 +147,7 @@ class PrevState(object): # namedtuple('PreviousState', ['t', 'desc'])
     #     data.sort()
     #     data = np.array(data)
     #     t, y = data[:, 0], data[:, 1]
-    #     # print t, y
+    #     # print(t, y)
     #     # t_new = np.linspace(t[0], t[-1], 1024*5)
     #     # y_new = np.interp(t_new, t, y)
     #     # ax.plot(t_new, y_new+1, '.-')

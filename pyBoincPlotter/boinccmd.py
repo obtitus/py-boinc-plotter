@@ -55,7 +55,7 @@ class CallBoinccmd(object):
                 return stdout + stderr
             
             if stderr != '':
-                print "Error: {}".format(stderr)
+                print("Error: {}".format(stderr))
                 return ''
             return stdout
 
@@ -74,10 +74,10 @@ class Boinccmd(socket):
 
     def request(self, command):
         buf = "<boinc_gui_rpc_request>\n"\
-               "<%s/>\n"\
-               "</boinc_gui_rpc_request>\n\003"\
+              "<%s/>\n"\
+              "</boinc_gui_rpc_request>\n\003"\
                % (command)
-        self.sendall(buf)
+        self.sendall(buf.encode())
         return self.recv_end()
 
     def recv_end(self):
@@ -86,11 +86,11 @@ class Boinccmd(socket):
         End = '\003'
         more_data = True
         while more_data:
-            data = self.previous_data + self.recv(4096) # previous data gets included
+            data = self.previous_data + self.recv(4096).decode() # previous data gets included
             data = data.split('\n')
             self.previous_data = ''
 
-            for line_ix in xrange(len(data)): # For each line
+            for line_ix in range(len(data)): # For each line
                 if End in data[line_ix]:
                     more_data = False # breaks outer loop
                     break             # breaks inner loop
@@ -109,7 +109,7 @@ def get_state_command(command='get_state', printRaw=False, projects=None):
     with Boinccmd() as s:
         for line in s.request(command):
             if printRaw:
-                print line
+                print(line)
 
             parser.feed(line)
 
@@ -193,7 +193,7 @@ if __name__ == '__main__':
         import config
         _, _, BOINC_DIR = config.set_globals()
         c = CallBoinccmd(BOINC_DIR, '--get_cc_status')
-        print c.communicate(returnAll=True)
+        print(c.communicate(returnAll=True))
     else:
         projects = get_state_command(command=args.command,
                                      printRaw=args.raw)

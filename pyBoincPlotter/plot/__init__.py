@@ -17,23 +17,23 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # END LICENCE
-from importMatplotlib import plt
+from .importMatplotlib import plt
 def figure(name=None):
     fig = plt.figure(name)
     fig.clf()
     return fig
 
-import credits
-import dailyTransfer
-import deadline
-import jobLog
-import pipeline
-import runtime
-import timeStats
+from .my_credits import plot as credits_plot
+from . import dailyTransfer
+from . import deadline
+from . import jobLog
+from . import pipeline
+from . import runtime
+from . import timeStats
 
 def plot_credits(projects, browser):
     fig = figure('Credits')
-    credits.plot(fig, projects, browser)
+    credits_plot(fig, projects, browser)
 
 def plot_dailyTransfer(BOINC_DIR):
     fig1 = figure('DailyTransfer Daily')

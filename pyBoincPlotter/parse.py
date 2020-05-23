@@ -30,7 +30,6 @@ from bs4 import BeautifulSoup
 # This project
 import task
 import plot.badge as badge
-import async
 import statistics
 import project
 
@@ -112,7 +111,7 @@ class HTMLParser(object):
 
     def getRows(self, html):
         """Generator for each row in result table"""
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, 'lxml')
         for row in self.parseTable(soup):
             self.logger.debug('yielding %s', row)
             yield row
@@ -134,7 +133,7 @@ class HTMLParser(object):
 
     def parseWorkunit(self, html):
         """Parses the workunit page, currently returns the application name"""
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, 'lxml')
         for first_td in soup.find_all('td', class_='fieldname'):
             if first_td.text == 'application':
                 app_name = first_td.find_next_sibling('td', class_='fieldvalue')
@@ -194,13 +193,13 @@ class HTMLParser_worldcommunitygrid(HTMLParser):
 
         e = tree.find('Error')
         if e:
-            print e.text
+            print(e.text)
             return None, None
 
         try:
             member = tree.iter('MemberStat').next()
         except StopIteration:
-            print 'Something is wrong with xml statisics, correct username and code?'
+            print('Something is wrong with xml statisics, correct username and code?')
             return None, None
         lastResult = member.find('LastResult').text
         lastResult = lastResult.replace('T', ' ')
@@ -270,7 +269,7 @@ class HTMLParser_yoyo(HTMLParser):
     def getBadges(self):
         """Fills out project badges"""
         html = self.browser.visitPage('home.php')
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, 'lxml')
         self.badgeTabel(soup)
 
     def badgeTabel(self, soup):
@@ -309,7 +308,7 @@ class HTMLParser_climateprediction(HTMLParser):
         self.host = dict()
 
     def parseHostDetail(self, html):
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, 'lxml')
         table = soup.find_all('table')[-1]
         for row in table.find_all('tr'):
             items = list()
@@ -317,14 +316,14 @@ class HTMLParser_climateprediction(HTMLParser):
                 items.append(item.text)
 
             if len(items) == 2:
-                #print 'fieldname', items[0]
-                #print 'fieldvalue', items[1]
+                #print('fieldname', items[0])
+                #print('fieldvalue', items[1])
                 self.host[items[0]] = items[1]
             
         return self.host
 
     def parseWorkunit(self, html, task):
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, 'lxml')
         """First the task creation date:"""
         for first_td in soup.find_all('td'):
             if first_td.text == 'created':
@@ -365,6 +364,7 @@ class HTMLParser_climateprediction(HTMLParser):
     def parse(self, content):
         """Fills up the self.project with applications and tasks
         Assumes the application name is the last column"""
+        #content = content.decode()
         for row in self.getRows(content):
             try:
                 t = self.Task.createFromHTML(row[:-1])
@@ -395,7 +395,7 @@ class HTMLParser_primegrid(HTMLParser):
     def getBadges(self):
         """Fills out project badges"""
         html = self.browser.visitPage('home.php')
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, 'lxml')
         for app_name, badge in self.parseHome(soup):
             self.project.appendBadge(app_name, badge)
 
@@ -446,13 +446,13 @@ class HTMLParser_primegrid(HTMLParser):
             self.project.appendStatistics(stat) # Append last
 
         # for app in self.project.applications:
-        #     print self.project.applications[app]
+        #     print(self.project.applications[app])
         # assert False
 
 class HTMLParser_wuprop(HTMLParser):
     def getBadges(self):
         page = self.browser.visitHome()
-        soup = BeautifulSoup(page)
+        soup = BeautifulSoup(page, 'lxml')
         for b in self.fieldvalue(soup, 'Badge'):
             badge = self.parseBadge(b)
             self.project.appendBadge(badge=badge)
@@ -474,7 +474,7 @@ class HTMLParser_wuprop(HTMLParser):
     def projectTable(self, html):
         """ Extracts projects table from wuprop.boinc-af.org/home.php"""
         projects = dict()       # Key is user_friendly_name!
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, 'lxml')
         t = soup.find_all('table')
         for row in t[-1].find_all('tr'):
             data = row.find_all('td')
@@ -504,7 +504,7 @@ class HTMLParser_numberfields(HTMLParser):
         self.parseHome(page)
         
     def parseHome(self, html): 
-        soup = BeautifulSoup(html)
+        soup = BeautifulSoup(html, 'lxml')
         for first_td in soup.find_all('td', class_='fieldname'):
             fieldname = first_td.text.strip()
             if fieldname == 'Badges':

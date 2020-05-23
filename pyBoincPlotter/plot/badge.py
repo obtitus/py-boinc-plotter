@@ -21,12 +21,13 @@
 import os
 import re
 import datetime
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
+from io import StringIO
+# try:
+#     from cStringIO import StringIO
+# except:
+#     from StringIO import StringIO
 # Scientific import
-from importMatplotlib import *
+from .importMatplotlib import *
 
 # logger
 import logging

@@ -20,6 +20,7 @@
 # Standard import
 import re
 import datetime
+from functools import reduce
 import logging
 logger = logging.getLogger('boinc.application')
 

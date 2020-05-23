@@ -22,7 +22,7 @@ import datetime
 import logging
 logger = logging.getLogger('boinc.plot.deadline')
 # This project
-from importMatplotlib import *
+from .importMatplotlib import *
 try:
     from .. import util
 except ValueError:

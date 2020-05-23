@@ -21,42 +21,42 @@
 # Standard python imports
 import os
 import sys
-import ConfigParser
+import configparser
 import getpass
 import logging
 logger = logging.getLogger('boinc.configuration')
 # Non-standard python imports
 import keyring                          # TODO: optional import by storing passwords in plain text
 
-class MyConfigParser(ConfigParser.ConfigParser):
+class MyConfigParser(configparser.ConfigParser):
     # Simpler config parser which automatically calls write after each key change
     def __init__(self, filename):
         self.filename = filename
         self.path = os.path.dirname(filename)
-        ConfigParser.ConfigParser.__init__(self)
+        configparser.ConfigParser.__init__(self)
         self.read()
 
     def read(self):
-        ConfigParser.ConfigParser.read(self, self.filename)
+        configparser.ConfigParser.read(self, self.filename)
 
     def write(self):
-        with open(self.filename, 'wb') as configfile:
-            ConfigParser.ConfigParser.write(self, configfile)
+        with open(self.filename, 'w') as configfile:
+            configparser.ConfigParser.write(self, configfile)
 
     def get(self, *args, **kwargs):
         try:
-            return ConfigParser.ConfigParser.get(self, *args, **kwargs)
+            return configparser.ConfigParser.get(self, *args, **kwargs)
         except Exception as e:
             logger.warning("%s: %s", self.filename, e)
             return None
 
     def set(self, section, name, *args, **kwargs):
         try:
-            ConfigParser.ConfigParser.set(self, section, name, *args, **kwargs)
-        except ConfigParser.NoSectionError:
+            configparser.ConfigParser.set(self, section, name, *args, **kwargs)
+        except configparser.NoSectionError:
             self.add_section(section)
             # try again:
-            ConfigParser.ConfigParser.set(self, section, name, *args, **kwargs)
+            configparser.ConfigParser.set(self, section, name, *args, **kwargs)
         self.write()
         logger.debug('Written %s %s to config file %s', section, name, self.filename)
 
@@ -86,7 +86,7 @@ class MyConfigParser(ConfigParser.ConfigParser):
     def setupPassword(self, domain, additionalInfo=[], forgetOld=False):
         username = self.get(domain, 'username')
         if username == None or forgetOld:
-            username = raw_input('Enter username for {0}:\n'.format(domain))
+            username = input('Enter username for {0}:\n'.format(domain))
             self.set(domain, 'username', username)
 
         password = self.getpassword(domain, 'username')

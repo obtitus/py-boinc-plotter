@@ -63,7 +63,7 @@ class Boinc(object):
     def verbosePrintProject(self, name, proj):
         """Only print proj if verbose setting is True"""
         if self.args.verbose:
-            print name
+            print(name)
             project.pretty_print(proj, show_empty=True)
 
     def updateLocalProjects(self):
@@ -143,7 +143,7 @@ class Boinc(object):
                         logger.info('prefs %s, %s', prefs[ix], prefs[ix+1])
                         p.changePrefsFile(prefs[ix], prefs[ix+1])
                     except IndexError:
-                        print "Usage error: please supply preferences as key value pairs. got %s" % prefs
+                        print("Usage error: please supply preferences as key value pairs. got %s" % prefs)
             self.args.prefs = None
             p = boinccmd.CallBoinccmd(self.BOINC_DIR, '--read_global_prefs_override')
             return p
@@ -164,7 +164,7 @@ class Boinc(object):
                 except AttributeError:
                     pass
                 except Exception as e:
-                    print e
+                    print(e)
             self.args.boinc = None
         
     # def completer(self, text, state):
@@ -187,12 +187,12 @@ def main(b):
 
     # Get data
     if b.args.update:
-        try:
-            b.updateLocalProjects()
-            b.updateWupropProjects()
-            b.updateWebProjects()
-        except Exception as e:
-            logger.exception('Uncaught exception when getting data')
+        #try:
+        b.updateLocalProjects()
+        b.updateWupropProjects()
+        b.updateWebProjects()
+        #except Exception as e:
+        #    logger.exception('Uncaught exception when getting data')
 
         # print 'MERGED'
         project.pretty_print(b.web_projects, 
@@ -202,9 +202,9 @@ def main(b):
         b.args.update = False   # reset for next time: todo: doesn't actually do anything
 
     if boinccmd_responce is not None:
-        print boinccmd_responce.communicate()
+        print(boinccmd_responce.communicate())
     if prefs_responce is not None:
-        print prefs_responce.communicate()
+        print(prefs_responce.communicate())
 
 def add_switch(parser, shortName, longName, help_on, help_off='', default=True):
     if help_off == '': help_off = help_on
@@ -278,7 +278,7 @@ def run():
     main(b)
 
     while b.args.batch:
-        user_input = raw_input('=== Enter q, quit, e or exit to exit ===\n')
+        user_input = input('=== Enter q, quit, e or exit to exit ===\n')
         if user_input in ('q', 'quit', 'e', 'exit'):
             break
         

@@ -27,7 +27,7 @@ import logging
 logger = logging.getLogger('boinc.plot.jobLog')
 # Non standard
 # Project imports
-import projectColors
+from . import projectColors
 try:
     from .. import task
     from ..project import Project
@@ -37,7 +37,7 @@ except ValueError:
     from project import Project
     import util
 
-from importMatplotlib import *
+from .importMatplotlib import *
 
 def decay_average(t, y, now=0):
     """Modified from http://boinc.berkeley.edu/trac/wiki/CreditStats
@@ -136,7 +136,7 @@ class Plot(object):
     def createArray(self, tasks, attr, dtype=np.float):
         """ helper function for __init__ """
         ret = np.zeros(self.N, dtype=dtype)
-        for ix in xrange(self.N): # Get only N tasks
+        for ix in range(self.N): # Get only N tasks
             try:
                 #print -ix, tasks[-ix]
                 value = getattr(tasks[-ix-1], attr) # remember to go the other way
@@ -153,9 +153,9 @@ class Plot(object):
         except KeyError:
             logger.debug('Vops, no color found for %s', self.label)
             try:
-                self.color = ax._get_lines.color_cycle.next()
+                self.color = next(ax._get_lines.color_cycle)
             except AttributeError: # new matplotlib
-                self.color = ax._get_lines.prop_cycler.next()['color']
+                self.color = next(ax._get_lines.prop_cycler)['color']
             projectColors.colors[self.label] = self.color
 
     def myPlot(self, fig1, plot_single, fig2=None, month=False, **kwargs):

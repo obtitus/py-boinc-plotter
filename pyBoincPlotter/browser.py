@@ -34,7 +34,7 @@ import requests
 # This project
 from project import Project, pretty_print
 from parse import HTMLParser
-import async
+import my_async
 
 # Helper functions:
 def sanitizeURL(url):
@@ -43,8 +43,8 @@ def sanitizeURL(url):
     logger.debug('sanitized %s', url)
     return url
 
-def readFile(filename):
-    with open(filename, 'r') as f:
+def readFile(filename, mode='rb'):
+    with open(filename, mode) as f:
         return f.read()
 join = os.path.join
 
@@ -153,14 +153,13 @@ class BrowserSuper(object):
 
     def writeFile(self, URL, content, extension=''):
         filename = join(self.browser_cache.cacheDir, sanitizeURL(URL)) + extension
-        with open(filename, 'w') as f:
+        with open(filename, 'bw') as f:
             f.write(content)
         self.browser_cache.add(filename)
         return filename
 
     def authenticate(self):
         try:
-            #print self.loginInfo
             r = self.client.post(self.loginPage, data=self.loginInfo, timeout=5)
             logger.info('Authenticate responce "%s"', r)
             #print r.content
@@ -196,7 +195,7 @@ class BrowserSuper(object):
         # firstLine = request.content[:ix]
         # logger.debug('First line "%s"', firstLine)
         # return 'Please log in' in firstLine
-        return 'Please log in' in request.content
+        return 'Please log in' in request.content.decode()
 
     def visitURL(self, URL, recursionCall=False, extension='.html', timeout=5):
         """ RecursionCall is used to limit recursion to 1 step
@@ -376,7 +375,7 @@ def getProjects_wuprop(CONFIG, browser_cache):
 def getProjectsDict(CONFIG, browser_cache):
     """Async version og getProjet, returns a dictionary of projects where key is url"""
     sections = CONFIG.projects()
-    projects_list = async.Pool(getProject, *sections, 
+    projects_list = my_async.Pool(getProject, *sections, 
                                CONFIG=CONFIG, browser_cache=browser_cache)
     projects = dict()
     for p in projects_list.ret:
@@ -402,12 +401,12 @@ if __name__ == '__main__':
         valid_sections = CONFIG.projects()
         section = args.section
         if not(section in valid_sections):
-            print 'Invalid section name, either add to config file or use one of: "%s"' % valid_sections
+            print('Invalid section name, either add to config file or use one of: "%s"' % valid_sections)
             exit(1)
 
         if section == 'wuprop.boinc-af.org':
             wuprop_projects = getProjects_wuprop(CONFIG, browser_cache)
-            print 'wu-prop:', wuprop_projects
+            print('wu-prop:', wuprop_projects)
             
         p = getProject(section, CONFIG=CONFIG, browser_cache=browser_cache)
         projects = dict(section=p)

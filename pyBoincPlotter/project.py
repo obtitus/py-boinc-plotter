@@ -77,7 +77,7 @@ class Project(object):
     
     def appendWorkunitFromXML(self, xml):
         # Currently, the only thing of interest is the mapping between name and app_name
-        soup = BeautifulSoup(xml)
+        soup = BeautifulSoup(xml, features='lxml')
         name = soup.find('name').text
         app_name = soup.find('app_name').text
         self._appNames[name] = app_name
@@ -254,7 +254,7 @@ def mergeWuprop(wuprop_projects,
     """Tries to merge the wuprop project dict (which is sorted by user_friendly_name)
     with the normal local_projects which are sorted by url. Works inplace on local_projects"""
     wuprop_projects = dict(wuprop_projects)
-    for key in wuprop_projects.keys():
+    for key in list(wuprop_projects.keys()):
         wuprop_project = wuprop_projects[key]
         # find:
         for local_project in local_projects.values():
@@ -274,7 +274,7 @@ def mergeDicts(local_dict, web_dict, merge, name):
     """Helper function for above merge rutines"""
     logging.debug('merging with %s, ("%s", "%s")', merge, 
                   local_dict, web_dict)
-    for key in local_dict.keys():
+    for key in list(local_dict.keys()):
         if key in web_dict:
             if merge(local_dict[key],
                      web_dict[key]):
@@ -293,7 +293,7 @@ def mergeDicts(local_dict, web_dict, merge, name):
         name2 = name2.replace('(', '').replace(')', '')
         return name1 == name2
 
-    for remaining_key, remaining in local_dict.items():
+    for remaining_key, remaining in list(local_dict.items()):
         for web in web_dict.values():
             if getattr(remaining, 'name_short', 1) == getattr(web, 'name_short', -1):
                 logger.debug('short name match \n"%s", \n"%s"', 
@@ -302,7 +302,7 @@ def mergeDicts(local_dict, web_dict, merge, name):
                     del local_dict[remaining_key]
                     break
 
-    for remaining_key, remaining in local_dict.items():
+    for remaining_key, remaining in list(local_dict.items()):
         for web in web_dict.values():
             if fuzzyMatch(getattr(remaining, name),
                           getattr(web, name)):
@@ -314,7 +314,7 @@ def mergeDicts(local_dict, web_dict, merge, name):
 
     web_objects = web_dict.values()
     web_names   = [getattr(web, name) for web in web_objects]
-    for remaining_key, remaining in local_dict.items():
+    for remaining_key, remaining in list(local_dict.items()):
         try:
             match = difflib.get_close_matches(getattr(remaining, name), web_names, n=1, cutoff=0.8)
             ix = web_names.index(match[0])
@@ -341,4 +341,4 @@ def pretty_print(projects, show_empty=False, show_checkpoint=False):
     for key, p in sorted(projects.items()):
         p.show_empty = show_empty # hack
         if len(p) != 0 or show_empty:
-            print str(p) + '\n'
+            print(str(p) + '\n')

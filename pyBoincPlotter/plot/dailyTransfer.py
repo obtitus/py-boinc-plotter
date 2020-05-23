@@ -29,7 +29,7 @@ from collections import defaultdict
 import logging
 logger = logging.getLogger('boinc.plot.dailyTransfer')
 # This project
-from importMatplotlib import *
+from .importMatplotlib import *
 try:
     from .. import util
 except ValueError:

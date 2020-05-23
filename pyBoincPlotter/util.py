@@ -119,6 +119,6 @@ def diffMonths(date1, date2):
     return (date2.year - date1.year)*12 + (date2.month - date1.month)
 
 if __name__ == '__main__':
-    print timedeltaToStr(datetime.timedelta(500))
-    print timedeltaToStr(datetime.timedelta(300))
-    print timedeltaToStr(datetime.timedelta(1000))
+    print(timedeltaToStr(datetime.timedelta(500)))
+    print(timedeltaToStr(datetime.timedelta(300)))
+    print(timedeltaToStr(datetime.timedelta(1000)))

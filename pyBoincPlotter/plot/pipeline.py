@@ -23,7 +23,7 @@
 import logging
 logger = logging.getLogger('boinc.plot.pipeline')
 # This project
-from importMatplotlib import *
+from .importMatplotlib import *
 try:
     from ..task import Task
 except ValueError:

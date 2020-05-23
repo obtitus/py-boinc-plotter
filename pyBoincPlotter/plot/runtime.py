@@ -23,8 +23,8 @@
 import logging
 logger = logging.getLogger('boinc.plot.runtime')
 # This project
-from importMatplotlib import *
-from badge import Badge_wuprop
+from .importMatplotlib import *
+from .badge import Badge_wuprop
 try:
     from .. import util
 except ValueError:
@@ -47,7 +47,7 @@ def parse_worldcommunitygrid(projects):
             # So that "FightAIDS@Home - AutoDock" and "FightAIDS@Home - Vina" are merged with "FightAIDS@Home"
             #app.name_long.startswith(prev_name):
             # no longer applies with FightAIDS@Home - Phase 2
-            #print '"%s" "%s", %s' % (app.name_long, prev_name, app.name_long.startswith(prev_name))
+            #print('"%s" "%s", %s' % (app.name_long, prev_name, app.name_long.startswith(prev_name)))
             if app == "FightAIDS@Home - Vina" and prev_name == "FightAIDS@Home":
                 data[prev_name][1] += runtime
                 data[prev_name][2] += pending
@@ -115,7 +115,7 @@ def plot_worldcommunitygrid(fig, browser, data):
 
     def onpick1(event):
         patch = event.artist
-        print event, patch
+        print(event, patch)
         if isinstance(patch, Rectangle):
             print('onpick1 patch:', patch.get_path())
     fig.canvas.mpl_connect('pick_event', onpick1)
@@ -254,7 +254,7 @@ if __name__ == '__main__':
     import boinccmd
 
     local_projects = boinccmd.get_state()
-    print 'LOCAL'
+    print('LOCAL')
     project.pretty_print(local_projects)
 
     CONFIG, CACHE_DIR, _ = config.set_globals()
@@ -267,12 +267,12 @@ if __name__ == '__main__':
     web_projects = browser.getProjectsDict(CONFIG, cache)
 
     wuprop_projects = browser.getProjects_wuprop(CONFIG, cache)
-    print 'WUPROP'
+    print('WUPROP')
     project.pretty_print(wuprop_projects, show_empty=True)
     
     project.mergeWuprop(wuprop_projects, local_projects)
     project.merge(local_projects, web_projects)
-    print 'MERGED'
+    print('MERGED')
     project.pretty_print(web_projects, show_empty=True)
     #project.pretty_print(local_projects, show_empty=True)
     

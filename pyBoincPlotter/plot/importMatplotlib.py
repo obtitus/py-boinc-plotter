@@ -18,10 +18,11 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 # END LICENCE
 import datetime #
-try:
-    from cStringIO import StringIO
-except:
-    from StringIO import StringIO
+from io import StringIO
+# try:
+#     from cStringIO import StringIO
+# except:
+#     from StringIO import StringIO
 plt = None
 try:
     import numpy as np
@@ -43,7 +44,7 @@ try:
         return s
     formatter_timedelta = matplotlib.ticker.FuncFormatter(timeTicks)
 except ImportError as e:
-    print e
+    print(e)
 
 def dayFormat(ax, month=False):
     import logging
